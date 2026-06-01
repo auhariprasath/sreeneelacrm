@@ -132,7 +132,7 @@ function SettingsPage() {
               ].map(([label, val]) => (
                 <div key={label as string} className="space-y-1.5">
                   <Label>{label as string}</Label>
-                  <Input defaultValue={val as string} suffix="%" />
+                  <Input defaultValue={val as string} />
                 </div>
               ))}
             </CardContent>
@@ -181,7 +181,7 @@ function SettingsPage() {
                 ].map(([label, val]) => (
                   <div key={label as string} className="space-y-1.5">
                     <Label>{label as string}</Label>
-                    <Input defaultValue={val as string} suffix="%" />
+                    <Input defaultValue={val as string} />
                   </div>
                 ))}
               </div>
