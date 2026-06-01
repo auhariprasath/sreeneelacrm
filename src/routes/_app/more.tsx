@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, KeyRound, LogOut, Sun, Moon, ClipboardList, CalendarDays, BarChart3, ArrowRightLeft, Megaphone } from "lucide-react";
+import { Settings, KeyRound, LogOut, Sun, Moon, ClipboardList, CalendarDays, BarChart3, ArrowRightLeft, Megaphone, Shield } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -40,6 +40,11 @@ function MorePage() {
         <Link to="/campaigns" className="block">
           <Button variant="outline" className="w-full justify-start min-h-[48px]"><Megaphone className="h-4 w-4 mr-2" />Campaigns</Button>
         </Link>
+        {role === "super_admin" && (
+          <Link to="/command-centre" className="block">
+            <Button variant="outline" className="w-full justify-start min-h-[48px]"><Shield className="h-4 w-4 mr-2" />Command Centre</Button>
+          </Link>
+        )}
         {(role === "super_admin" || role === "admin") && (
           <Link to="/settings" className="block">
             <Button variant="outline" className="w-full justify-start min-h-[48px]"><Settings className="h-4 w-4 mr-2" />Settings</Button>
