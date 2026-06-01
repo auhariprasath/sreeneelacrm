@@ -80,6 +80,15 @@ function LeadProfile() {
     setQuotations((data as Quotation[]) ?? []);
   };
 
+  const loadBookings = async () => {
+    const [{ data: bks }, { data: pmts }] = await Promise.all([
+      supabase.from("bookings").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("payments").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: true }),
+    ]);
+    setBookings((bks as Booking[]) ?? []);
+    setPayments((pmts as Payment[]) ?? []);
+  };
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("leads").select("*").eq("id", leadId).maybeSingle();
@@ -90,16 +99,20 @@ function LeadProfile() {
       lead_id: leadId, action: "Viewed lead", action_type: "view", performed_by: profile?.id ?? null,
     });
 
-    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }] = await Promise.all([
+    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }, { data: bks }, { data: pmts }] = await Promise.all([
       supabase.from("activity_logs").select("*").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(50),
       supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true }),
       supabase.from("requirements").select("*").eq("lead_id", leadId).is("deleted_at", null).order("requirement_number", { ascending: true }),
       supabase.from("quotations").select("*").eq("lead_id", leadId).is("deleted_at", null).order("version", { ascending: false }),
+      supabase.from("bookings").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("payments").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: true }),
     ]);
     setActivities((acts as Activity[]) ?? []);
     setFollowUps((fus as FollowUp[]) ?? []);
     setRequirements((reqs as Requirement[]) ?? []);
     setQuotations((quotes as Quotation[]) ?? []);
+    setBookings((bks as Booking[]) ?? []);
+    setPayments((pmts as Payment[]) ?? []);
 
     if ((data as Lead).referred_by_lead_id) {
       const { data: ref } = await supabase.from("leads").select("id,full_name").eq("id", (data as Lead).referred_by_lead_id!).maybeSingle();
