@@ -22,6 +22,7 @@ import { SendQuotationDialog } from "@/components/quotations/send-quotation-dial
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { RemindersList } from "@/components/bookings/reminders-list";
+import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -461,6 +462,16 @@ function LeadProfile() {
                         </div>
                       )}
                       <RemindersList bookingId={b.id} phone={lead.phone} />
+                      {b.status !== "cancelled" && (
+                        <VendorAssignment
+                          bookingId={b.id}
+                          companyId={b.company_id}
+                          eventDate={b.event_date}
+                          startTime={b.start_time}
+                          venue={b.venue}
+                          clientName={lead.full_name}
+                        />
+                      )}
                       {b.status !== "cancelled" && b.status !== "completed" && (
                         <div className="border-t pt-2 flex flex-wrap gap-1.5">
                           {b.status === "cheque_pending" && (
