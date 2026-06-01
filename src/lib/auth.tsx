@@ -59,6 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
+
+    // Deactivated accounts cannot use the app
+    if (prof && (prof as Profile).is_active === false) {
+      await supabase.auth.signOut();
+      const { toast } = await import("sonner");
+      toast.error("Account deactivated. Contact your admin.");
+      setProfile(null);
+      setRole(null);
+      setCompanies([]);
+      _setActiveCompanyId(null);
+      return;
+    }
+
     const userRole: AppRole | null = roles && roles.length > 0
       ? (roles.find((r) => r.role === "super_admin")?.role
         ?? roles.find((r) => r.role === "admin")?.role
@@ -79,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       _setActiveCompanyId(prof?.company_id ?? null);
     }
   };
+
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {

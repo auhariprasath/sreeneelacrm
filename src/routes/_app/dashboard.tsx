@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox } from "lucide-react";
+import { DashboardSkeleton } from "@/components/skeleton-dashboard";
+import { formatINR } from "@/lib/format";
+
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -35,8 +38,10 @@ function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc
 }
 
 function DashboardPage() {
-  const { role, companies, profile } = useAuth();
+  const { role, companies, profile, loading } = useAuth();
+  if (loading) return <DashboardSkeleton />;
   const greeting = `Welcome, ${profile?.full_name || "there"}`;
+
 
   if (role === "super_admin") {
     return (
@@ -65,7 +70,7 @@ function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total leads" value={0} icon={Users} />
           <StatCard label="Total bookings" value={0} icon={ClipboardList} />
-          <StatCard label="Pending payments" value="₹0" icon={IndianRupee} />
+          <StatCard label="Pending payments" value={formatINR(0)} icon={IndianRupee} />
           <StatCard label="Upcoming events" value={0} icon={CalendarClock} />
         </div>
 

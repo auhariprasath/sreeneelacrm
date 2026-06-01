@@ -16,6 +16,8 @@ import { OfflineBanner } from "@/components/offline-banner";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { toast } from "sonner";
 import { initialsOf } from "@/lib/format";
+import { InstallPrompt } from "@/components/install-prompt";
+
 
 export const Route = createFileRoute("/_app")({ component: AppLayout });
 
@@ -225,7 +227,9 @@ function AppLayout() {
             );
           })}
         </nav>
+        <InstallPrompt />
       </div>
     </div>
   );
 }
+
