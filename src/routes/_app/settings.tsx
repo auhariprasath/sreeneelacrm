@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Building2, Users, Filter, CalendarRange, Clock, Tags, Plus, Percent, Bell, CalendarCheck,
+  Building2, Users, Filter, CalendarRange, Tags, Plus, Percent, Bell, CalendarCheck,
   FileText, XCircle, MessageSquare, Briefcase, Lock,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
