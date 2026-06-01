@@ -16,6 +16,7 @@ import { FollowUpDialog } from "@/components/leads/follow-up-dialog";
 import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
 import { TransferDialog } from "@/components/leads/transfer-dialog";
 import { RequirementSheet } from "@/components/requirements/requirement-sheet";
+import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
