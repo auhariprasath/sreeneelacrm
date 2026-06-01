@@ -120,12 +120,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
+    if (data.user) {
+      const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+      const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
+      const nowIso = new Date().toISOString();
+      const { data: prof } = await supabase.from("profiles").select("company_id").eq("id", data.user.id).maybeSingle();
+      await supabase.from("login_log").insert({
+        user_id: data.user.id, company_id: prof?.company_id ?? null,
+        device_type: isMobile ? "mobile" : "desktop", user_agent: ua.slice(0, 500),
+      });
+      await supabase.from("profiles").update({ last_login_at: nowIso }).eq("id", data.user.id);
+    }
     return {};
   };
 
-  const signOut = async () => { await supabase.auth.signOut(); };
+  const signOut = async () => {
+    if (user) {
+      const nowIso = new Date().toISOString();
+      await supabase.from("profiles").update({ last_logout_at: nowIso }).eq("id", user.id);
+      await supabase.from("login_log").update({ logout_at: nowIso }).eq("user_id", user.id).is("logout_at", null);
+    }
+    await supabase.auth.signOut();
+  };
 
   const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
