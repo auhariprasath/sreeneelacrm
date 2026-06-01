@@ -221,6 +221,9 @@ function LeadProfile() {
                   ? (<><ShieldOff className="h-4 w-4 mr-1.5" /> Unblock</>)
                   : (<><ShieldAlert className="h-4 w-4 mr-1.5" /> Blacklist</>)}
               </Button>
+              <Button variant="outline" className="h-11" onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
+                <ArrowRightLeft className="h-4 w-4 mr-1.5" /> Transfer
+              </Button>
               <div className="ml-auto min-w-[180px]">
                 <Select value={lead.status} onValueChange={(v) => updateStatus(v as Status)}>
                   <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
