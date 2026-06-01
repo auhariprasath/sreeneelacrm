@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, KeyRound, LogOut, Building2, Sun, Moon } from "lucide-react";
+import { Settings, KeyRound, LogOut, Sun, Moon, ClipboardList, CalendarDays, BarChart3, ArrowRightLeft } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -26,13 +26,16 @@ function MorePage() {
 
       <div className="space-y-2">
         <Link to="/bookings" className="block">
-          <Button variant="outline" className="w-full justify-start min-h-[48px]"><Building2 className="h-4 w-4 mr-2" />Bookings</Button>
+          <Button variant="outline" className="w-full justify-start min-h-[48px]"><ClipboardList className="h-4 w-4 mr-2" />Bookings</Button>
         </Link>
         <Link to="/calendar" className="block">
-          <Button variant="outline" className="w-full justify-start min-h-[48px]"><Building2 className="h-4 w-4 mr-2" />Calendar</Button>
+          <Button variant="outline" className="w-full justify-start min-h-[48px]"><CalendarDays className="h-4 w-4 mr-2" />Calendar</Button>
         </Link>
         <Link to="/reports" className="block">
-          <Button variant="outline" className="w-full justify-start min-h-[48px]"><Building2 className="h-4 w-4 mr-2" />Reports</Button>
+          <Button variant="outline" className="w-full justify-start min-h-[48px]"><BarChart3 className="h-4 w-4 mr-2" />Reports</Button>
+        </Link>
+        <Link to="/transfers" className="block">
+          <Button variant="outline" className="w-full justify-start min-h-[48px]"><ArrowRightLeft className="h-4 w-4 mr-2" />Transfers</Button>
         </Link>
         {(role === "super_admin" || role === "admin") && (
           <Link to="/settings" className="block">

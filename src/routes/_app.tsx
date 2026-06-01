@@ -104,7 +104,7 @@ function AppLayout() {
           })}
         </nav>
         <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border">
-          v0.2 · Phase 2
+          v0.4 · Phase 4
         </div>
       </aside>
 
