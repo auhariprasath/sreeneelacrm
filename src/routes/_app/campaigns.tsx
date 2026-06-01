@@ -348,15 +348,13 @@ function SendDialog({ campaign, companyId, onClose }: { campaign: CampaignRow; c
         lead_id: l.id,
         company_id: companyId,
         channel_used: campaign.channel,
-        status: "pending",
+        status: "pending" as const,
       }));
       if (inserts.length) {
-        const { error } = await supabase.from("campaign_leads").insert(inserts);
+        const { error } = await supabase.from("campaign_leads").insert(inserts as any);
         if (error) { toast.error(error.message); setPreparing(false); return; }
-        await supabase.from("campaigns").update({ total_leads: inserts.length, status: "sending" }).eq("id", campaign.id);
+        await supabase.from("campaigns").update({ total_leads: inserts.length } as any).eq("id", campaign.id);
       }
-    } else if (campaign.status === "draft") {
-      await supabase.from("campaigns").update({ status: "sending" }).eq("id", campaign.id);
     }
     setPreparing(false);
   };
