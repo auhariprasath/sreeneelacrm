@@ -403,6 +403,14 @@ function LeadProfile() {
         fromCompanyId={lead.company_id}
         performedBy={profile?.id ?? null}
       />
+      <RequirementSheet
+        open={reqOpen}
+        onOpenChange={(v) => { setReqOpen(v); if (!v) loadRequirements(); }}
+        leadId={lead.id}
+        companyId={lead.company_id}
+        requirementId={editReqId}
+        onSaved={loadRequirements}
+      />
     </div>
   );
 }
