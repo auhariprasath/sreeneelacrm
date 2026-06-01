@@ -142,7 +142,7 @@ export const Route = createFileRoute("/api/public/hooks/pre-event-reminders")({
                 lead_id: b.lead_id,
                 title: stage.title(ctx),
                 body: `${stage.body(ctx)} ${tag}`,
-                type: "info",
+                type: "event_reminder",
               });
               if (!insErr) created++;
             }
