@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox } from "lucide-react";
+import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox, Clock } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
-import { formatINR } from "@/lib/format";
-
+import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -37,20 +38,76 @@ function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc
   );
 }
 
+interface CompanyStats {
+  newToday: number;
+  active: number;
+  bookings: number;
+  followUps: number;
+  activeHolds: number;
+  upcoming: Array<{ id: string; lead_id: string; event_date: string; start_time: string; full_name: string }>;
+}
+
+async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [leadsToday, activeLeads, bookings, followUps, holds, upcoming] = await Promise.all([
+    supabase.from("leads").select("id", { count: "exact", head: true })
+      .eq("company_id", companyId).is("deleted_at", null)
+      .gte("created_at", todayStart.toISOString()),
+    supabase.from("leads").select("id", { count: "exact", head: true })
+      .eq("company_id", companyId).is("deleted_at", null)
+      .in("status", ["new", "in_progress", "positive"]),
+    supabase.from("requirements").select("id", { count: "exact", head: true })
+      .eq("company_id", companyId).is("deleted_at", null).eq("status", "complete"),
+    supabase.from("follow_ups").select("id, lead_id, leads!inner(company_id)", { count: "exact", head: true })
+      .eq("leads.company_id", companyId).eq("is_sent", false).eq("is_cancelled", false),
+    supabase.from("slots").select("id", { count: "exact", head: true })
+      .eq("company_id", companyId).eq("status", "soft_hold")
+      .gt("held_until", new Date().toISOString()),
+    supabase.from("requirements")
+      .select("id, lead_id, event_date, start_time, leads!inner(full_name, company_id)")
+      .eq("company_id", companyId).is("deleted_at", null)
+      .gte("event_date", today).order("event_date", { ascending: true }).limit(5),
+  ]);
+
+  return {
+    newToday: leadsToday.count ?? 0,
+    active: activeLeads.count ?? 0,
+    bookings: bookings.count ?? 0,
+    followUps: followUps.count ?? 0,
+    activeHolds: holds.count ?? 0,
+    upcoming: (upcoming.data ?? []).map((r: any) => ({
+      id: r.id, lead_id: r.lead_id, event_date: r.event_date, start_time: r.start_time,
+      full_name: r.leads?.full_name ?? "—",
+    })),
+  };
+}
+
 function DashboardPage() {
-  const { role, companies, profile, loading } = useAuth();
+  const { role, companies, profile, loading, activeCompanyId } = useAuth();
+  const [stats, setStats] = useState<CompanyStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const companyId = role === "super_admin" ? activeCompanyId : companies[0]?.id ?? null;
+
+  useEffect(() => {
+    if (role === "super_admin" && !activeCompanyId) { setStatsLoading(false); return; }
+    if (!companyId) return;
+    setStatsLoading(true);
+    loadCompanyStats(companyId).then((s) => { setStats(s); setStatsLoading(false); });
+  }, [companyId, role, activeCompanyId]);
+
   if (loading) return <DashboardSkeleton />;
   const greeting = `Welcome, ${profile?.full_name || "there"}`;
 
-
-  if (role === "super_admin") {
+  if (role === "super_admin" && !activeCompanyId) {
     return (
       <div className="space-y-6 max-w-7xl">
         <div>
           <h1 className="text-2xl font-semibold">{greeting}</h1>
-          <p className="text-sm text-muted-foreground">Overview across all 4 companies</p>
+          <p className="text-sm text-muted-foreground">Pick a company from the top bar to see live stats</p>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {companies.map((c) => (
             <Card key={c.id}>
@@ -58,62 +115,74 @@ function DashboardPage() {
                 <CardTitle className="text-base">{c.name}</CardTitle>
                 <CardDescription className="capitalize">{c.type} venue</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-1 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">New leads</span><span className="font-medium">0</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Active leads</span><span className="font-medium">0</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Bookings</span><span className="font-medium">0</span></div>
-              </CardContent>
+              <CardContent className="text-xs text-muted-foreground">Switch context to view</CardContent>
             </Card>
           ))}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total leads" value={0} icon={Users} />
-          <StatCard label="Total bookings" value={0} icon={ClipboardList} />
-          <StatCard label="Pending payments" value={formatINR(0)} icon={IndianRupee} />
-          <StatCard label="Upcoming events" value={0} icon={CalendarClock} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Need action</CardTitle></CardHeader>
-            <CardContent><EmptyList icon={Inbox} title="Nothing needs your attention" desc="Items requiring action will appear here." /></CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Conflict alerts</CardTitle></CardHeader>
-            <CardContent><EmptyList icon={AlertCircle} title="No conflicts detected" desc="Booking and slot conflicts will appear here." /></CardContent>
-          </Card>
         </div>
       </div>
     );
   }
 
-  // admin / staff
+  if (statsLoading || !stats) return <DashboardSkeleton />;
+
   return (
     <div className="space-y-6 max-w-7xl">
       <div>
         <h1 className="text-2xl font-semibold">{greeting}</h1>
         <p className="text-sm text-muted-foreground">
-          {companies[0]?.name ?? "Your company"} overview
+          {companies.find((c) => c.id === companyId)?.name ?? "Your company"} overview
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="New leads today" value={0} icon={Users} />
-        <StatCard label="Active leads" value={0} icon={Users} />
-        <StatCard label="Bookings this month" value={0} icon={ClipboardList} />
-        <StatCard label="Pending follow-ups" value={0} icon={ListTodo} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="New leads today" value={stats.newToday} icon={Users} />
+        <StatCard label="Active leads" value={stats.active} icon={Users} />
+        <StatCard label="Bookings" value={stats.bookings} icon={ClipboardList} hint="completed requirements" />
+        <StatCard label="Pending follow-ups" value={stats.followUps} icon={ListTodo} />
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">My leads</CardTitle></CardHeader>
-        <CardContent><EmptyList icon={Users} title="No leads yet" desc="Assigned leads will appear here." /></CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-base">Active soft holds</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats.activeHolds === 0 ? (
+              <EmptyList icon={Clock} title="No active holds" desc="Soft holds expire after 30 minutes." />
+            ) : (
+              <div className="text-sm">
+                <span className="text-2xl font-semibold">{stats.activeHolds}</span>
+                <span className="text-muted-foreground ml-2">slot{stats.activeHolds === 1 ? "" : "s"} held right now</span>
+                <Link to="/calendar" className="block mt-3 text-primary text-xs underline">View calendar →</Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Upcoming tasks</CardTitle></CardHeader>
-        <CardContent><EmptyList icon={ListTodo} title="No tasks scheduled" desc="Follow-ups and reminders will appear here." /></CardContent>
-      </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-base">Upcoming events</CardTitle></CardHeader>
+          <CardContent>
+            {stats.upcoming.length === 0 ? (
+              <EmptyList icon={CalendarClock} title="Nothing scheduled" desc="Confirmed events will appear here." />
+            ) : (
+              <ul className="divide-y">
+                {stats.upcoming.map((u) => (
+                  <li key={u.id} className="py-2 flex items-center justify-between text-sm">
+                    <div>
+                      <div className="font-medium">{u.full_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDateIN(u.event_date)} {u.start_time ? `· ${formatTimeOfDay(u.start_time)}` : ""}
+                      </div>
+                    </div>
+                    <Link to="/leads/$leadId" params={{ leadId: u.lead_id }} className="text-xs text-primary underline">Open</Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
