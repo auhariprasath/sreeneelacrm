@@ -26,6 +26,8 @@ interface StaffRow {
   must_change_password: boolean;
   last_active_at: string | null;
   role: string;
+  on_leave: boolean;
+  backup_staff_id: string | null;
 }
 
 export function StaffSection({ companyId }: { companyId: string | undefined }) {
