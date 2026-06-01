@@ -20,6 +20,8 @@ import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
+import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
+import { RemindersList } from "@/components/bookings/reminders-list";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -65,6 +67,9 @@ function LeadProfile() {
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
   const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
   const [bookQuoteId, setBookQuoteId] = useState<string | null>(null);
+  const [chequeBooking, setChequeBooking] = useState<Booking | null>(null);
+  const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
+  const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
@@ -455,6 +460,22 @@ function LeadProfile() {
                           ))}
                         </div>
                       )}
+                      <RemindersList bookingId={b.id} phone={lead.phone} />
+                      {b.status !== "cancelled" && b.status !== "completed" && (
+                        <div className="border-t pt-2 flex flex-wrap gap-1.5">
+                          {b.status === "cheque_pending" && (
+                            <Button size="sm" variant="outline" className="h-8" onClick={() => setChequeBooking(b)}>
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Cheque status
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
+                            <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-rose-600 hover:text-rose-700" onClick={() => setCancelBooking(b)}>
+                            Cancel booking
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -587,6 +608,18 @@ function LeadProfile() {
         quotationId={bookQuoteId}
         onConfirmed={() => { loadBookings(); loadQuotations(); load(); }}
       />
+      {chequeBooking && (
+        <ChequeClearDialog open={!!chequeBooking} onOpenChange={(v) => { if (!v) setChequeBooking(null); }}
+          booking={chequeBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
+      {cancelBooking && (
+        <CancelBookingDialog open={!!cancelBooking} onOpenChange={(v) => { if (!v) setCancelBooking(null); }}
+          booking={cancelBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
+      {reschedBooking && (
+        <RescheduleBookingDialog open={!!reschedBooking} onOpenChange={(v) => { if (!v) setReschedBooking(null); }}
+          booking={reschedBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
     </div>
   );
 }
