@@ -58,8 +58,36 @@ export type Database = {
           },
         ]
       }
+      add_ons_selected: {
+        Row: {
+          addon_name: string
+          addon_price: number
+          created_at: string
+          id: string
+          is_custom: boolean
+          requirement_id: string
+        }
+        Insert: {
+          addon_name: string
+          addon_price?: number
+          created_at?: string
+          id?: string
+          is_custom?: boolean
+          requirement_id: string
+        }
+        Update: {
+          addon_name?: string
+          addon_price?: number
+          created_at?: string
+          id?: string
+          is_custom?: boolean
+          requirement_id?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
+          addons_catalog: Json
           address: string | null
           bank_account: string | null
           cancellation_policy: string | null
@@ -67,11 +95,14 @@ export type Database = {
           default_callback_time: string
           default_follow_up_minutes: number
           deleted_at: string | null
+          drop_reasons: Json
           email: string | null
+          event_types: Json
           google_review_link: string | null
           gstin: string | null
           id: string
           ifsc: string | null
+          is_mandapam: boolean
           logo_url: string | null
           max_capacity: number | null
           max_follow_up_attempts: number
@@ -80,11 +111,13 @@ export type Database = {
           refund_tier_15_30: string | null
           refund_tier_30plus: string | null
           refund_tier_under15: string | null
+          sessions: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id: string | null
           wa_number: string | null
         }
         Insert: {
+          addons_catalog?: Json
           address?: string | null
           bank_account?: string | null
           cancellation_policy?: string | null
@@ -92,11 +125,14 @@ export type Database = {
           default_callback_time?: string
           default_follow_up_minutes?: number
           deleted_at?: string | null
+          drop_reasons?: Json
           email?: string | null
+          event_types?: Json
           google_review_link?: string | null
           gstin?: string | null
           id?: string
           ifsc?: string | null
+          is_mandapam?: boolean
           logo_url?: string | null
           max_capacity?: number | null
           max_follow_up_attempts?: number
@@ -105,11 +141,13 @@ export type Database = {
           refund_tier_15_30?: string | null
           refund_tier_30plus?: string | null
           refund_tier_under15?: string | null
+          sessions?: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           wa_number?: string | null
         }
         Update: {
+          addons_catalog?: Json
           address?: string | null
           bank_account?: string | null
           cancellation_policy?: string | null
@@ -117,11 +155,14 @@ export type Database = {
           default_callback_time?: string
           default_follow_up_minutes?: number
           deleted_at?: string | null
+          drop_reasons?: Json
           email?: string | null
+          event_types?: Json
           google_review_link?: string | null
           gstin?: string | null
           id?: string
           ifsc?: string | null
+          is_mandapam?: boolean
           logo_url?: string | null
           max_capacity?: number | null
           max_follow_up_attempts?: number
@@ -130,6 +171,7 @@ export type Database = {
           refund_tier_15_30?: string | null
           refund_tier_30plus?: string | null
           refund_tier_under15?: string | null
+          sessions?: Json
           type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           wa_number?: string | null
@@ -142,30 +184,36 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           id: string
+          is_cancelled: boolean
           is_sent: boolean
           lead_id: string
           note: string | null
           scheduled_at: string
+          type: Database["public"]["Enums"]["follow_up_type"]
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           id?: string
+          is_cancelled?: boolean
           is_sent?: boolean
           lead_id: string
           note?: string | null
           scheduled_at: string
+          type?: Database["public"]["Enums"]["follow_up_type"]
         }
         Update: {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
           id?: string
+          is_cancelled?: boolean
           is_sent?: boolean
           lead_id?: string
           note?: string | null
           scheduled_at?: string
+          type?: Database["public"]["Enums"]["follow_up_type"]
         }
         Relationships: [
           {
@@ -358,6 +406,123 @@ export type Database = {
           },
         ]
       }
+      requirements: {
+        Row: {
+          budget_range: string | null
+          community: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          duration_hours: number | null
+          end_time: string | null
+          event_date: string | null
+          event_type: string | null
+          event_type_other: string | null
+          guest_count: number | null
+          id: string
+          lead_id: string
+          muhurtham_time: string | null
+          notes: string | null
+          requirement_number: number
+          start_time: string | null
+          status: Database["public"]["Enums"]["requirement_status"]
+          updated_at: string
+        }
+        Insert: {
+          budget_range?: string | null
+          community?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          duration_hours?: number | null
+          end_time?: string | null
+          event_date?: string | null
+          event_type?: string | null
+          event_type_other?: string | null
+          guest_count?: number | null
+          id?: string
+          lead_id: string
+          muhurtham_time?: string | null
+          notes?: string | null
+          requirement_number?: number
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["requirement_status"]
+          updated_at?: string
+        }
+        Update: {
+          budget_range?: string | null
+          community?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          duration_hours?: number | null
+          end_time?: string | null
+          event_date?: string | null
+          event_type?: string | null
+          event_type_other?: string | null
+          guest_count?: number | null
+          id?: string
+          lead_id?: string
+          muhurtham_time?: string | null
+          notes?: string | null
+          requirement_number?: number
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["requirement_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      slots: {
+        Row: {
+          company_id: string
+          confirmed_by_booking_id: string | null
+          created_at: string
+          end_time: string
+          event_date: string
+          held_by_lead_id: string | null
+          held_by_requirement_id: string | null
+          held_until: string | null
+          id: string
+          session_name: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["slot_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          confirmed_by_booking_id?: string | null
+          created_at?: string
+          end_time: string
+          event_date: string
+          held_by_lead_id?: string | null
+          held_by_requirement_id?: string | null
+          held_until?: string | null
+          id?: string
+          session_name?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["slot_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          confirmed_by_booking_id?: string | null
+          created_at?: string
+          end_time?: string
+          event_date?: string
+          held_by_lead_id?: string | null
+          held_by_requirement_id?: string | null
+          held_until?: string | null
+          id?: string
+          session_name?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["slot_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transfer_requests: {
         Row: {
           created_at: string
@@ -473,6 +638,7 @@ export type Database = {
         | "payment"
       app_role: "super_admin" | "admin" | "staff"
       company_type: "garden" | "banquet" | "party" | "mandapam"
+      follow_up_type: "auto_1hr" | "tomorrow_10am" | "custom" | "done"
       lead_score: "hot" | "warm" | "cold"
       lead_source: "inbound_call" | "walkin" | "referral" | "portal" | "manual"
       lead_status:
@@ -492,6 +658,13 @@ export type Database = {
         | "event_reminder"
         | "low_rating"
         | "system"
+      requirement_status:
+        | "collecting"
+        | "slot_checking"
+        | "slot_confirmed"
+        | "muhurtham_conflict"
+        | "complete"
+      slot_status: "free" | "soft_hold" | "enquiry" | "confirmed"
       transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
     }
     CompositeTypes: {
@@ -636,6 +809,7 @@ export const Constants = {
       ],
       app_role: ["super_admin", "admin", "staff"],
       company_type: ["garden", "banquet", "party", "mandapam"],
+      follow_up_type: ["auto_1hr", "tomorrow_10am", "custom", "done"],
       lead_score: ["hot", "warm", "cold"],
       lead_source: ["inbound_call", "walkin", "referral", "portal", "manual"],
       lead_status: [
@@ -657,6 +831,14 @@ export const Constants = {
         "low_rating",
         "system",
       ],
+      requirement_status: [
+        "collecting",
+        "slot_checking",
+        "slot_confirmed",
+        "muhurtham_conflict",
+        "complete",
+      ],
+      slot_status: ["free", "soft_hold", "enquiry", "confirmed"],
       transfer_status: ["pending", "approved", "rejected", "auto_approved"],
     },
   },
