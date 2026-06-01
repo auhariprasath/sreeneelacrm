@@ -492,6 +492,24 @@ function SettingsPage() {
           </Card>
         );
       }
+      case "task-templates": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Task templates</CardTitle>
+              <CardDescription>Auto-generate a task board for every confirmed booking. Set timing, assignee, and priority.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <TaskTemplatesSection companyId={activeCompanyId} />
+            </CardContent>
+          </Card>
+        );
+      }
       default: {
         const titleMap = Object.fromEntries(SECTIONS.map((s) => [s.id, s.label]));
         return (
