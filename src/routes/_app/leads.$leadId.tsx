@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -19,6 +19,7 @@ import { RequirementSheet } from "@/components/requirements/requirement-sheet";
 import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
+import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -26,6 +27,8 @@ type Activity = Database["public"]["Tables"]["activity_logs"]["Row"];
 type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
+type Booking = Database["public"]["Tables"]["bookings"]["Row"];
+type Payment = Database["public"]["Tables"]["payments"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
@@ -47,6 +50,8 @@ function LeadProfile() {
 
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
@@ -59,6 +64,7 @@ function LeadProfile() {
   const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
   const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
+  const [bookQuoteId, setBookQuoteId] = useState<string | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
