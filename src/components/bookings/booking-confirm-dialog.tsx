@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { generateTasksForBooking } from "@/lib/task-templates";
 import type { Database } from "@/integrations/supabase/types";
 
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
