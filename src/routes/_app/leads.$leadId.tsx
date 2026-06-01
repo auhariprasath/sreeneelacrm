@@ -397,16 +397,72 @@ function LeadProfile() {
                       <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
                         Open
                       </Button>
-                      <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
-                        <Send className="h-3.5 w-3.5 mr-1" /> Send
-                      </Button>
+                      {q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id) ? (
+                        <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Book
+                        </Button>
+                      ) : (
+                        <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
+                          <Send className="h-3.5 w-3.5 mr-1" /> Send
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Bookings card */}
+          {bookings.length > 0 && (
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">Bookings</div>
+              <div className="space-y-2">
+                {bookings.map((b) => {
+                  const bookingPayments = payments.filter((p) => p.booking_id === b.id);
+                  const pending = bookingPayments.filter((p) => p.status === "pending");
+                  return (
+                    <div key={b.id} className="bg-card border rounded-md p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            {formatDateIN(b.event_date)}
+                            {b.start_time && ` · ${formatTimeOfDay(b.start_time)}`}
+                            <span className={`text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 ${b.status === "confirmed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : b.status === "cheque_pending" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : b.status === "cancelled" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300" : "bg-muted text-muted-foreground"}`}>
+                              {b.status.replace("_", " ")}
+                            </span>
+                          </div>
+                          {b.venue && <div className="text-[11px] text-muted-foreground mt-0.5">{b.venue}</div>}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div><div className="text-muted-foreground">Total</div><div className="font-semibold">{formatINR(Number(b.total_amount))}</div></div>
+                        <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(Number(b.amount_paid))}</div></div>
+                        <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-rose-700 dark:text-rose-400">{formatINR(Number(b.balance_due))}</div></div>
+                      </div>
+                      {pending.length > 0 && (
+                        <div className="border-t pt-2 space-y-1">
+                          <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1"><IndianRupee className="h-3 w-3" /> Pending payments</div>
+                          {pending.map((p) => (
+                            <div key={p.id} className="flex items-center justify-between text-xs">
+                              <span>
+                                {p.type === "instalment" ? `Instalment ${p.instalment_number}/${p.total_instalments}` : p.type.replace("_", " ")}
+                                {p.due_date && <span className="text-muted-foreground"> · due {formatDateIN(p.due_date)}</span>}
+                              </span>
+                              <span className="font-medium">{formatINR(Number(p.amount))}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </TabsContent>
+
 
 
 
