@@ -124,7 +124,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       const intl = num.length === 10 ? `91${num}` : num;
       const url = `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
       window.open(url, "_blank", "noopener");
-      await markSent("whatsapp");
+      await markSent("whatsapp", "WhatsApp");
       toast.success("Opened WhatsApp · PDF downloaded — attach it in the chat");
     } finally { setSending(null); }
   };
@@ -136,14 +136,14 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       const subject = `Quotation from ${company?.name ?? ""} — v${quote?.version}`;
       const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
       window.location.href = url;
-      await markSent("email");
+      await markSent("email", "Email");
       toast.success("Opened email · PDF downloaded — attach it in your message");
     } finally { setSending(null); }
   };
 
   const copyMessage = async () => {
     await navigator.clipboard.writeText(message);
-    await markSent("link");
+    await markSent(null, "Copied link");
     toast.success("Message copied to clipboard");
   };
 
@@ -164,7 +164,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       const statusMap: Record<string, "agreed" | "negotiating" | "declined" | "revision_requested"> = {
         agreed: "agreed", negotiating: "negotiating", declined: "declined", revision: "revision_requested",
       };
-      const patch: Record<string, unknown> = { status: statusMap[kind] };
+      const patch: Database["public"]["Tables"]["quotations"]["Update"] = { status: statusMap[kind] };
       if (kind === "agreed") patch.agreed_at = new Date().toISOString();
       await supabase.from("quotations").update(patch).eq("id", quote.id);
       await supabase.from("activity_logs").insert({
