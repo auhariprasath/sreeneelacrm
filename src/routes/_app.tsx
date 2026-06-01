@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, BarChart3, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal,
+  LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, BarChart3, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal, ArrowRightLeft,
 } from "lucide-react";
 import { useEffect } from "react";
 import { OfflineBanner } from "@/components/offline-banner";
@@ -30,6 +30,7 @@ const SIDEBAR_NAV: NavItem[] = [
   { to: "/calendar", label: "Calendar", icon: CalendarDays, roles: ["super_admin","admin","staff"] },
   { to: "/tasks", label: "Task Board", icon: KanbanSquare, roles: ["super_admin","admin","staff"] },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["super_admin","admin","staff"] },
+  { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
 ];
 

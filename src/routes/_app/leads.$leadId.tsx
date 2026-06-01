@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, initialsOf, relativeTime } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
 import { FollowUpDialog } from "@/components/leads/follow-up-dialog";
 import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
+import { TransferDialog } from "@/components/leads/transfer-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -41,6 +42,7 @@ function LeadProfile() {
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
   const [blOpen, setBlOpen] = useState(false);
+  const [trOpen, setTrOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -131,6 +133,17 @@ function LeadProfile() {
         <ArrowLeft className="h-4 w-4" /> Back to leads
       </Link>
 
+      {/* Locked banner */}
+      {lead.status === "locked" && (
+        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <Lock className="h-4 w-4 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <div className="font-medium">Lead locked</div>
+            <div className="text-xs opacity-90 mt-0.5">A transfer request is pending review. Edits are restricted until it is approved or rejected.</div>
+          </div>
+        </div>
+      )}
+
       {/* Blacklist banner */}
       {lead.is_blacklisted && (
         <div className="bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-lg p-3 flex items-start gap-2">
@@ -207,6 +220,9 @@ function LeadProfile() {
                 {lead.is_blacklisted
                   ? (<><ShieldOff className="h-4 w-4 mr-1.5" /> Unblock</>)
                   : (<><ShieldAlert className="h-4 w-4 mr-1.5" /> Blacklist</>)}
+              </Button>
+              <Button variant="outline" className="h-11" onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
+                <ArrowRightLeft className="h-4 w-4 mr-1.5" /> Transfer
               </Button>
               <div className="ml-auto min-w-[180px]">
                 <Select value={lead.status} onValueChange={(v) => updateStatus(v as Status)}>
@@ -318,6 +334,13 @@ function LeadProfile() {
         alreadyBlacklisted={lead.is_blacklisted}
         currentReason={lead.blacklist_reason}
         onDone={() => { /* realtime will refresh */ }}
+      />
+      <TransferDialog
+        open={trOpen}
+        onOpenChange={setTrOpen}
+        leadId={lead.id}
+        fromCompanyId={lead.company_id}
+        performedBy={profile?.id ?? null}
       />
     </div>
   );
