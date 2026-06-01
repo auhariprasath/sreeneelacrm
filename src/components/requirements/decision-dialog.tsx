@@ -91,6 +91,13 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
         }
         await supabase.from("requirements").update({ status: "slot_confirmed" }).eq("id", requirementId);
         await supabase.from("leads").update({ status: "positive" }).eq("id", leadId);
+        // Log WON
+        const amt = Number(amountValue || 0);
+        await supabase.from("win_loss_log").insert({
+          company_id: companyId, lead_id: leadId, outcome: "won",
+          amount_value: isNaN(amt) ? null : amt,
+          closed_by: performed_by, closed_at: new Date().toISOString(),
+        });
       } else if (decision === "needs_time") {
         await supabase.from("follow_ups").insert({
           lead_id: leadId, scheduled_at: new Date(followUpAt).toISOString(),
@@ -105,6 +112,14 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
           notes: note ? `Dropped (${dropReason}): ${note}` : `Dropped: ${dropReason}`,
         }).eq("id", leadId);
         meta.drop_reason = dropReason;
+        if (competitor) meta.competitor = competitor;
+        const amt = Number(amountValue || 0);
+        await supabase.from("win_loss_log").insert({
+          company_id: companyId, lead_id: leadId, outcome: "lost",
+          drop_reason: dropReason, competitor_name: competitor || null,
+          amount_value: isNaN(amt) || amt === 0 ? null : amt,
+          closed_by: performed_by, closed_at: new Date().toISOString(),
+        });
       }
 
       await supabase.from("activity_logs").insert({
