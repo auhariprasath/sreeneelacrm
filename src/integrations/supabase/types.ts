@@ -85,10 +85,128 @@ export type Database = {
         }
         Relationships: []
       }
+      bookings: {
+        Row: {
+          amount_paid: number
+          balance_due: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cheque_bank: string | null
+          cheque_clear_date: string | null
+          cheque_cleared_at: string | null
+          cheque_cleared_by: string | null
+          cheque_number: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          dispute_reason: string | null
+          disputed_at: string | null
+          end_time: string | null
+          event_date: string
+          id: string
+          lead_id: string
+          payment_type: Database["public"]["Enums"]["payment_type"] | null
+          quotation_id: string | null
+          refund_amount: number | null
+          refund_percent: number | null
+          refund_processed_at: string | null
+          refund_processed_by: string | null
+          refund_reference: string | null
+          refund_status: string | null
+          requirement_id: string
+          rescheduled_from_date: string | null
+          rescheduled_from_start_time: string | null
+          start_time: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          amount_paid?: number
+          balance_due?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cheque_bank?: string | null
+          cheque_clear_date?: string | null
+          cheque_cleared_at?: string | null
+          cheque_cleared_by?: string | null
+          cheque_number?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          end_time?: string | null
+          event_date: string
+          id?: string
+          lead_id: string
+          payment_type?: Database["public"]["Enums"]["payment_type"] | null
+          quotation_id?: string | null
+          refund_amount?: number | null
+          refund_percent?: number | null
+          refund_processed_at?: string | null
+          refund_processed_by?: string | null
+          refund_reference?: string | null
+          refund_status?: string | null
+          requirement_id: string
+          rescheduled_from_date?: string | null
+          rescheduled_from_start_time?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_amount?: number
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          balance_due?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cheque_bank?: string | null
+          cheque_clear_date?: string | null
+          cheque_cleared_at?: string | null
+          cheque_cleared_by?: string | null
+          cheque_number?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          end_time?: string | null
+          event_date?: string
+          id?: string
+          lead_id?: string
+          payment_type?: Database["public"]["Enums"]["payment_type"] | null
+          quotation_id?: string | null
+          refund_amount?: number | null
+          refund_percent?: number | null
+          refund_processed_at?: string | null
+          refund_processed_by?: string | null
+          refund_reference?: string | null
+          refund_status?: string | null
+          requirement_id?: string
+          rescheduled_from_date?: string | null
+          rescheduled_from_start_time?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_amount?: number
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           addons_catalog: Json
           address: string | null
+          admin_max_discount_percent: number
+          auto_notify_competing_leads: boolean
+          auto_sms_fallback: boolean
+          auto_wa_on_reschedule: boolean
           bank_account: string | null
           cancellation_policy: string | null
           created_at: string
@@ -99,6 +217,7 @@ export type Database = {
           email: string | null
           event_types: Json
           google_review_link: string | null
+          gst_percent: number
           gstin: string | null
           id: string
           ifsc: string | null
@@ -108,17 +227,33 @@ export type Database = {
           max_follow_up_attempts: number
           name: string
           peak_season_dates: Json
+          quotation_counter: number
+          quotation_prefix: string
+          refund_15_30_percent: number
+          refund_over_30_percent: number
           refund_tier_15_30: string | null
           refund_tier_30plus: string | null
           refund_tier_under15: string | null
+          refund_under_15_percent: number
+          require_discount_reason: boolean
+          services_catalog: Json
           sessions: Json
+          staff_max_discount_percent: number
           type: Database["public"]["Enums"]["company_type"]
           upi_id: string | null
           wa_number: string | null
+          wa_template_competing_leads: string | null
+          wa_template_payment_reminder: string | null
+          wa_template_reschedule: string | null
+          wa_template_thank_you: string | null
         }
         Insert: {
           addons_catalog?: Json
           address?: string | null
+          admin_max_discount_percent?: number
+          auto_notify_competing_leads?: boolean
+          auto_sms_fallback?: boolean
+          auto_wa_on_reschedule?: boolean
           bank_account?: string | null
           cancellation_policy?: string | null
           created_at?: string
@@ -129,6 +264,7 @@ export type Database = {
           email?: string | null
           event_types?: Json
           google_review_link?: string | null
+          gst_percent?: number
           gstin?: string | null
           id?: string
           ifsc?: string | null
@@ -138,17 +274,33 @@ export type Database = {
           max_follow_up_attempts?: number
           name: string
           peak_season_dates?: Json
+          quotation_counter?: number
+          quotation_prefix?: string
+          refund_15_30_percent?: number
+          refund_over_30_percent?: number
           refund_tier_15_30?: string | null
           refund_tier_30plus?: string | null
           refund_tier_under15?: string | null
+          refund_under_15_percent?: number
+          require_discount_reason?: boolean
+          services_catalog?: Json
           sessions?: Json
+          staff_max_discount_percent?: number
           type: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           wa_number?: string | null
+          wa_template_competing_leads?: string | null
+          wa_template_payment_reminder?: string | null
+          wa_template_reschedule?: string | null
+          wa_template_thank_you?: string | null
         }
         Update: {
           addons_catalog?: Json
           address?: string | null
+          admin_max_discount_percent?: number
+          auto_notify_competing_leads?: boolean
+          auto_sms_fallback?: boolean
+          auto_wa_on_reschedule?: boolean
           bank_account?: string | null
           cancellation_policy?: string | null
           created_at?: string
@@ -159,6 +311,7 @@ export type Database = {
           email?: string | null
           event_types?: Json
           google_review_link?: string | null
+          gst_percent?: number
           gstin?: string | null
           id?: string
           ifsc?: string | null
@@ -168,13 +321,25 @@ export type Database = {
           max_follow_up_attempts?: number
           name?: string
           peak_season_dates?: Json
+          quotation_counter?: number
+          quotation_prefix?: string
+          refund_15_30_percent?: number
+          refund_over_30_percent?: number
           refund_tier_15_30?: string | null
           refund_tier_30plus?: string | null
           refund_tier_under15?: string | null
+          refund_under_15_percent?: number
+          require_discount_reason?: boolean
+          services_catalog?: Json
           sessions?: Json
+          staff_max_discount_percent?: number
           type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           wa_number?: string | null
+          wa_template_competing_leads?: string | null
+          wa_template_payment_reminder?: string | null
+          wa_template_reschedule?: string | null
+          wa_template_thank_you?: string | null
         }
         Relationships: []
       }
@@ -350,6 +515,120 @@ export type Database = {
           },
         ]
       }
+      payment_reminders: {
+        Row: {
+          booking_id: string
+          company_id: string
+          created_at: string
+          id: string
+          is_cancelled: boolean
+          is_sent: boolean
+          lead_id: string
+          message_template: string | null
+          payment_id: string | null
+          scheduled_at: string
+          sent_at: string | null
+          trigger_percent: number | null
+        }
+        Insert: {
+          booking_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_cancelled?: boolean
+          is_sent?: boolean
+          lead_id: string
+          message_template?: string | null
+          payment_id?: string | null
+          scheduled_at: string
+          sent_at?: string | null
+          trigger_percent?: number | null
+        }
+        Update: {
+          booking_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_cancelled?: boolean
+          is_sent?: boolean
+          lead_id?: string
+          message_template?: string | null
+          payment_id?: string | null
+          scheduled_at?: string
+          sent_at?: string | null
+          trigger_percent?: number | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          booking_id: string
+          cheque_bank: string | null
+          cheque_clear_date: string | null
+          cheque_number: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          dispute_reason: string | null
+          due_date: string | null
+          id: string
+          instalment_number: number | null
+          lead_id: string
+          notes: string | null
+          received_at: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          total_instalments: number | null
+          transaction_reference: string | null
+          type: Database["public"]["Enums"]["payment_type"]
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          cheque_bank?: string | null
+          cheque_clear_date?: string | null
+          cheque_number?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          dispute_reason?: string | null
+          due_date?: string | null
+          id?: string
+          instalment_number?: number | null
+          lead_id: string
+          notes?: string | null
+          received_at?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          total_instalments?: number | null
+          transaction_reference?: string | null
+          type: Database["public"]["Enums"]["payment_type"]
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          cheque_bank?: string | null
+          cheque_clear_date?: string | null
+          cheque_number?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          dispute_reason?: string | null
+          due_date?: string | null
+          id?: string
+          instalment_number?: number | null
+          lead_id?: string
+          notes?: string | null
+          received_at?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          total_instalments?: number | null
+          transaction_reference?: string | null
+          type?: Database["public"]["Enums"]["payment_type"]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           auto_approve_transfers: boolean
@@ -405,6 +684,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quotations: {
+        Row: {
+          addons: Json
+          agreed_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          discount_amount: number
+          discount_percent: number
+          discount_reason: string | null
+          gst_amount: number
+          gst_applied: boolean
+          gst_percent: number
+          id: string
+          is_peak_season: boolean
+          lead_id: string
+          pdf_url: string | null
+          peak_season_label: string | null
+          quotation_number: string | null
+          requirement_id: string
+          sent_at: string | null
+          sent_via: Database["public"]["Enums"]["sent_channel"] | null
+          services: Json
+          status: Database["public"]["Enums"]["quotation_status"]
+          subtotal: number
+          total: number
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          addons?: Json
+          agreed_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          discount_amount?: number
+          discount_percent?: number
+          discount_reason?: string | null
+          gst_amount?: number
+          gst_applied?: boolean
+          gst_percent?: number
+          id?: string
+          is_peak_season?: boolean
+          lead_id: string
+          pdf_url?: string | null
+          peak_season_label?: string | null
+          quotation_number?: string | null
+          requirement_id: string
+          sent_at?: string | null
+          sent_via?: Database["public"]["Enums"]["sent_channel"] | null
+          services?: Json
+          status?: Database["public"]["Enums"]["quotation_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          addons?: Json
+          agreed_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          discount_amount?: number
+          discount_percent?: number
+          discount_reason?: string | null
+          gst_amount?: number
+          gst_applied?: boolean
+          gst_percent?: number
+          id?: string
+          is_peak_season?: boolean
+          lead_id?: string
+          pdf_url?: string | null
+          peak_season_label?: string | null
+          quotation_number?: string | null
+          requirement_id?: string
+          sent_at?: string | null
+          sent_via?: Database["public"]["Enums"]["sent_channel"] | null
+          services?: Json
+          status?: Database["public"]["Enums"]["quotation_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
       }
       requirements: {
         Row: {
@@ -637,6 +1006,13 @@ export type Database = {
         | "quotation"
         | "payment"
       app_role: "super_admin" | "admin" | "staff"
+      booking_status:
+        | "cheque_pending"
+        | "confirmed"
+        | "cancelled"
+        | "rescheduled"
+        | "completed"
+        | "disputed"
       company_type: "garden" | "banquet" | "party" | "mandapam"
       follow_up_type: "auto_1hr" | "tomorrow_10am" | "custom" | "done"
       lead_score: "hot" | "warm" | "cold"
@@ -658,12 +1034,27 @@ export type Database = {
         | "event_reminder"
         | "low_rating"
         | "system"
+      payment_status:
+        | "pending"
+        | "received"
+        | "bounced"
+        | "disputed"
+        | "refunded"
+      payment_type:
+        | "full"
+        | "advance_50"
+        | "instalment"
+        | "cash"
+        | "cheque"
+        | "b2b_credit"
+      quotation_status: "draft" | "sent" | "agreed" | "revised" | "declined"
       requirement_status:
         | "collecting"
         | "slot_checking"
         | "slot_confirmed"
         | "muhurtham_conflict"
         | "complete"
+      sent_channel: "whatsapp" | "email" | "sms" | "instagram"
       slot_status: "free" | "soft_hold" | "enquiry" | "confirmed"
       transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
     }
@@ -808,6 +1199,14 @@ export const Constants = {
         "payment",
       ],
       app_role: ["super_admin", "admin", "staff"],
+      booking_status: [
+        "cheque_pending",
+        "confirmed",
+        "cancelled",
+        "rescheduled",
+        "completed",
+        "disputed",
+      ],
       company_type: ["garden", "banquet", "party", "mandapam"],
       follow_up_type: ["auto_1hr", "tomorrow_10am", "custom", "done"],
       lead_score: ["hot", "warm", "cold"],
@@ -831,6 +1230,22 @@ export const Constants = {
         "low_rating",
         "system",
       ],
+      payment_status: [
+        "pending",
+        "received",
+        "bounced",
+        "disputed",
+        "refunded",
+      ],
+      payment_type: [
+        "full",
+        "advance_50",
+        "instalment",
+        "cash",
+        "cheque",
+        "b2b_credit",
+      ],
+      quotation_status: ["draft", "sent", "agreed", "revised", "declined"],
       requirement_status: [
         "collecting",
         "slot_checking",
@@ -838,6 +1253,7 @@ export const Constants = {
         "muhurtham_conflict",
         "complete",
       ],
+      sent_channel: ["whatsapp", "email", "sms", "instagram"],
       slot_status: ["free", "soft_hold", "enquiry", "confirmed"],
       transfer_status: ["pending", "approved", "rejected", "auto_approved"],
     },
