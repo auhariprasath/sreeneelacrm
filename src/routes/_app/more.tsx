@@ -40,6 +40,11 @@ function MorePage() {
         <Link to="/campaigns" className="block">
           <Button variant="outline" className="w-full justify-start min-h-[48px]"><Megaphone className="h-4 w-4 mr-2" />Campaigns</Button>
         </Link>
+        {role === "super_admin" && (
+          <Link to="/command-centre" className="block">
+            <Button variant="outline" className="w-full justify-start min-h-[48px]"><Shield className="h-4 w-4 mr-2" />Command Centre</Button>
+          </Link>
+        )}
         {(role === "super_admin" || role === "admin") && (
           <Link to="/settings" className="block">
             <Button variant="outline" className="w-full justify-start min-h-[48px]"><Settings className="h-4 w-4 mr-2" />Settings</Button>
