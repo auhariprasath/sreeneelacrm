@@ -73,6 +73,7 @@ function LeadProfile() {
   const [chequeBooking, setChequeBooking] = useState<Booking | null>(null);
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
   const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
+  const [completeBooking, setCompleteBooking] = useState<Booking | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
