@@ -22,6 +22,7 @@ import { SendQuotationDialog } from "@/components/quotations/send-quotation-dial
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { RemindersList } from "@/components/bookings/reminders-list";
+import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
