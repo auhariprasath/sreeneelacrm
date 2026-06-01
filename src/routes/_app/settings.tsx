@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, Filter, CalendarRange, Tags, Plus, Percent, Bell, CalendarCheck,
-  FileText, XCircle, MessageSquare, Briefcase, Lock,
+  FileText, XCircle, MessageSquare, Briefcase, Lock, ListChecks,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { JsonListSection } from "@/components/settings/json-list-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
+import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
