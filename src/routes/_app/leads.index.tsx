@@ -196,7 +196,7 @@ function LeadsInbox() {
       ) : (
         <div className="space-y-2">
           {leads.map((l) => (
-            <LeadCard key={l.id} lead={l} masked={profile?.phone_masked ?? false} />
+            <LeadCard key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} />
           ))}
           {hasMore && (
             <div ref={sentinelRef} className="h-12 flex items-center justify-center text-xs text-muted-foreground">
@@ -216,9 +216,10 @@ function LeadsInbox() {
   );
 }
 
-function LeadCard({ lead, masked }: { lead: Lead; masked: boolean }) {
+function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: ReqMeta }) {
   const phone = formatPhoneIN(lead.phone, masked);
   const tel = (lead.phone || "").replace(/\D/g, "");
+  const nextEvent = meta?.nextEvent ? new Date(meta.nextEvent) : null;
   return (
     <Link
       to="/leads/$leadId"
