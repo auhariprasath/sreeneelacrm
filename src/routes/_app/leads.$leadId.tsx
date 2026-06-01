@@ -42,6 +42,7 @@ function LeadProfile() {
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
   const [blOpen, setBlOpen] = useState(false);
+  const [trOpen, setTrOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -131,6 +132,17 @@ function LeadProfile() {
       <Link to="/leads" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Back to leads
       </Link>
+
+      {/* Locked banner */}
+      {lead.status === "locked" && (
+        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <Lock className="h-4 w-4 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <div className="font-medium">Lead locked</div>
+            <div className="text-xs opacity-90 mt-0.5">A transfer request is pending review. Edits are restricted until it is approved or rejected.</div>
+          </div>
+        </div>
+      )}
 
       {/* Blacklist banner */}
       {lead.is_blacklisted && (
