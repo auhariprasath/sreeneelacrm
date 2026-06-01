@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox } from "lucide-react";
+import { DashboardSkeleton } from "@/components/skeleton-dashboard";
+import { formatINR } from "@/lib/format";
+
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -35,8 +38,10 @@ function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc
 }
 
 function DashboardPage() {
-  const { role, companies, profile } = useAuth();
+  const { role, companies, profile, loading } = useAuth();
+  if (loading) return <DashboardSkeleton />;
   const greeting = `Welcome, ${profile?.full_name || "there"}`;
+
 
   if (role === "super_admin") {
     return (
