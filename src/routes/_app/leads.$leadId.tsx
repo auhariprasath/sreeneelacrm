@@ -24,6 +24,7 @@ type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Activity = Database["public"]["Tables"]["activity_logs"]["Row"];
 type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
+type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
