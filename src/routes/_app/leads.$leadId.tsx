@@ -335,6 +335,13 @@ function LeadProfile() {
         currentReason={lead.blacklist_reason}
         onDone={() => { /* realtime will refresh */ }}
       />
+      <TransferDialog
+        open={trOpen}
+        onOpenChange={setTrOpen}
+        leadId={lead.id}
+        fromCompanyId={lead.company_id}
+        performedBy={profile?.id ?? null}
+      />
     </div>
   );
 }
