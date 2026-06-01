@@ -40,7 +40,7 @@ export function JsonListSection({
     setLoading(true);
     supabase
       .from("companies")
-      .select(column)
+      .select(column as any)
       .eq("id", companyId)
       .maybeSingle()
       .then(({ data, error }) => {
