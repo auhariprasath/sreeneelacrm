@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listCompanyStaff, createStaff, setStaffActive, updateStaffSettings } from "@/lib/api/staff.functions";
+import { listCompanyStaff, createStaff, setStaffActive, updateStaffSettings, setStaffLeave } from "@/lib/api/staff.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,8 @@ interface StaffRow {
   must_change_password: boolean;
   last_active_at: string | null;
   role: string;
+  on_leave: boolean;
+  backup_staff_id: string | null;
 }
 
 export function StaffSection({ companyId }: { companyId: string | undefined }) {
@@ -34,6 +36,7 @@ export function StaffSection({ companyId }: { companyId: string | undefined }) {
   const create = useServerFn(createStaff);
   const setActive = useServerFn(setStaffActive);
   const update = useServerFn(updateStaffSettings);
+  const setLeave = useServerFn(setStaffLeave);
 
   const [rows, setRows] = useState<StaffRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,6 +141,7 @@ export function StaffSection({ companyId }: { companyId: string | undefined }) {
                     <span className="font-medium">{r.full_name || "(no name)"}</span>
                     <Badge variant="secondary" className="text-[10px]">{r.role}</Badge>
                     {!r.is_active && <Badge variant="destructive" className="text-[10px]">Deactivated</Badge>}
+                    {r.on_leave && <Badge className="text-[10px] bg-amber-500 hover:bg-amber-500">On leave</Badge>}
                     {r.must_change_password && <Badge variant="outline" className="text-[10px]">Password reset pending</Badge>}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5 truncate">{r.email}</div>
@@ -163,6 +167,48 @@ export function StaffSection({ companyId }: { companyId: string | undefined }) {
                   <span>Auto-approve transfers in</span>
                   <Switch checked={r.auto_approve_transfers} onCheckedChange={() => toggleAutoApprove(r)} />
                 </label>
+              </div>
+              <div className="mt-3 border rounded-md p-3 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium">On leave</div>
+                    <div className="text-xs text-muted-foreground">Pause assignments and route overdue follow-ups to backup.</div>
+                  </div>
+                  <Switch
+                    checked={r.on_leave}
+                    onCheckedChange={async (v) => {
+                      if (v && !r.backup_staff_id) { toast.error("Pick a backup staff first"); return; }
+                      try {
+                        const res: any = await setLeave({ data: { user_id: r.id, on_leave: v, backup_staff_id: r.backup_staff_id } });
+                        setRows((arr) => arr.map((x) => (x.id === r.id ? { ...x, on_leave: v } : x)));
+                        if (v) toast.success(`Leave on. ${res?.reassigned ?? 0} lead(s) reassigned.`);
+                        else toast.success("Leave cleared");
+                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                    }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Backup staff</Label>
+                  <Select
+                    value={r.backup_staff_id ?? "none"}
+                    onValueChange={async (v) => {
+                      const backup = v === "none" ? null : v;
+                      try {
+                        await setLeave({ data: { user_id: r.id, on_leave: r.on_leave, backup_staff_id: backup } });
+                        setRows((arr) => arr.map((x) => (x.id === r.id ? { ...x, backup_staff_id: backup } : x)));
+                        toast.success("Backup updated");
+                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                    }}
+                  >
+                    <SelectTrigger className="h-10"><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {rows.filter((s) => s.id !== r.id && s.is_active && !s.on_leave).map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.full_name || s.email}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           ))}

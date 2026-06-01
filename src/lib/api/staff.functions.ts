@@ -110,7 +110,7 @@ export const listCompanyStaff = createServerFn({ method: "POST" })
     await assertAdminScope(context.userId, data.company_id);
     const { data: profiles } = await supabaseAdmin
       .from("profiles")
-      .select("id,full_name,email,phone,is_active,phone_masked,auto_approve_transfers,must_change_password,last_active_at")
+      .select("id,full_name,email,phone,is_active,phone_masked,auto_approve_transfers,must_change_password,last_active_at,on_leave,backup_staff_id")
       .eq("company_id", data.company_id)
       .is("deleted_at", null)
       .order("full_name", { ascending: true });
@@ -120,4 +120,78 @@ export const listCompanyStaff = createServerFn({ method: "POST" })
       : { data: [] as Array<{ user_id: string; role: string }> };
     const roleMap = new Map((roles ?? []).map((r) => [r.user_id, r.role]));
     return (profiles ?? []).map((p) => ({ ...p, role: roleMap.get(p.id) ?? "staff" }));
+  });
+
+export const setStaffLeave = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      user_id: z.string().uuid(),
+      on_leave: z.boolean(),
+      backup_staff_id: z.string().uuid().nullable().optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: target } = await supabaseAdmin
+      .from("profiles").select("company_id,full_name").eq("id", data.user_id).maybeSingle();
+    if (!target?.company_id) throw new Error("Target not found");
+    await assertAdminScope(context.userId, target.company_id);
+
+    const backupId = data.backup_staff_id ?? null;
+    if (backupId) {
+      const { data: backup } = await supabaseAdmin
+        .from("profiles").select("company_id").eq("id", backupId).maybeSingle();
+      if (backup?.company_id !== target.company_id) throw new Error("Backup must be in same company");
+    }
+
+    await supabaseAdmin.from("profiles").update({
+      on_leave: data.on_leave,
+      backup_staff_id: backupId,
+    }).eq("id", data.user_id);
+
+    let reassigned = 0;
+    if (data.on_leave && backupId) {
+      const { data: company } = await supabaseAdmin
+        .from("companies")
+        .select("auto_reassign_overdue_on_leave,auto_notify_backup_on_leave")
+        .eq("id", target.company_id).maybeSingle();
+
+      if (company?.auto_reassign_overdue_on_leave) {
+        const nowIso = new Date().toISOString();
+        const { data: leads } = await supabaseAdmin
+          .from("leads").select("id").eq("assigned_to", data.user_id)
+          .eq("company_id", target.company_id).is("deleted_at", null);
+        const leadIds = (leads ?? []).map((l) => l.id);
+        if (leadIds.length) {
+          const { data: overdue } = await supabaseAdmin
+            .from("follow_ups").select("id,lead_id")
+            .in("lead_id", leadIds).lt("scheduled_at", nowIso)
+            .eq("is_sent", false).eq("is_cancelled", false).is("deleted_at", null);
+          const overdueLeadIds = Array.from(new Set((overdue ?? []).map((f) => f.lead_id)));
+          reassigned = overdueLeadIds.length;
+          if (overdueLeadIds.length) {
+            await supabaseAdmin.from("leads").update({ assigned_to: backupId }).in("id", overdueLeadIds);
+            for (const lid of overdueLeadIds) {
+              await supabaseAdmin.from("activity_logs").insert({
+                lead_id: lid,
+                action: `Reassigned to backup — ${target.full_name || "owner"} on leave`,
+                action_type: "system",
+                performed_by: context.userId,
+              });
+            }
+          }
+        }
+      }
+
+      if (company?.auto_notify_backup_on_leave) {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: backupId,
+          type: "system",
+          title: "You are backup cover",
+          body: `${target.full_name || "A teammate"} is on leave. ${reassigned} lead(s) with overdue follow-ups reassigned to you.`,
+        });
+      }
+    }
+
+    return { ok: true, reassigned };
   });
