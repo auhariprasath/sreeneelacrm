@@ -645,6 +645,11 @@ function LeadProfile() {
         <RescheduleBookingDialog open={!!reschedBooking} onOpenChange={(v) => { if (!v) setReschedBooking(null); }}
           booking={reschedBooking} onDone={() => { loadBookings(); load(); }} />
       )}
+      {completeBooking && (
+        <EventCompleteDialog open={!!completeBooking} onOpenChange={(v) => { if (!v) setCompleteBooking(null); }}
+          booking={completeBooking} leadId={lead.id} leadPhone={lead.phone}
+          onDone={() => { loadBookings(); load(); }} />
+      )}
     </div>
   );
 }
