@@ -16,6 +16,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
+type ReqMeta = { nextEvent: string | null; holdActive: boolean };
 
 const PAGE = 25;
 const STATUS_TABS: { key: "all" | Status; label: string }[] = [
@@ -38,6 +39,7 @@ function LeadsInbox() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [open, setOpen] = useState(false);
+  const [reqMeta, setReqMeta] = useState<Record<string, ReqMeta>>({});
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const companyFilter = useMemo(() => {
