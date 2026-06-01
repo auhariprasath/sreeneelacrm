@@ -473,6 +473,9 @@ function LeadProfile() {
                           clientName={lead.full_name}
                         />
                       )}
+                      {b.status !== "cancelled" && (
+                        <EventDayLogs bookingId={b.id} companyId={b.company_id} leadId={lead.id} />
+                      )}
                       {b.status !== "cancelled" && b.status !== "completed" && (
                         <div className="border-t pt-2 flex flex-wrap gap-1.5">
                           {b.status === "cheque_pending" && (
