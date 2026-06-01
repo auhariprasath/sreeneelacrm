@@ -14,16 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          address: string | null
+          bank_account: string | null
+          cancellation_policy: string | null
+          created_at: string
+          email: string | null
+          google_review_link: string | null
+          gstin: string | null
+          id: string
+          ifsc: string | null
+          logo_url: string | null
+          name: string
+          refund_tier_15_30: string | null
+          refund_tier_30plus: string | null
+          refund_tier_under15: string | null
+          type: Database["public"]["Enums"]["company_type"]
+          upi_id: string | null
+          wa_number: string | null
+        }
+        Insert: {
+          address?: string | null
+          bank_account?: string | null
+          cancellation_policy?: string | null
+          created_at?: string
+          email?: string | null
+          google_review_link?: string | null
+          gstin?: string | null
+          id?: string
+          ifsc?: string | null
+          logo_url?: string | null
+          name: string
+          refund_tier_15_30?: string | null
+          refund_tier_30plus?: string | null
+          refund_tier_under15?: string | null
+          type: Database["public"]["Enums"]["company_type"]
+          upi_id?: string | null
+          wa_number?: string | null
+        }
+        Update: {
+          address?: string | null
+          bank_account?: string | null
+          cancellation_policy?: string | null
+          created_at?: string
+          email?: string | null
+          google_review_link?: string | null
+          gstin?: string | null
+          id?: string
+          ifsc?: string | null
+          logo_url?: string | null
+          name?: string
+          refund_tier_15_30?: string | null
+          refund_tier_30plus?: string | null
+          refund_tier_under15?: string | null
+          type?: Database["public"]["Enums"]["company_type"]
+          upi_id?: string | null
+          wa_number?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          auto_approve_transfers: boolean
+          company_id: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          must_change_password: boolean
+          phone: string | null
+        }
+        Insert: {
+          auto_approve_transfers?: boolean
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id: string
+          is_active?: boolean
+          must_change_password?: boolean
+          phone?: string | null
+        }
+        Update: {
+          auto_approve_transfers?: boolean
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          must_change_password?: boolean
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_company_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "staff"
+      company_type: "garden" | "banquet" | "party" | "mandapam"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +279,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "staff"],
+      company_type: ["garden", "banquet", "party", "mandapam"],
+    },
   },
 } as const
