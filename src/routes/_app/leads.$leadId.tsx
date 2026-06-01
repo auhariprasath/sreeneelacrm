@@ -608,6 +608,18 @@ function LeadProfile() {
         quotationId={bookQuoteId}
         onConfirmed={() => { loadBookings(); loadQuotations(); load(); }}
       />
+      {chequeBooking && (
+        <ChequeClearDialog open={!!chequeBooking} onOpenChange={(v) => { if (!v) setChequeBooking(null); }}
+          booking={chequeBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
+      {cancelBooking && (
+        <CancelBookingDialog open={!!cancelBooking} onOpenChange={(v) => { if (!v) setCancelBooking(null); }}
+          booking={cancelBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
+      {reschedBooking && (
+        <RescheduleBookingDialog open={!!reschedBooking} onOpenChange={(v) => { if (!v) setReschedBooking(null); }}
+          booking={reschedBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
     </div>
   );
 }
