@@ -170,17 +170,36 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
         </div>
 
         {decision === "not_interested" && (
+          <>
+            <div className="space-y-1.5">
+              <Label>Drop reason *</Label>
+              <Select value={dropReason} onValueChange={setDropReason}>
+                <SelectTrigger><SelectValue placeholder="Pick a reason" /></SelectTrigger>
+                <SelectContent>
+                  {dropReasons.length === 0 && (
+                    <SelectItem value="__none" disabled>No reasons configured — add them in Settings</SelectItem>
+                  )}
+                  {dropReasons.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label>Competitor (optional)</Label>
+                <Input value={competitor} onChange={(e) => setCompetitor(e.target.value)} placeholder="e.g. Pixel Studio" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Lost value (₹, optional)</Label>
+                <Input type="number" min="0" value={amountValue} onChange={(e) => setAmountValue(e.target.value)} placeholder="0" />
+              </div>
+            </div>
+          </>
+        )}
+
+        {decision === "confirm_booking" && (
           <div className="space-y-1.5">
-            <Label>Drop reason *</Label>
-            <Select value={dropReason} onValueChange={setDropReason}>
-              <SelectTrigger><SelectValue placeholder="Pick a reason" /></SelectTrigger>
-              <SelectContent>
-                {dropReasons.length === 0 && (
-                  <SelectItem value="__none" disabled>No reasons configured — add them in Settings</SelectItem>
-                )}
-                {dropReasons.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label>Won value (₹)</Label>
+            <Input type="number" min="0" value={amountValue} onChange={(e) => setAmountValue(e.target.value)} placeholder="Auto-filled from quotation" />
           </div>
         )}
 
