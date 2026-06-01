@@ -35,6 +35,27 @@ export function formatDateTimeIN(d: string | Date | null | undefined): string {
   return `${formatDateIN(d)}, ${formatTime12(d)}`;
 }
 
+// "HH:MM" or "HH:MM:SS" → "h:mm AM/PM"
+export function formatTimeOfDay(t: string | null | undefined): string {
+  if (!t) return "—";
+  const [hStr, mStr] = t.split(":");
+  let h = Number(hStr);
+  const m = String(Number(mStr ?? 0)).padStart(2, "0");
+  if (isNaN(h)) return t;
+  const ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${m} ${ap}`;
+}
+
+// Add hours (possibly fractional) to "HH:MM" → "HH:MM"
+export function addHoursToTime(t: string, hours: number): string {
+  const [h, m] = t.split(":").map(Number);
+  const total = (h || 0) * 60 + (m || 0) + Math.round(hours * 60);
+  const hh = Math.floor((total % 1440) / 60);
+  const mm = total % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
 export function formatPhoneIN(p: string | null | undefined, masked = false): string {
   if (!p) return "—";
   // Strip non-digits, keep last 10
