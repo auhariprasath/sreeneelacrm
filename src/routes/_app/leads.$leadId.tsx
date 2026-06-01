@@ -43,10 +43,21 @@ function LeadProfile() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
   const [blOpen, setBlOpen] = useState(false);
   const [trOpen, setTrOpen] = useState(false);
+  const [reqOpen, setReqOpen] = useState(false);
+  const [editReqId, setEditReqId] = useState<string | null>(null);
+
+  const loadRequirements = async () => {
+    const { data } = await supabase
+      .from("requirements").select("*").eq("lead_id", leadId)
+      .is("deleted_at", null).order("requirement_number", { ascending: true });
+    setRequirements((data as Requirement[]) ?? []);
+  };
 
   const load = async () => {
     setLoading(true);
