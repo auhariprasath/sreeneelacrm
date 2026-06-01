@@ -21,6 +21,7 @@ import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
+import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog";
 import { RemindersList } from "@/components/bookings/reminders-list";
 import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
@@ -72,6 +73,7 @@ function LeadProfile() {
   const [chequeBooking, setChequeBooking] = useState<Booking | null>(null);
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
   const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
+  const [completeBooking, setCompleteBooking] = useState<Booking | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
@@ -486,9 +488,17 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
+                          <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => setCompleteBooking(b)}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Mark complete
+                          </Button>
                           <Button size="sm" variant="ghost" className="h-8 text-rose-600 hover:text-rose-700" onClick={() => setCancelBooking(b)}>
                             Cancel booking
                           </Button>
+                        </div>
+                      )}
+                      {b.status === "completed" && b.completed_at && (
+                        <div className="border-t pt-2 text-[11px] text-muted-foreground">
+                          Completed {formatDateIN(b.completed_at)}
                         </div>
                       )}
                     </div>
@@ -634,6 +644,11 @@ function LeadProfile() {
       {reschedBooking && (
         <RescheduleBookingDialog open={!!reschedBooking} onOpenChange={(v) => { if (!v) setReschedBooking(null); }}
           booking={reschedBooking} onDone={() => { loadBookings(); load(); }} />
+      )}
+      {completeBooking && (
+        <EventCompleteDialog open={!!completeBooking} onOpenChange={(v) => { if (!v) setCompleteBooking(null); }}
+          booking={completeBooking} leadId={lead.id} leadPhone={lead.phone}
+          onDone={() => { loadBookings(); load(); }} />
       )}
     </div>
   );

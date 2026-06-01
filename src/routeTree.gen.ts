@@ -15,6 +15,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
@@ -58,6 +59,11 @@ const AppRoute = AppRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackBookingIdRoute = FeedbackBookingIdRouteImport.update({
+  id: '/feedback/$bookingId',
+  path: '/feedback/$bookingId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppTransfersRoute = AppTransfersRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
+  '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
+  '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
+  '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/transfers'
+    | '/feedback/$bookingId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/transfers'
+    | '/feedback/$bookingId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/tasks'
     | '/_app/transfers'
+    | '/feedback/$bookingId'
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
@@ -280,6 +292,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
 }
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback/$bookingId': {
+      id: '/feedback/$bookingId'
+      path: '/feedback/$bookingId'
+      fullPath: '/feedback/$bookingId'
+      preLoaderRoute: typeof FeedbackBookingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/transfers': {
@@ -487,9 +507,20 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  FeedbackBookingIdRoute: FeedbackBookingIdRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
