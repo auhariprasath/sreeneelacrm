@@ -28,12 +28,16 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const [source, setSource] = useState<"inbound_call" | "walkin" | "referral" | "portal" | "manual">("manual");
   const [score, setScore] = useState<"hot" | "warm" | "cold">("warm");
   const [notes, setNotes] = useState("");
+  const [referredByName, setReferredByName] = useState("");
+  const [referredByLeadId, setReferredByLeadId] = useState<string | null>(null);
+  const [refSearch, setRefSearch] = useState<{ id: string; full_name: string; phone: string }[]>([]);
   const [duplicate, setDuplicate] = useState<{ company: string; status: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setFullName(""); setPhone(""); setLanguage("English");
     setSource("manual"); setScore("warm"); setNotes(""); setDuplicate(null);
+    setReferredByName(""); setReferredByLeadId(null); setRefSearch([]);
   };
 
   const normalizedPhone = (raw: string) => {
@@ -74,6 +78,8 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
       company_id: targetCompanyId,
       created_by: profile?.id,
       assigned_to: profile?.id,
+      referred_by_name: source === "referral" ? (referredByName.trim() || null) : null,
+      referred_by_lead_id: source === "referral" ? referredByLeadId : null,
     }).select("id").single();
     setSubmitting(false);
 
@@ -156,6 +162,48 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
               </SelectContent>
             </Select>
           </div>
+
+          {source === "referral" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="ln-ref">Referred by</Label>
+              <Input
+                id="ln-ref"
+                value={referredByName}
+                placeholder="Type a name to search existing leads…"
+                onChange={async (e) => {
+                  const v = e.target.value;
+                  setReferredByName(v);
+                  setReferredByLeadId(null);
+                  if (v.trim().length < 2) { setRefSearch([]); return; }
+                  const { data } = await supabase
+                    .from("leads")
+                    .select("id,full_name,phone")
+                    .ilike("full_name", `%${v.trim()}%`)
+                    .is("deleted_at", null)
+                    .limit(5);
+                  setRefSearch((data as any) ?? []);
+                }}
+              />
+              {refSearch.length > 0 && !referredByLeadId && (
+                <div className="border rounded-md bg-popover divide-y">
+                  {refSearch.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => { setReferredByLeadId(r.id); setReferredByName(r.full_name); setRefSearch([]); }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent min-h-[44px]"
+                    >
+                      <div className="font-medium">{r.full_name}</div>
+                      <div className="text-xs text-muted-foreground">{r.phone}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {referredByLeadId && (
+                <div className="text-[11px] text-emerald-700 dark:text-emerald-300">Linked to existing lead ✓</div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="ln-notes">Notes (optional)</Label>
