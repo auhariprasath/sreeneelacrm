@@ -13,6 +13,7 @@ import {
   Building2, Users, Filter, CalendarRange, Tags, Plus, Percent, Bell, CalendarCheck,
   FileText, XCircle, MessageSquare, Briefcase, Lock,
 } from "lucide-react";
+import { StaffSection } from "@/components/settings/staff-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
@@ -307,17 +308,17 @@ function SettingsPage() {
       case "staff":
         return (
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Staff & roles</CardTitle>
-                <CardDescription>Manage users, roles, and auto-approve transfers.</CardDescription>
-              </div>
-              <Button><Plus className="h-4 w-4 mr-1" />Add staff</Button>
+            <CardHeader>
+              <CardTitle>Staff & roles</CardTitle>
+              <CardDescription>Manage users, deactivate accounts, control phone masking and auto-approve transfers.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border px-4 py-10 text-center text-sm text-muted-foreground">
-                Staff management UI ships in the next chunk.
-              </div>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <StaffSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );
