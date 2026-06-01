@@ -94,7 +94,7 @@ export const updateStaffSettings = createServerFn({ method: "POST" })
     if (!target?.company_id) throw new Error("Target not found");
     await assertAdminScope(context.userId, target.company_id);
 
-    const patch: Record<string, boolean> = {};
+    const patch: { phone_masked?: boolean; auto_approve_transfers?: boolean } = {};
     if (data.phone_masked !== undefined) patch.phone_masked = data.phone_masked;
     if (data.auto_approve_transfers !== undefined) patch.auto_approve_transfers = data.auto_approve_transfers;
     if (Object.keys(patch).length) {
