@@ -244,7 +244,7 @@ function NewCampaignDialog({ companyId, onClose, onCreated }: { companyId: strin
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      const { count, error } = await buildLeadQuery(companyId, filters).select("id", { count: "exact", head: true });
+      const { count, error } = await (buildLeadQuery(companyId, filters, { count: true }) as any);
       if (!error) setCount(count ?? 0);
     }, 200);
     return () => clearTimeout(t);
