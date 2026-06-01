@@ -22,9 +22,10 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   quotationId: string | null;
   onResponded?: () => void;
+  onAgreed?: (quotationId: string) => void;
 }
 
-export function SendQuotationDialog({ open, onOpenChange, quotationId, onResponded }: Props) {
+export function SendQuotationDialog({ open, onOpenChange, quotationId, onResponded, onAgreed }: Props) {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState<Quotation | null>(null);
@@ -179,6 +180,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       toast.success("Response logged");
       onResponded?.();
       onOpenChange(false);
+      if (kind === "agreed" && quote) onAgreed?.(quote.id);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't log response");
     } finally { setResponding(null); }
