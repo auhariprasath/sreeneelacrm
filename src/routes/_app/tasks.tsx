@@ -14,26 +14,28 @@ import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/tasks")({ component: TasksPage });
 
-type TaskRow = Database["public"]["Tables"]["tasks"]["Row"] & {
-  bookings: { id: string; event_date: string; venue: string | null; lead_id: string;
-    leads: { id: string; full_name: string } | null } | null;
-  assignee: { id: string; full_name: string } | null;
+type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
+type EnrichedTask = TaskRow & {
+  lead_name: string | null;
+  lead_id: string | null;
+  event_date: string | null;
+  assignee_name: string | null;
 };
 
 type Bucket = "pending" | "in_progress" | "done" | "overdue";
 
-const STATUS_META: Record<Bucket, { label: string; cls: string; icon: typeof Clock }> = {
-  pending: { label: "Pending", cls: "bg-muted text-foreground", icon: Circle },
-  in_progress: { label: "In progress", cls: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200", icon: Clock },
-  done: { label: "Done", cls: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200", icon: CheckCircle2 },
-  overdue: { label: "Overdue", cls: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200", icon: AlertTriangle },
+const STATUS_META: Record<Bucket, { label: string; cls: string }> = {
+  pending: { label: "Pending", cls: "bg-muted text-foreground" },
+  in_progress: { label: "In progress", cls: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200" },
+  done: { label: "Done", cls: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200" },
+  overdue: { label: "Overdue", cls: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200" },
 };
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-red-500", medium: "bg-amber-500", low: "bg-muted-foreground",
 };
 
-function applyOverdue(t: TaskRow): TaskRow {
+function applyOverdue<T extends { status: TaskRow["status"]; due_at: string }>(t: T): T {
   if (t.status === "done") return t;
   if (new Date(t.due_at).getTime() < Date.now() && t.status !== "overdue") {
     return { ...t, status: "overdue" };
@@ -45,19 +47,45 @@ function TasksPage() {
   const { profile, role, companies, activeCompanyId } = useAuth();
   const [tab, setTab] = useState<"all" | "mine" | "overdue" | "done">("all");
   const [companyFilter, setCompanyFilter] = useState<string>("");
-  const [items, setItems] = useState<TaskRow[] | null>(null);
+  const [items, setItems] = useState<EnrichedTask[] | null>(null);
 
   const load = async () => {
     setItems(null);
-    let q = supabase.from("tasks")
-      .select("*, bookings(id, event_date, venue, lead_id, leads(id, full_name)), assignee:profiles!tasks_assigned_to_fkey(id, full_name)")
-      .is("deleted_at", null)
-      .order("due_at", { ascending: true });
+    let q = supabase.from("tasks").select("*").is("deleted_at", null).order("due_at", { ascending: true });
     if (role !== "super_admin" && activeCompanyId) q = q.eq("company_id", activeCompanyId);
     else if (companyFilter) q = q.eq("company_id", companyFilter);
     const { data, error } = await q;
     if (error) { toast.error(error.message); setItems([]); return; }
-    setItems((data as any[] ?? []).map(applyOverdue));
+    const tasks = (data as TaskRow[]) ?? [];
+    if (tasks.length === 0) { setItems([]); return; }
+
+    const bookingIds = Array.from(new Set(tasks.map((t) => t.booking_id)));
+    const assigneeIds = Array.from(new Set(tasks.map((t) => t.assigned_to).filter(Boolean) as string[]));
+    const [bRes, pRes] = await Promise.all([
+      supabase.from("bookings").select("id, lead_id, event_date").in("id", bookingIds),
+      assigneeIds.length
+        ? supabase.from("profiles").select("id, full_name").in("id", assigneeIds)
+        : Promise.resolve({ data: [] as { id: string; full_name: string }[], error: null }),
+    ]);
+    const bookings = (bRes.data ?? []) as { id: string; lead_id: string; event_date: string }[];
+    const leadIds = Array.from(new Set(bookings.map((b) => b.lead_id)));
+    const lRes = leadIds.length
+      ? await supabase.from("leads").select("id, full_name").in("id", leadIds)
+      : { data: [] as { id: string; full_name: string }[] };
+    const bMap = new Map(bookings.map((b) => [b.id, b]));
+    const lMap = new Map((lRes.data ?? []).map((l: any) => [l.id, l.full_name as string]));
+    const pMap = new Map(((pRes.data as { id: string; full_name: string }[]) ?? []).map((p) => [p.id, p.full_name]));
+
+    setItems(tasks.map((t) => {
+      const b = bMap.get(t.booking_id);
+      return applyOverdue({
+        ...t,
+        lead_id: b?.lead_id ?? null,
+        lead_name: b ? (lMap.get(b.lead_id) ?? null) : null,
+        event_date: b?.event_date ?? null,
+        assignee_name: t.assigned_to ? (pMap.get(t.assigned_to) ?? null) : null,
+      });
+    }));
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeCompanyId, companyFilter, role]);
@@ -81,7 +109,7 @@ function TasksPage() {
     if (status === "done") toast.success("Task marked done");
   };
 
-  const buckets: Record<Bucket, TaskRow[]> = useMemo(() => ({
+  const buckets: Record<Bucket, EnrichedTask[]> = useMemo(() => ({
     pending: filtered?.filter((t) => t.status === "pending") ?? [],
     in_progress: filtered?.filter((t) => t.status === "in_progress") ?? [],
     done: filtered?.filter((t) => t.status === "done") ?? [],
@@ -154,7 +182,7 @@ function TasksPage() {
   );
 }
 
-function TaskCard({ task, onStatus, kanban }: { task: TaskRow; onStatus: (id: string, s: Bucket) => void; kanban?: boolean }) {
+function TaskCard({ task, onStatus, kanban }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; kanban?: boolean }) {
   const meta = STATUS_META[task.status as Bucket];
   return (
     <Card className="p-3 space-y-2">
@@ -162,9 +190,9 @@ function TaskCard({ task, onStatus, kanban }: { task: TaskRow; onStatus: (id: st
         <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[task.priority] ?? PRIORITY_DOT.medium}`} />
         <div className="flex-1 min-w-0">
           <div className="font-medium text-sm truncate">{task.title}</div>
-          {task.bookings?.leads && (
-            <Link to="/leads/$leadId" params={{ leadId: task.bookings.leads.id }} className="text-xs text-muted-foreground hover:underline truncate block">
-              {task.bookings.leads.full_name} · {task.bookings.event_date}
+          {task.lead_id && task.lead_name && (
+            <Link to="/leads/$leadId" params={{ leadId: task.lead_id }} className="text-xs text-muted-foreground hover:underline truncate block">
+              {task.lead_name}{task.event_date ? ` · ${task.event_date}` : ""}
             </Link>
           )}
         </div>
@@ -172,8 +200,8 @@ function TaskCard({ task, onStatus, kanban }: { task: TaskRow; onStatus: (id: st
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {formatDateTimeIN(task.due_at)}</span>
-        {task.assignee && (
-          <span className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> {task.assignee.full_name}</span>
+        {task.assignee_name && (
+          <span className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> {task.assignee_name}</span>
         )}
       </div>
       {task.status !== "done" && (
