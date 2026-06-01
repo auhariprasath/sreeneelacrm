@@ -493,6 +493,24 @@ function SettingsPage() {
           </Card>
         );
       }
+      case "vendors": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Vendor list</CardTitle>
+              <CardDescription>Caterers, decorators, photographers, DJs and other external service providers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <VendorsSection companyId={activeCompanyId} />
+            </CardContent>
+          </Card>
+        );
+      }
       case "task-templates": {
         return (
           <Card>
