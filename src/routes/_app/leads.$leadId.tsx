@@ -482,6 +482,15 @@ function LeadProfile() {
           onDone={() => { loadRequirements(); load(); }}
         />
       )}
+      <QuotationBuilder
+        open={quoteOpen}
+        onOpenChange={(v) => { setQuoteOpen(v); if (!v) loadQuotations(); }}
+        leadId={lead.id}
+        companyId={lead.company_id}
+        requirementId={quoteReqId}
+        quotationId={editQuoteId}
+        onSaved={loadQuotations}
+      />
     </div>
   );
 }
