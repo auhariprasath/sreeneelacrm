@@ -111,7 +111,19 @@ function DashboardPage() {
     if (role === "super_admin" && !activeCompanyId) { setStatsLoading(false); return; }
     if (!companyId) return;
     setStatsLoading(true);
-    loadCompanyStats(companyId).then((s) => { setStats(s); setStatsLoading(false); });
+    let cancelled = false;
+    const refresh = () => loadCompanyStats(companyId).then((s) => { if (!cancelled) { setStats(s); setStatsLoading(false); } });
+    refresh();
+    // Refresh every minute to update "minutes left" on expiring holds
+    const interval = setInterval(refresh, 60_000);
+    // Realtime: any change to leads/slots/requirements/follow-ups for this company refreshes stats
+    const ch = supabase.channel(`dash-${companyId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads", filter: `company_id=eq.${companyId}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "slots", filter: `company_id=eq.${companyId}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "requirements", filter: `company_id=eq.${companyId}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "follow_ups" }, refresh)
+      .subscribe();
+    return () => { cancelled = true; clearInterval(interval); supabase.removeChannel(ch); };
   }, [companyId, role, activeCompanyId]);
 
   if (loading) return <DashboardSkeleton />;
