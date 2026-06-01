@@ -64,13 +64,19 @@ export type Database = {
           bank_account: string | null
           cancellation_policy: string | null
           created_at: string
+          default_callback_time: string
+          default_follow_up_minutes: number
+          deleted_at: string | null
           email: string | null
           google_review_link: string | null
           gstin: string | null
           id: string
           ifsc: string | null
           logo_url: string | null
+          max_capacity: number | null
+          max_follow_up_attempts: number
           name: string
+          peak_season_dates: Json
           refund_tier_15_30: string | null
           refund_tier_30plus: string | null
           refund_tier_under15: string | null
@@ -83,13 +89,19 @@ export type Database = {
           bank_account?: string | null
           cancellation_policy?: string | null
           created_at?: string
+          default_callback_time?: string
+          default_follow_up_minutes?: number
+          deleted_at?: string | null
           email?: string | null
           google_review_link?: string | null
           gstin?: string | null
           id?: string
           ifsc?: string | null
           logo_url?: string | null
+          max_capacity?: number | null
+          max_follow_up_attempts?: number
           name: string
+          peak_season_dates?: Json
           refund_tier_15_30?: string | null
           refund_tier_30plus?: string | null
           refund_tier_under15?: string | null
@@ -102,13 +114,19 @@ export type Database = {
           bank_account?: string | null
           cancellation_policy?: string | null
           created_at?: string
+          default_callback_time?: string
+          default_follow_up_minutes?: number
+          deleted_at?: string | null
           email?: string | null
           google_review_link?: string | null
           gstin?: string | null
           id?: string
           ifsc?: string | null
           logo_url?: string | null
+          max_capacity?: number | null
+          max_follow_up_attempts?: number
           name?: string
+          peak_season_dates?: Json
           refund_tier_15_30?: string | null
           refund_tier_30plus?: string | null
           refund_tier_under15?: string | null
@@ -289,6 +307,7 @@ export type Database = {
           auto_approve_transfers: boolean
           company_id: string | null
           created_at: string
+          deleted_at: string | null
           email: string | null
           fcm_token: string | null
           full_name: string
@@ -303,6 +322,7 @@ export type Database = {
           auto_approve_transfers?: boolean
           company_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           fcm_token?: string | null
           full_name?: string
@@ -317,6 +337,7 @@ export type Database = {
           auto_approve_transfers?: boolean
           company_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           fcm_token?: string | null
           full_name?: string
