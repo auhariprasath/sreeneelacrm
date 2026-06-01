@@ -15,11 +15,15 @@ import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
 import { FollowUpDialog } from "@/components/leads/follow-up-dialog";
 import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
 import { TransferDialog } from "@/components/leads/transfer-dialog";
+import { RequirementSheet } from "@/components/requirements/requirement-sheet";
+import { formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { ClipboardList, Plus } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Activity = Database["public"]["Tables"]["activity_logs"]["Row"];
 type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
+type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
@@ -39,10 +43,21 @@ function LeadProfile() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
   const [blOpen, setBlOpen] = useState(false);
   const [trOpen, setTrOpen] = useState(false);
+  const [reqOpen, setReqOpen] = useState(false);
+  const [editReqId, setEditReqId] = useState<string | null>(null);
+
+  const loadRequirements = async () => {
+    const { data } = await supabase
+      .from("requirements").select("*").eq("lead_id", leadId)
+      .is("deleted_at", null).order("requirement_number", { ascending: true });
+    setRequirements((data as Requirement[]) ?? []);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -54,12 +69,14 @@ function LeadProfile() {
       lead_id: leadId, action: "Viewed lead", action_type: "view", performed_by: profile?.id ?? null,
     });
 
-    const [{ data: acts }, { data: fus }] = await Promise.all([
+    const [{ data: acts }, { data: fus }, { data: reqs }] = await Promise.all([
       supabase.from("activity_logs").select("*").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(50),
       supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true }),
+      supabase.from("requirements").select("*").eq("lead_id", leadId).is("deleted_at", null).order("requirement_number", { ascending: true }),
     ]);
     setActivities((acts as Activity[]) ?? []);
     setFollowUps((fus as FollowUp[]) ?? []);
+    setRequirements((reqs as Requirement[]) ?? []);
 
     if ((data as Lead).referred_by_lead_id) {
       const { data: ref } = await supabase.from("leads").select("id,full_name").eq("id", (data as Lead).referred_by_lead_id!).maybeSingle();
@@ -239,8 +256,9 @@ function LeadProfile() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="requirements">Requirements</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="followups">Follow-ups</TabsTrigger>
           <TabsTrigger value="notes">Note</TabsTrigger>
@@ -261,6 +279,49 @@ function LeadProfile() {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="requirements" className="pt-3 space-y-2">
+          <Button
+            onClick={() => { setEditReqId(null); setReqOpen(true); }}
+            className="min-h-11"
+            disabled={lead.status === "locked" || lead.is_blacklisted}
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> New requirement
+          </Button>
+          {requirements.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-6 text-center">No requirements yet. Capture one to check slot availability.</div>
+          ) : (
+            <div className="space-y-2">
+              {requirements.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => { setEditReqId(r.id); setReqOpen(true); }}
+                  className="w-full text-left bg-card border rounded-md p-3 hover:border-primary/40 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                        Requirement #{r.requirement_number}
+                        {r.event_type && <span className="text-muted-foreground font-normal">· {r.event_type}</span>}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {r.event_date ? formatDateIN(r.event_date) : "Date TBD"}
+                        {r.start_time && ` · ${formatTimeOfDay(r.start_time)}`}
+                        {r.end_time && ` – ${formatTimeOfDay(r.end_time)}`}
+                      </div>
+                    </div>
+                    <span className="text-[11px] uppercase tracking-wide bg-muted text-muted-foreground rounded-full px-2 py-0.5 shrink-0">
+                      {r.status.replace("_", " ")}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+
 
         <TabsContent value="activity" className="pt-3">
           {activities.length === 0 ? (
@@ -341,6 +402,14 @@ function LeadProfile() {
         leadId={lead.id}
         fromCompanyId={lead.company_id}
         performedBy={profile?.id ?? null}
+      />
+      <RequirementSheet
+        open={reqOpen}
+        onOpenChange={(v) => { setReqOpen(v); if (!v) loadRequirements(); }}
+        leadId={lead.id}
+        companyId={lead.company_id}
+        requirementId={editReqId}
+        onSaved={loadRequirements}
       />
     </div>
   );
