@@ -23,6 +23,7 @@ import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dial
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { RemindersList } from "@/components/bookings/reminders-list";
 import { VendorAssignment } from "@/components/bookings/vendor-assignment";
+import { EventDayLogs } from "@/components/bookings/event-day-logs";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
