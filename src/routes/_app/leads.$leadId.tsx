@@ -67,6 +67,9 @@ function LeadProfile() {
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
   const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
   const [bookQuoteId, setBookQuoteId] = useState<string | null>(null);
+  const [chequeBooking, setChequeBooking] = useState<Booking | null>(null);
+  const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
+  const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
