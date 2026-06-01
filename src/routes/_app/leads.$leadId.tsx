@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime } from "@/lib/format";
+import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
@@ -17,12 +17,14 @@ import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
 import { TransferDialog } from "@/components/leads/transfer-dialog";
 import { RequirementSheet } from "@/components/requirements/requirement-sheet";
 import { DecisionDialog } from "@/components/requirements/decision-dialog";
+import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Activity = Database["public"]["Tables"]["activity_logs"]["Row"];
 type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
+type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
@@ -43,6 +45,7 @@ function LeadProfile() {
   const [saving, setSaving] = useState(false);
 
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
@@ -51,12 +54,22 @@ function LeadProfile() {
   const [reqOpen, setReqOpen] = useState(false);
   const [editReqId, setEditReqId] = useState<string | null>(null);
   const [decisionReqId, setDecisionReqId] = useState<string | null>(null);
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
+  const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
       .from("requirements").select("*").eq("lead_id", leadId)
       .is("deleted_at", null).order("requirement_number", { ascending: true });
     setRequirements((data as Requirement[]) ?? []);
+  };
+
+  const loadQuotations = async () => {
+    const { data } = await supabase
+      .from("quotations").select("*").eq("lead_id", leadId)
+      .is("deleted_at", null).order("version", { ascending: false });
+    setQuotations((data as Quotation[]) ?? []);
   };
 
   const load = async () => {
@@ -69,14 +82,16 @@ function LeadProfile() {
       lead_id: leadId, action: "Viewed lead", action_type: "view", performed_by: profile?.id ?? null,
     });
 
-    const [{ data: acts }, { data: fus }, { data: reqs }] = await Promise.all([
+    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }] = await Promise.all([
       supabase.from("activity_logs").select("*").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(50),
       supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true }),
       supabase.from("requirements").select("*").eq("lead_id", leadId).is("deleted_at", null).order("requirement_number", { ascending: true }),
+      supabase.from("quotations").select("*").eq("lead_id", leadId).is("deleted_at", null).order("version", { ascending: false }),
     ]);
     setActivities((acts as Activity[]) ?? []);
     setFollowUps((fus as FollowUp[]) ?? []);
     setRequirements((reqs as Requirement[]) ?? []);
+    setQuotations((quotes as Quotation[]) ?? []);
 
     if ((data as Lead).referred_by_lead_id) {
       const { data: ref } = await supabase.from("leads").select("id,full_name").eq("id", (data as Lead).referred_by_lead_id!).maybeSingle();
@@ -316,13 +331,53 @@ function LeadProfile() {
                       </span>
                     </div>
                   </button>
-                  <div className="mt-2 flex gap-2 justify-end">
+                  <div className="mt-2 flex gap-2 justify-end flex-wrap">
                     <Button size="sm" variant="outline" onClick={() => setDecisionReqId(r.id)} disabled={lead.status === "locked"}>
                       Record decision
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (r.status !== "slot_confirmed") {
+                          toast.info("Confirm the slot first before building a quotation.");
+                          return;
+                        }
+                        setQuoteReqId(r.id); setEditQuoteId(null); setQuoteOpen(true);
+                      }}
+                      disabled={lead.status === "locked"}
+                    >
+                      <FileText className="h-3.5 w-3.5 mr-1" /> Quotation
                     </Button>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Quotations card */}
+          {quotations.length > 0 && (
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">Quotations</div>
+              <div className="space-y-2">
+                {quotations.map((q) => (
+                  <div key={q.id} className="bg-card border rounded-md p-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                        v{q.version} · {formatINR(Number(q.total))}
+                        <span className="text-[10px] uppercase tracking-wide bg-muted text-muted-foreground rounded-full px-2 py-0.5">{q.status}</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
+                        Updated {relativeTime(q.updated_at)}
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
+                      Open
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </TabsContent>
@@ -427,6 +482,15 @@ function LeadProfile() {
           onDone={() => { loadRequirements(); load(); }}
         />
       )}
+      <QuotationBuilder
+        open={quoteOpen}
+        onOpenChange={(v) => { setQuoteOpen(v); if (!v) loadQuotations(); }}
+        leadId={lead.id}
+        companyId={lead.company_id}
+        requirementId={quoteReqId}
+        quotationId={editQuoteId}
+        onSaved={loadQuotations}
+      />
     </div>
   );
 }
