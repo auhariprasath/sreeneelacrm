@@ -17,6 +17,8 @@ import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { toast } from "sonner";
 import { initialsOf } from "@/lib/format";
 import { InstallPrompt } from "@/components/install-prompt";
+import { GlobalSearch } from "@/components/global-search";
+import { NotificationBell } from "@/components/notification-bell";
 
 
 export const Route = createFileRoute("/_app")({ component: AppLayout });
@@ -139,17 +141,10 @@ function AppLayout() {
             </div>
           )}
 
+          <GlobalSearch />
+
           <div className="ml-auto flex items-center gap-1 md:gap-2">
-            {/* Bell — phase 2 notification centre lives here (chunk 5) */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-10 w-10"
-              onClick={() => navigate({ to: "/notifications" })}
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-            </Button>
+            <NotificationBell />
 
             <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggle} aria-label="Toggle theme">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
