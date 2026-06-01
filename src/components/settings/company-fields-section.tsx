@@ -55,7 +55,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
       if (f.type === "number") v = v === "" || v === null ? null : Number(v);
       patch[f.key] = v ?? null;
     });
-    const { error } = await supabase.from("companies").update(patch).eq("id", companyId);
+    const { error } = await supabase.from("companies").update(patch as any).eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Saved ✓");
