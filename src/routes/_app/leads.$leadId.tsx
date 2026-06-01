@@ -319,6 +319,9 @@ function LeadProfile() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+
 
         <TabsContent value="activity" className="pt-3">
           {activities.length === 0 ? (
