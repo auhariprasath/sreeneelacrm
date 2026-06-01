@@ -13,6 +13,7 @@ export interface Profile {
   auto_approve_transfers: boolean;
   is_active: boolean;
   must_change_password: boolean;
+  phone_masked?: boolean;
 }
 
 export interface Company {
