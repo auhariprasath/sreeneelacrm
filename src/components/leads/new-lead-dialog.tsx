@@ -78,6 +78,8 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
       company_id: targetCompanyId,
       created_by: profile?.id,
       assigned_to: profile?.id,
+      referred_by_name: source === "referral" ? (referredByName.trim() || null) : null,
+      referred_by_lead_id: source === "referral" ? referredByLeadId : null,
     }).select("id").single();
     setSubmitting(false);
 
