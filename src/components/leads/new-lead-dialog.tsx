@@ -28,12 +28,16 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const [source, setSource] = useState<"inbound_call" | "walkin" | "referral" | "portal" | "manual">("manual");
   const [score, setScore] = useState<"hot" | "warm" | "cold">("warm");
   const [notes, setNotes] = useState("");
+  const [referredByName, setReferredByName] = useState("");
+  const [referredByLeadId, setReferredByLeadId] = useState<string | null>(null);
+  const [refSearch, setRefSearch] = useState<{ id: string; full_name: string; phone: string }[]>([]);
   const [duplicate, setDuplicate] = useState<{ company: string; status: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setFullName(""); setPhone(""); setLanguage("English");
     setSource("manual"); setScore("warm"); setNotes(""); setDuplicate(null);
+    setReferredByName(""); setReferredByLeadId(null); setRefSearch([]);
   };
 
   const normalizedPhone = (raw: string) => {
