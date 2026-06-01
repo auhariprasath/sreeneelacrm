@@ -115,7 +115,7 @@ function BookingsIndex() {
       </div>
 
       {loading ? <SkeletonList rows={6} /> : filtered.length === 0 ? (
-        <EmptyState icon={CalIcon} title="No bookings" description="No bookings match the current filters." />
+        <EmptyState icon={<CalIcon className="h-8 w-8" />} title="No bookings" description="No bookings match the current filters." />
       ) : (
         <div className="space-y-2">
           {filtered.map((b) => (
