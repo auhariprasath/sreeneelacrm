@@ -100,19 +100,27 @@ function CalendarPage() {
           const counts = countByStatus(ds);
           const isToday = iso === todayISO;
           const isSelected = iso === selectedDate;
+          const conflict = counts.confirmed >= 2;
           return (
             <button
               key={i}
               onClick={() => setSelectedDate(iso)}
-              className={`min-h-[68px] md:min-h-[88px] border rounded-md p-1.5 text-left transition-colors
+              className={`relative min-h-[68px] md:min-h-[88px] border rounded-md p-1.5 text-left transition-colors
                 ${inMonth ? "bg-card" : "bg-muted/30 text-muted-foreground"}
+                ${conflict ? "border-rose-500 ring-1 ring-rose-500/60" : ""}
                 ${isSelected ? "border-primary ring-1 ring-primary" : "hover:border-primary/40"}`}
+              title={conflict ? `${counts.confirmed} confirmed bookings on this date` : undefined}
             >
+              {conflict && (
+                <span className="absolute top-1 right-1 text-[9px] font-bold text-rose-600 bg-rose-100 dark:bg-rose-950 rounded px-1">
+                  ⚠
+                </span>
+              )}
               <div className={`text-xs font-medium ${isToday ? "text-primary" : ""}`}>
                 {date.getDate()}
               </div>
               <div className="mt-1 flex flex-wrap gap-0.5">
-                {counts.confirmed > 0 && <Dot tone="bg-rose-500" n={counts.confirmed} />}
+                {counts.confirmed > 0 && <Dot tone={conflict ? "bg-rose-600" : "bg-rose-500"} n={counts.confirmed} />}
                 {counts.enquiry > 0 && <Dot tone="bg-amber-500" n={counts.enquiry} />}
                 {counts.soft_hold > 0 && <Dot tone="bg-amber-300" n={counts.soft_hold} />}
               </div>
