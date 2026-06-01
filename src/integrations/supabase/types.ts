@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          action_type: Database["public"]["Enums"]["activity_type"]
+          created_at: string
+          deleted_at: string | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+          note: string | null
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          action_type?: Database["public"]["Enums"]["activity_type"]
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+          note?: string | null
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          action_type?: Database["public"]["Enums"]["activity_type"]
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+          note?: string | null
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           address: string | null
@@ -74,44 +118,286 @@ export type Database = {
         }
         Relationships: []
       }
+      follow_ups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_sent: boolean
+          lead_id: string
+          note: string | null
+          scheduled_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_sent?: boolean
+          lead_id: string
+          note?: string | null
+          scheduled_at: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_sent?: boolean
+          lead_id?: string
+          note?: string | null
+          scheduled_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          blacklist_reason: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          follow_up_count: number
+          full_name: string
+          id: string
+          is_blacklisted: boolean
+          language: string
+          lead_score: Database["public"]["Enums"]["lead_score"]
+          max_follow_up_attempts: number
+          notes: string | null
+          phone: string
+          referred_by_lead_id: string | null
+          referred_by_name: string | null
+          source: Database["public"]["Enums"]["lead_source"]
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          blacklist_reason?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          follow_up_count?: number
+          full_name: string
+          id?: string
+          is_blacklisted?: boolean
+          language?: string
+          lead_score?: Database["public"]["Enums"]["lead_score"]
+          max_follow_up_attempts?: number
+          notes?: string | null
+          phone: string
+          referred_by_lead_id?: string | null
+          referred_by_name?: string | null
+          source?: Database["public"]["Enums"]["lead_source"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          blacklist_reason?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          follow_up_count?: number
+          full_name?: string
+          id?: string
+          is_blacklisted?: boolean
+          language?: string
+          lead_score?: Database["public"]["Enums"]["lead_score"]
+          max_follow_up_attempts?: number
+          notes?: string | null
+          phone?: string
+          referred_by_lead_id?: string | null
+          referred_by_name?: string | null
+          source?: Database["public"]["Enums"]["lead_source"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_referred_by_lead_id_fkey"
+            columns: ["referred_by_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          lead_id: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          lead_id?: string | null
+          title: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          lead_id?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auto_approve_transfers: boolean
           company_id: string | null
           created_at: string
           email: string | null
+          fcm_token: string | null
           full_name: string
           id: string
           is_active: boolean
+          last_active_at: string | null
           must_change_password: boolean
           phone: string | null
+          phone_masked: boolean
         }
         Insert: {
           auto_approve_transfers?: boolean
           company_id?: string | null
           created_at?: string
           email?: string | null
+          fcm_token?: string | null
           full_name?: string
           id: string
           is_active?: boolean
+          last_active_at?: string | null
           must_change_password?: boolean
           phone?: string | null
+          phone_masked?: boolean
         }
         Update: {
           auto_approve_transfers?: boolean
           company_id?: string | null
           created_at?: string
           email?: string | null
+          fcm_token?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
+          last_active_at?: string | null
           must_change_password?: boolean
           phone?: string | null
+          phone_masked?: boolean
         }
         Relationships: [
           {
             foreignKeyName: "profiles_company_id_fkey"
             columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transfer_requests: {
+        Row: {
+          created_at: string
+          from_company_id: string
+          id: string
+          lead_id: string
+          reason: string
+          rejection_reason: string | null
+          requested_by: string
+          requirement_summary: string
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["transfer_status"]
+          to_company_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_company_id: string
+          id?: string
+          lead_id: string
+          reason: string
+          rejection_reason?: string | null
+          requested_by: string
+          requirement_summary: string
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["transfer_status"]
+          to_company_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_company_id?: string
+          id?: string
+          lead_id?: string
+          reason?: string
+          rejection_reason?: string | null
+          requested_by?: string
+          requirement_summary?: string
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["transfer_status"]
+          to_company_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_requests_from_company_id_fkey"
+            columns: ["from_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_requests_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_requests_to_company_id_fkey"
+            columns: ["to_company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
@@ -151,8 +437,41 @@ export type Database = {
       }
     }
     Enums: {
+      activity_type:
+        | "call"
+        | "whatsapp"
+        | "note"
+        | "status_change"
+        | "assignment"
+        | "transfer"
+        | "view"
+        | "system"
+        | "photo"
+        | "intake"
+        | "quotation"
+        | "payment"
       app_role: "super_admin" | "admin" | "staff"
       company_type: "garden" | "banquet" | "party" | "mandapam"
+      lead_score: "hot" | "warm" | "cold"
+      lead_source: "inbound_call" | "walkin" | "referral" | "portal" | "manual"
+      lead_status:
+        | "new"
+        | "in_progress"
+        | "neutral"
+        | "positive"
+        | "negative"
+        | "closed"
+        | "unresponsive"
+        | "locked"
+      notification_type:
+        | "new_lead"
+        | "follow_up"
+        | "transfer"
+        | "payment"
+        | "event_reminder"
+        | "low_rating"
+        | "system"
+      transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -280,8 +599,44 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_type: [
+        "call",
+        "whatsapp",
+        "note",
+        "status_change",
+        "assignment",
+        "transfer",
+        "view",
+        "system",
+        "photo",
+        "intake",
+        "quotation",
+        "payment",
+      ],
       app_role: ["super_admin", "admin", "staff"],
       company_type: ["garden", "banquet", "party", "mandapam"],
+      lead_score: ["hot", "warm", "cold"],
+      lead_source: ["inbound_call", "walkin", "referral", "portal", "manual"],
+      lead_status: [
+        "new",
+        "in_progress",
+        "neutral",
+        "positive",
+        "negative",
+        "closed",
+        "unresponsive",
+        "locked",
+      ],
+      notification_type: [
+        "new_lead",
+        "follow_up",
+        "transfer",
+        "payment",
+        "event_reminder",
+        "low_rating",
+        "system",
+      ],
+      transfer_status: ["pending", "approved", "rejected", "auto_approved"],
     },
   },
 } as const
