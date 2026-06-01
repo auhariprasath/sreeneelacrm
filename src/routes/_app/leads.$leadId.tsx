@@ -497,6 +497,13 @@ function LeadProfile() {
         requirementId={quoteReqId}
         quotationId={editQuoteId}
         onSaved={loadQuotations}
+        onContinueToSend={(id) => { setQuoteOpen(false); loadQuotations(); setSendQuoteId(id); }}
+      />
+      <SendQuotationDialog
+        open={!!sendQuoteId}
+        onOpenChange={(v) => { if (!v) setSendQuoteId(null); }}
+        quotationId={sendQuoteId}
+        onResponded={() => { loadQuotations(); load(); }}
       />
     </div>
   );
