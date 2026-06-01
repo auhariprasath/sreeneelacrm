@@ -70,7 +70,7 @@ function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total leads" value={0} icon={Users} />
           <StatCard label="Total bookings" value={0} icon={ClipboardList} />
-          <StatCard label="Pending payments" value="₹0" icon={IndianRupee} />
+          <StatCard label="Pending payments" value={formatINR(0)} icon={IndianRupee} />
           <StatCard label="Upcoming events" value={0} icon={CalendarClock} />
         </div>
 
