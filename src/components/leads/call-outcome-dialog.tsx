@@ -64,7 +64,7 @@ export function CallOutcomeDialog({
     if (selected.key === "no_answer") {
       const next = currentFollowUpCount + 1;
       const autoUnresponsive = next >= maxFollowUpAttempts;
-      const updates: Record<string, unknown> = { follow_up_count: next };
+      const updates: Database["public"]["Tables"]["leads"]["Update"] = { follow_up_count: next };
       if (autoUnresponsive) updates.status = "unresponsive";
       await supabase.from("leads").update(updates).eq("id", leadId);
       if (autoUnresponsive) {
