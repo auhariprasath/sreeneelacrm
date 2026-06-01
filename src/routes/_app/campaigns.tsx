@@ -46,10 +46,11 @@ const SCORES = ["hot", "warm", "cold"];
 const STATUSES = ["new", "contacted", "interested", "negotiating", "booked", "dropped"];
 const SOURCES = ["manual", "walk_in", "referral", "instagram", "google", "facebook", "wedding_site", "other"];
 
-function buildLeadQuery(companyId: string, f: Filters) {
-  let q = supabase
-    .from("leads")
-    .select("id,full_name,phone,language,lead_score,status,source")
+function buildLeadQuery(companyId: string, f: Filters, opts?: { count?: boolean }) {
+  const sel = opts?.count
+    ? supabase.from("leads").select("id", { count: "exact", head: true })
+    : supabase.from("leads").select("id,full_name,phone,language,lead_score,status,source");
+  let q = sel
     .eq("company_id", companyId)
     .is("deleted_at", null)
     .eq("is_blacklisted", false);
