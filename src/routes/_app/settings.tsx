@@ -14,6 +14,7 @@ import {
   FileText, XCircle, MessageSquare, Briefcase, Lock,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
+import { JsonListSection } from "@/components/settings/json-list-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
