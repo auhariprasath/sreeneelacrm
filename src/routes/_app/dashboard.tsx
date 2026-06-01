@@ -50,16 +50,30 @@ interface CompanyStats {
   activeHolds: number;
   upcoming: Array<{ id: string; lead_id: string; event_date: string; start_time: string; full_name: string }>;
   expiringSoon: ExpiringHold[];
+  taskCompletionPct: number;
+  tasksTotal: number;
+  tasksDone: number;
+  vendorsConfirmedPct: number;
+  vendorsTotal: number;
+  vendorsConfirmed: number;
 }
 
 async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const today = new Date().toISOString().slice(0, 10);
+  const in14 = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
   const tenMin = new Date(Date.now() + 10 * 60_000).toISOString();
 
-  const [leadsToday, activeLeads, bookings, followUps, holds, upcoming, expiring] = await Promise.all([
+  // Get upcoming booking ids in next 14 days for task/vendor stats
+  const upcomingBookingsRes = await supabase.from("bookings")
+    .select("id")
+    .eq("company_id", companyId).is("deleted_at", null).eq("status", "confirmed")
+    .gte("event_date", today).lte("event_date", in14);
+  const upcomingBookingIds = (upcomingBookingsRes.data ?? []).map((b: any) => b.id);
+
+  const [leadsToday, activeLeads, bookings, followUps, holds, upcoming, expiring, tasksAgg, vendorsAgg] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true })
       .eq("company_id", companyId).is("deleted_at", null)
       .gte("created_at", todayStart.toISOString()),
@@ -81,7 +95,20 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
       .eq("company_id", companyId).eq("status", "soft_hold")
       .gt("held_until", nowIso).lt("held_until", tenMin)
       .order("held_until", { ascending: true }).limit(10),
+    upcomingBookingIds.length
+      ? supabase.from("tasks").select("status").eq("company_id", companyId).is("deleted_at", null).in("booking_id", upcomingBookingIds)
+      : Promise.resolve({ data: [] as any[] }),
+    upcomingBookingIds.length
+      ? supabase.from("booking_vendors").select("confirmed").eq("company_id", companyId).in("booking_id", upcomingBookingIds)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
+
+  const taskRows = (tasksAgg.data ?? []) as Array<{ status: string }>;
+  const tasksTotal = taskRows.length;
+  const tasksDone = taskRows.filter((t) => t.status === "done").length;
+  const vendorRows = (vendorsAgg.data ?? []) as Array<{ confirmed: boolean }>;
+  const vendorsTotal = vendorRows.length;
+  const vendorsConfirmed = vendorRows.filter((v) => v.confirmed).length;
 
   return {
     newToday: leadsToday.count ?? 0,
@@ -98,6 +125,12 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
       start_time: s.start_time, end_time: s.end_time, held_until: s.held_until,
       full_name: s.leads?.full_name ?? "—",
     })),
+    tasksTotal,
+    tasksDone,
+    taskCompletionPct: tasksTotal ? Math.round((tasksDone / tasksTotal) * 100) : 0,
+    vendorsTotal,
+    vendorsConfirmed,
+    vendorsConfirmedPct: vendorsTotal ? Math.round((vendorsConfirmed / vendorsTotal) * 100) : 0,
   };
 }
 
