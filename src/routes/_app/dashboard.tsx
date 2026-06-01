@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox, Clock } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
-import { formatINR, formatDateIN, formatTimeIN } from "@/lib/format";
+import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -172,7 +172,7 @@ function DashboardPage() {
                     <div>
                       <div className="font-medium">{u.full_name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {formatDateIN(u.event_date)} {u.start_time ? `· ${formatTimeIN(u.start_time)}` : ""}
+                        {formatDateIN(u.event_date)} {u.start_time ? `· ${formatTimeOfDay(u.start_time)}` : ""}
                       </div>
                     </div>
                     <Link to="/leads/$leadId" params={{ leadId: u.lead_id }} className="text-xs text-primary underline">Open</Link>
