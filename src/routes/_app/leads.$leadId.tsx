@@ -331,13 +331,53 @@ function LeadProfile() {
                       </span>
                     </div>
                   </button>
-                  <div className="mt-2 flex gap-2 justify-end">
+                  <div className="mt-2 flex gap-2 justify-end flex-wrap">
                     <Button size="sm" variant="outline" onClick={() => setDecisionReqId(r.id)} disabled={lead.status === "locked"}>
                       Record decision
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (r.status !== "slot_confirmed") {
+                          toast.info("Confirm the slot first before building a quotation.");
+                          return;
+                        }
+                        setQuoteReqId(r.id); setEditQuoteId(null); setQuoteOpen(true);
+                      }}
+                      disabled={lead.status === "locked"}
+                    >
+                      <FileText className="h-3.5 w-3.5 mr-1" /> Quotation
                     </Button>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Quotations card */}
+          {quotations.length > 0 && (
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">Quotations</div>
+              <div className="space-y-2">
+                {quotations.map((q) => (
+                  <div key={q.id} className="bg-card border rounded-md p-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                        v{q.version} · {formatINR(Number(q.total))}
+                        <span className="text-[10px] uppercase tracking-wide bg-muted text-muted-foreground rounded-full px-2 py-0.5">{q.status}</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
+                        Updated {relativeTime(q.updated_at)}
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
+                      Open
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </TabsContent>
