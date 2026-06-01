@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { generateTasksForBooking } from "@/lib/task-templates";
 import type { Database } from "@/integrations/supabase/types";
 
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
@@ -230,6 +231,28 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
         action_type: "status_change", performed_by: profile?.id ?? null,
         metadata: { booking_id: booking.id, quotation_id: quote.id, amount_paid: amountPaid },
       });
+
+      // 7. Auto-generate task board from company templates (only for confirmed, not cheque_pending)
+      if (status === "confirmed") {
+        try {
+          const created = await generateTasksForBooking({
+            bookingId: booking.id,
+            companyId: quote.company_id,
+            eventDate: requirement.event_date!,
+            startTime: requirement.start_time,
+            createdBy: profile?.id ?? null,
+          });
+          if (created > 0) {
+            await supabase.from("activity_logs").insert({
+              lead_id: quote.lead_id,
+              action: `Task board created — ${created} task${created === 1 ? "" : "s"} generated`,
+              action_type: "system", performed_by: profile?.id ?? null,
+              metadata: { booking_id: booking.id, task_count: created },
+            });
+            toast.success(`Task board created with ${created} task${created === 1 ? "" : "s"} ✓`);
+          }
+        } catch (e) { console.warn("Task generation failed:", e); }
+      }
 
       toast.success("Booking confirmed!");
       onConfirmed?.(booking.id);

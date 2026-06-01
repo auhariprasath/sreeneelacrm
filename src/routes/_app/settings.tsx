@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, Filter, CalendarRange, Tags, Plus, Percent, Bell, CalendarCheck,
-  FileText, XCircle, MessageSquare, Briefcase, Lock,
+  FileText, XCircle, MessageSquare, Briefcase, Lock, ListChecks,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { JsonListSection } from "@/components/settings/json-list-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
+import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
@@ -35,6 +36,7 @@ const SECTIONS = [
   { id: "drop", label: "Drop reasons", icon: XCircle, superOnly: true },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: true },
   { id: "vendors", label: "Vendor list", icon: Users, superOnly: true },
+  { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -486,6 +488,24 @@ function SettingsPage() {
                 </Tabs>
               )}
               <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "task-templates": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Task templates</CardTitle>
+              <CardDescription>Auto-generate a task board for every confirmed booking. Set timing, assignee, and priority.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <TaskTemplatesSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );
