@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listCompanyStaff, createStaff, setStaffActive, updateStaffSettings } from "@/lib/api/staff.functions";
+import { listCompanyStaff, createStaff, setStaffActive, updateStaffSettings, setStaffLeave } from "@/lib/api/staff.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
