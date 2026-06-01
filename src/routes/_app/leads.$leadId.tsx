@@ -496,9 +496,14 @@ function LeadProfile() {
                           </Button>
                         </div>
                       )}
-                      {b.status === "completed" && b.completed_at && (
-                        <div className="border-t pt-2 text-[11px] text-muted-foreground">
-                          Completed {formatDateIN(b.completed_at)}
+                      {b.status === "completed" && (
+                        <div className="border-t pt-2 flex flex-wrap items-center justify-between gap-2">
+                          <div className="text-[11px] text-muted-foreground">
+                            {b.completed_at && <>Completed {formatDateIN(b.completed_at)}</>}
+                          </div>
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => { setEditReqId(null); setReqOpen(true); }}>
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Start new requirement
+                          </Button>
                         </div>
                       )}
                     </div>
