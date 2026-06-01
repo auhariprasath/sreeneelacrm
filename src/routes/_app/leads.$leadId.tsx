@@ -326,6 +326,26 @@ function LeadProfile() {
               <div className="text-sm whitespace-pre-wrap">{lead.notes}</div>
             </div>
           )}
+          {winLoss.length > 0 && (
+            <div className="bg-card border rounded-md p-3 space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground">Outcomes history</div>
+              {winLoss.map((w, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs">
+                  <span className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${w.outcome === "won" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/15 text-rose-700 dark:text-rose-300"}`}>
+                    {w.outcome}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-foreground">
+                      {w.amount_value != null && <span className="font-medium">{formatINR(Number(w.amount_value))}</span>}
+                      {w.drop_reason && <span className="text-muted-foreground"> · {w.drop_reason}</span>}
+                      {w.competitor_name && <span className="text-muted-foreground"> · lost to {w.competitor_name}</span>}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">{formatDateIN(w.closed_at)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="requirements" className="pt-3 space-y-2">
