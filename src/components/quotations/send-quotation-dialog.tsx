@@ -161,12 +161,14 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
         declined: "Client DECLINED the quotation",
         revision: "Client requested a REVISION",
       };
-      const statusMap: Record<string, "agreed" | "negotiating" | "declined" | "revision_requested"> = {
-        agreed: "agreed", negotiating: "negotiating", declined: "declined", revision: "revision_requested",
+      const statusMap: Record<string, Database["public"]["Enums"]["quotation_status"] | null> = {
+        agreed: "agreed", negotiating: null, declined: "declined", revision: "revised",
       };
-      const patch: Database["public"]["Tables"]["quotations"]["Update"] = { status: statusMap[kind] };
+      const newStatus = statusMap[kind];
+      const patch: Database["public"]["Tables"]["quotations"]["Update"] = {};
+      if (newStatus) patch.status = newStatus;
       if (kind === "agreed") patch.agreed_at = new Date().toISOString();
-      await supabase.from("quotations").update(patch).eq("id", quote.id);
+      if (Object.keys(patch).length) await supabase.from("quotations").update(patch).eq("id", quote.id);
       await supabase.from("activity_logs").insert({
         lead_id: quote.lead_id,
         action: `${labels[kind]} (v${quote.version})`,
