@@ -77,7 +77,6 @@ function FeedbackPage() {
           title: `Low rating: ${rating}★`,
           body: `${info.client_name ?? "Client"} rated ${rating}/5${comment ? ` — "${comment.slice(0, 80)}"` : ""}`,
           lead_id: info.lead_id,
-          company_id: info.company_id,
         }));
         if (rows.length > 0) await supabase.from("notifications").insert(rows);
 
