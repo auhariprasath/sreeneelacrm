@@ -157,6 +157,8 @@ export type Database = {
           cheque_cleared_by: string | null
           cheque_number: string | null
           company_id: string
+          completed_at: string | null
+          completed_by: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -164,10 +166,14 @@ export type Database = {
           disputed_at: string | null
           end_time: string | null
           event_date: string
+          feedback_wa_scheduled_at: string | null
+          feedback_wa_sent_at: string | null
           id: string
           lead_id: string
           payment_type: Database["public"]["Enums"]["payment_type"] | null
           quotation_id: string | null
+          reengagement_scheduled_at: string | null
+          reengagement_sent_at: string | null
           refund_amount: number | null
           refund_percent: number | null
           refund_processed_at: string | null
@@ -194,6 +200,8 @@ export type Database = {
           cheque_cleared_by?: string | null
           cheque_number?: string | null
           company_id: string
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -201,10 +209,14 @@ export type Database = {
           disputed_at?: string | null
           end_time?: string | null
           event_date: string
+          feedback_wa_scheduled_at?: string | null
+          feedback_wa_sent_at?: string | null
           id?: string
           lead_id: string
           payment_type?: Database["public"]["Enums"]["payment_type"] | null
           quotation_id?: string | null
+          reengagement_scheduled_at?: string | null
+          reengagement_sent_at?: string | null
           refund_amount?: number | null
           refund_percent?: number | null
           refund_processed_at?: string | null
@@ -231,6 +243,8 @@ export type Database = {
           cheque_cleared_by?: string | null
           cheque_number?: string | null
           company_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -238,10 +252,14 @@ export type Database = {
           disputed_at?: string | null
           end_time?: string | null
           event_date?: string
+          feedback_wa_scheduled_at?: string | null
+          feedback_wa_sent_at?: string | null
           id?: string
           lead_id?: string
           payment_type?: Database["public"]["Enums"]["payment_type"] | null
           quotation_id?: string | null
+          reengagement_scheduled_at?: string | null
+          reengagement_sent_at?: string | null
           refund_amount?: number | null
           refund_percent?: number | null
           refund_processed_at?: string | null
@@ -370,8 +388,10 @@ export type Database = {
           auto_sms_fallback: boolean
           auto_wa_client_on_leave: boolean
           auto_wa_on_reschedule: boolean
+          balance_reminder_days_before: number
           bank_account: string | null
           cancellation_policy: string | null
+          company_phone: string | null
           created_at: string
           default_callback_time: string
           default_follow_up_minutes: number
@@ -379,6 +399,8 @@ export type Database = {
           drop_reasons: Json
           email: string | null
           event_types: Json
+          feedback_wa_delay_hours: number
+          force_majeure_note: string | null
           google_review_link: string | null
           gst_percent: number
           gstin: string | null
@@ -392,6 +414,8 @@ export type Database = {
           peak_season_dates: Json
           quotation_counter: number
           quotation_prefix: string
+          reengagement_auto_send: boolean
+          reengagement_delay_days: number
           refund_15_30_percent: number
           refund_over_30_percent: number
           refund_tier_15_30: string | null
@@ -407,7 +431,9 @@ export type Database = {
           upi_id: string | null
           wa_number: string | null
           wa_template_competing_leads: string | null
+          wa_template_feedback: string | null
           wa_template_payment_reminder: string | null
+          wa_template_reengagement: string | null
           wa_template_reschedule: string | null
           wa_template_thank_you: string | null
         }
@@ -422,8 +448,10 @@ export type Database = {
           auto_sms_fallback?: boolean
           auto_wa_client_on_leave?: boolean
           auto_wa_on_reschedule?: boolean
+          balance_reminder_days_before?: number
           bank_account?: string | null
           cancellation_policy?: string | null
+          company_phone?: string | null
           created_at?: string
           default_callback_time?: string
           default_follow_up_minutes?: number
@@ -431,6 +459,8 @@ export type Database = {
           drop_reasons?: Json
           email?: string | null
           event_types?: Json
+          feedback_wa_delay_hours?: number
+          force_majeure_note?: string | null
           google_review_link?: string | null
           gst_percent?: number
           gstin?: string | null
@@ -444,6 +474,8 @@ export type Database = {
           peak_season_dates?: Json
           quotation_counter?: number
           quotation_prefix?: string
+          reengagement_auto_send?: boolean
+          reengagement_delay_days?: number
           refund_15_30_percent?: number
           refund_over_30_percent?: number
           refund_tier_15_30?: string | null
@@ -459,7 +491,9 @@ export type Database = {
           upi_id?: string | null
           wa_number?: string | null
           wa_template_competing_leads?: string | null
+          wa_template_feedback?: string | null
           wa_template_payment_reminder?: string | null
+          wa_template_reengagement?: string | null
           wa_template_reschedule?: string | null
           wa_template_thank_you?: string | null
         }
@@ -474,8 +508,10 @@ export type Database = {
           auto_sms_fallback?: boolean
           auto_wa_client_on_leave?: boolean
           auto_wa_on_reschedule?: boolean
+          balance_reminder_days_before?: number
           bank_account?: string | null
           cancellation_policy?: string | null
+          company_phone?: string | null
           created_at?: string
           default_callback_time?: string
           default_follow_up_minutes?: number
@@ -483,6 +519,8 @@ export type Database = {
           drop_reasons?: Json
           email?: string | null
           event_types?: Json
+          feedback_wa_delay_hours?: number
+          force_majeure_note?: string | null
           google_review_link?: string | null
           gst_percent?: number
           gstin?: string | null
@@ -496,6 +534,8 @@ export type Database = {
           peak_season_dates?: Json
           quotation_counter?: number
           quotation_prefix?: string
+          reengagement_auto_send?: boolean
+          reengagement_delay_days?: number
           refund_15_30_percent?: number
           refund_over_30_percent?: number
           refund_tier_15_30?: string | null
@@ -511,7 +551,9 @@ export type Database = {
           upi_id?: string | null
           wa_number?: string | null
           wa_template_competing_leads?: string | null
+          wa_template_feedback?: string | null
           wa_template_payment_reminder?: string | null
+          wa_template_reengagement?: string | null
           wa_template_reschedule?: string | null
           wa_template_thank_you?: string | null
         }
@@ -568,6 +610,39 @@ export type Database = {
           severity?: Database["public"]["Enums"]["event_day_severity"] | null
           status?: Database["public"]["Enums"]["event_day_status"]
           title?: string
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          company_id: string
+          created_at: string
+          id: string
+          lead_id: string
+          rating: number
+          submitted_at: string
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          rating: number
+          submitted_at?: string
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          rating?: number
+          submitted_at?: string
         }
         Relationships: []
       }
@@ -701,6 +776,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_log: {
+        Row: {
+          company_id: string | null
+          device_type: string | null
+          id: string
+          login_at: string
+          logout_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          device_type?: string | null
+          id?: string
+          login_at?: string
+          logout_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          device_type?: string | null
+          id?: string
+          login_at?: string
+          logout_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -870,6 +975,8 @@ export type Database = {
           id: string
           is_active: boolean
           last_active_at: string | null
+          last_login_at: string | null
+          last_logout_at: string | null
           must_change_password: boolean
           on_leave: boolean
           phone: string | null
@@ -887,6 +994,8 @@ export type Database = {
           id: string
           is_active?: boolean
           last_active_at?: string | null
+          last_login_at?: string | null
+          last_logout_at?: string | null
           must_change_password?: boolean
           on_leave?: boolean
           phone?: string | null
@@ -904,6 +1013,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_active_at?: string | null
+          last_login_at?: string | null
+          last_logout_at?: string | null
           must_change_password?: boolean
           on_leave?: boolean
           phone?: string | null
@@ -1006,6 +1117,39 @@ export type Database = {
           total?: number
           updated_at?: string
           version?: number
+        }
+        Relationships: []
+      }
+      referral_loyalty_flags: {
+        Row: {
+          benefit_sent: boolean
+          benefit_sent_at: string | null
+          created_at: string
+          flagged_by: string | null
+          id: string
+          notes: string | null
+          referrer_lead_id: string
+          updated_at: string
+        }
+        Insert: {
+          benefit_sent?: boolean
+          benefit_sent_at?: string | null
+          created_at?: string
+          flagged_by?: string | null
+          id?: string
+          notes?: string | null
+          referrer_lead_id: string
+          updated_at?: string
+        }
+        Update: {
+          benefit_sent?: boolean
+          benefit_sent_at?: string | null
+          created_at?: string
+          flagged_by?: string | null
+          id?: string
+          notes?: string | null
+          referrer_lead_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1325,6 +1469,45 @@ export type Database = {
         }
         Relationships: []
       }
+      win_loss_log: {
+        Row: {
+          amount_value: number | null
+          closed_at: string
+          closed_by: string | null
+          company_id: string
+          competitor_name: string | null
+          created_at: string
+          drop_reason: string | null
+          id: string
+          lead_id: string
+          outcome: Database["public"]["Enums"]["win_loss_outcome"]
+        }
+        Insert: {
+          amount_value?: number | null
+          closed_at?: string
+          closed_by?: string | null
+          company_id: string
+          competitor_name?: string | null
+          created_at?: string
+          drop_reason?: string | null
+          id?: string
+          lead_id: string
+          outcome: Database["public"]["Enums"]["win_loss_outcome"]
+        }
+        Update: {
+          amount_value?: number | null
+          closed_at?: string
+          closed_by?: string | null
+          company_id?: string
+          competitor_name?: string | null
+          created_at?: string
+          drop_reason?: string | null
+          id?: string
+          lead_id?: string
+          outcome?: Database["public"]["Enums"]["win_loss_outcome"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1419,6 +1602,7 @@ export type Database = {
       task_priority: "low" | "medium" | "high"
       task_status: "pending" | "in_progress" | "done" | "overdue"
       transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
+      win_loss_outcome: "won" | "lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1633,6 +1817,7 @@ export const Constants = {
       task_priority: ["low", "medium", "high"],
       task_status: ["pending", "in_progress", "done", "overdue"],
       transfer_status: ["pending", "approved", "rejected", "auto_approved"],
+      win_loss_outcome: ["won", "lost"],
     },
   },
 } as const
