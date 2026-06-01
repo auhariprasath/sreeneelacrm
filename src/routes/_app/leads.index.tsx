@@ -62,8 +62,36 @@ function LeadsInbox() {
     const { data, error } = await q;
     if (error) { setLoading(false); return; }
     setHasMore((data?.length ?? 0) === PAGE);
-    setLeads((prev) => (reset ? (data ?? []) : [...prev, ...(data ?? [])]));
+    const next = reset ? (data ?? []) : [...leads, ...(data ?? [])];
+    setLeads(next);
     setLoading(false);
+    void loadReqMeta((data ?? []).map((l) => l.id));
+  };
+
+  const loadReqMeta = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const nowIso = new Date().toISOString();
+    const [reqRes, holdRes] = await Promise.all([
+      supabase.from("requirements")
+        .select("lead_id, event_date")
+        .in("lead_id", ids).is("deleted_at", null)
+        .not("event_date", "is", null).gte("event_date", today),
+      supabase.from("slots")
+        .select("held_by_lead_id")
+        .in("held_by_lead_id", ids).eq("status", "soft_hold").gt("held_until", nowIso),
+    ]);
+    const meta: Record<string, ReqMeta> = {};
+    for (const id of ids) meta[id] = { nextEvent: null, holdActive: false };
+    for (const r of (reqRes.data ?? []) as any[]) {
+      const cur = meta[r.lead_id];
+      if (!cur) continue;
+      if (!cur.nextEvent || r.event_date < cur.nextEvent) cur.nextEvent = r.event_date;
+    }
+    for (const h of (holdRes.data ?? []) as any[]) {
+      if (meta[h.held_by_lead_id]) meta[h.held_by_lead_id].holdActive = true;
+    }
+    setReqMeta((prev) => ({ ...prev, ...meta }));
   };
 
   // initial + filter changes
