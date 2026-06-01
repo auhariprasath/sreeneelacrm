@@ -36,6 +36,7 @@ const SECTIONS = [
   { id: "drop", label: "Drop reasons", icon: XCircle, superOnly: true },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: true },
   { id: "vendors", label: "Vendor list", icon: Users, superOnly: true },
+  { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
