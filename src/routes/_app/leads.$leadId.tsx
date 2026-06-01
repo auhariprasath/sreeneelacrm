@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, initialsOf, relativeTime } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
 import { FollowUpDialog } from "@/components/leads/follow-up-dialog";
 import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
+import { TransferDialog } from "@/components/leads/transfer-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
