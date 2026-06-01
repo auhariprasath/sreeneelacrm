@@ -65,6 +65,13 @@ function LeadProfile() {
     setRequirements((data as Requirement[]) ?? []);
   };
 
+  const loadQuotations = async () => {
+    const { data } = await supabase
+      .from("quotations").select("*").eq("lead_id", leadId)
+      .is("deleted_at", null).order("version", { ascending: false });
+    setQuotations((data as Quotation[]) ?? []);
+  };
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("leads").select("*").eq("id", leadId).maybeSingle();
