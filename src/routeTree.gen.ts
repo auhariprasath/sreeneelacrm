@@ -28,6 +28,7 @@ import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
+import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -123,6 +124,12 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
 } as any)
+const ApiPublicHooksPreEventRemindersRoute =
+  ApiPublicHooksPreEventRemindersRouteImport.update({
+    id: '/api/public/hooks/pre-event-reminders',
+    path: '/api/public/hooks/pre-event-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
+  '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -162,6 +170,7 @@ export interface FileRoutesByTo {
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
+  '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -184,6 +193,7 @@ export interface FileRoutesById {
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
+  '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
+    | '/api/public/hooks/pre-event-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
+    | '/api/public/hooks/pre-event-reminders'
   id:
     | '__root__'
     | '/'
@@ -246,6 +258,7 @@ export interface FileRouteTypes {
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
+    | '/api/public/hooks/pre-event-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -256,6 +269,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
+  ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -393,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
     }
+    '/api/public/hooks/pre-event-reminders': {
+      id: '/api/public/hooks/pre-event-reminders'
+      path: '/api/public/hooks/pre-event-reminders'
+      fullPath: '/api/public/hooks/pre-event-reminders'
+      preLoaderRoute: typeof ApiPublicHooksPreEventRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -446,6 +467,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
+  ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
