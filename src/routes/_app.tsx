@@ -17,6 +17,7 @@ import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { toast } from "sonner";
 import { initialsOf } from "@/lib/format";
 import { InstallPrompt } from "@/components/install-prompt";
+import { WelcomeTour } from "@/components/welcome-tour";
 import { GlobalSearch } from "@/components/global-search";
 import { NotificationBell } from "@/components/notification-bell";
 
@@ -224,6 +225,7 @@ function AppLayout() {
           })}
         </nav>
         <InstallPrompt />
+        <WelcomeTour />
       </div>
     </div>
   );
