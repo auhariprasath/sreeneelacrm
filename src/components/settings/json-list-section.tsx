@@ -59,7 +59,7 @@ export function JsonListSection({
     setSaving(true);
     const { error } = await supabase
       .from("companies")
-      .update({ [column]: rows as any })
+      .update({ [column]: rows as any } as any)
       .eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
