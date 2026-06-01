@@ -45,6 +45,7 @@ function LeadProfile() {
   const [saving, setSaving] = useState(false);
 
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
@@ -53,6 +54,9 @@ function LeadProfile() {
   const [reqOpen, setReqOpen] = useState(false);
   const [editReqId, setEditReqId] = useState<string | null>(null);
   const [decisionReqId, setDecisionReqId] = useState<string | null>(null);
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
+  const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
