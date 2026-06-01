@@ -49,6 +49,7 @@ function LeadProfile() {
   const [trOpen, setTrOpen] = useState(false);
   const [reqOpen, setReqOpen] = useState(false);
   const [editReqId, setEditReqId] = useState<string | null>(null);
+  const [decisionReqId, setDecisionReqId] = useState<string | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
