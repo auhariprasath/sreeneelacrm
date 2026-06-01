@@ -18,6 +18,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
+import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
+import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
@@ -68,6 +70,16 @@ const AppReportsRoute = AppReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMoreRoute = AppMoreRouteImport.update({
+  id: '/more',
+  path: '/more',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLeadsRoute = AppLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -104,6 +116,8 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof AppCalendarRoute
   '/dashboard': typeof AppDashboardRoute
   '/leads': typeof AppLeadsRoute
+  '/more': typeof AppMoreRoute
+  '/notifications': typeof AppNotificationsRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
@@ -119,6 +133,8 @@ export interface FileRoutesByTo {
   '/calendar': typeof AppCalendarRoute
   '/dashboard': typeof AppDashboardRoute
   '/leads': typeof AppLeadsRoute
+  '/more': typeof AppMoreRoute
+  '/notifications': typeof AppNotificationsRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
@@ -136,6 +152,8 @@ export interface FileRoutesById {
   '/_app/calendar': typeof AppCalendarRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/leads': typeof AppLeadsRoute
+  '/_app/more': typeof AppMoreRoute
+  '/_app/notifications': typeof AppNotificationsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/tasks': typeof AppTasksRoute
@@ -153,6 +171,8 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboard'
     | '/leads'
+    | '/more'
+    | '/notifications'
     | '/reports'
     | '/settings'
     | '/tasks'
@@ -168,6 +188,8 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/dashboard'
     | '/leads'
+    | '/more'
+    | '/notifications'
     | '/reports'
     | '/settings'
     | '/tasks'
@@ -184,6 +206,8 @@ export interface FileRouteTypes {
     | '/_app/calendar'
     | '/_app/dashboard'
     | '/_app/leads'
+    | '/_app/more'
+    | '/_app/notifications'
     | '/_app/reports'
     | '/_app/settings'
     | '/_app/tasks'
@@ -265,6 +289,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/more': {
+      id: '/_app/more'
+      path: '/more'
+      fullPath: '/more'
+      preLoaderRoute: typeof AppMoreRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/leads': {
       id: '/_app/leads'
       path: '/leads'
@@ -308,6 +346,8 @@ interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppLeadsRoute: typeof AppLeadsRoute
+  AppMoreRoute: typeof AppMoreRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
@@ -318,6 +358,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppCalendarRoute: AppCalendarRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppLeadsRoute: AppLeadsRoute,
+  AppMoreRoute: AppMoreRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
@@ -337,13 +379,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
