@@ -116,6 +116,7 @@ function LeadProfile() {
       supabase.from("quotations").select("*").eq("lead_id", leadId).is("deleted_at", null).order("version", { ascending: false }),
       supabase.from("bookings").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("payments").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: true }),
+      supabase.from("win_loss_log").select("outcome, drop_reason, competitor_name, amount_value, closed_at").eq("lead_id", leadId).order("closed_at", { ascending: false }),
     ]);
     setActivities((acts as Activity[]) ?? []);
     setFollowUps((fus as FollowUp[]) ?? []);
