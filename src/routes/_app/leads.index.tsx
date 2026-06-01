@@ -16,6 +16,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
+type ReqMeta = { nextEvent: string | null; holdActive: boolean };
 
 const PAGE = 25;
 const STATUS_TABS: { key: "all" | Status; label: string }[] = [
@@ -38,6 +39,7 @@ function LeadsInbox() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [open, setOpen] = useState(false);
+  const [reqMeta, setReqMeta] = useState<Record<string, ReqMeta>>({});
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const companyFilter = useMemo(() => {
@@ -60,8 +62,36 @@ function LeadsInbox() {
     const { data, error } = await q;
     if (error) { setLoading(false); return; }
     setHasMore((data?.length ?? 0) === PAGE);
-    setLeads((prev) => (reset ? (data ?? []) : [...prev, ...(data ?? [])]));
+    const next = reset ? (data ?? []) : [...leads, ...(data ?? [])];
+    setLeads(next);
     setLoading(false);
+    void loadReqMeta((data ?? []).map((l) => l.id));
+  };
+
+  const loadReqMeta = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const nowIso = new Date().toISOString();
+    const [reqRes, holdRes] = await Promise.all([
+      supabase.from("requirements")
+        .select("lead_id, event_date")
+        .in("lead_id", ids).is("deleted_at", null)
+        .not("event_date", "is", null).gte("event_date", today),
+      supabase.from("slots")
+        .select("held_by_lead_id")
+        .in("held_by_lead_id", ids).eq("status", "soft_hold").gt("held_until", nowIso),
+    ]);
+    const meta: Record<string, ReqMeta> = {};
+    for (const id of ids) meta[id] = { nextEvent: null, holdActive: false };
+    for (const r of (reqRes.data ?? []) as any[]) {
+      const cur = meta[r.lead_id];
+      if (!cur) continue;
+      if (!cur.nextEvent || r.event_date < cur.nextEvent) cur.nextEvent = r.event_date;
+    }
+    for (const h of (holdRes.data ?? []) as any[]) {
+      if (meta[h.held_by_lead_id]) meta[h.held_by_lead_id].holdActive = true;
+    }
+    setReqMeta((prev) => ({ ...prev, ...meta }));
   };
 
   // initial + filter changes
@@ -166,7 +196,7 @@ function LeadsInbox() {
       ) : (
         <div className="space-y-2">
           {leads.map((l) => (
-            <LeadCard key={l.id} lead={l} masked={profile?.phone_masked ?? false} />
+            <LeadCard key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} />
           ))}
           {hasMore && (
             <div ref={sentinelRef} className="h-12 flex items-center justify-center text-xs text-muted-foreground">
@@ -186,9 +216,10 @@ function LeadsInbox() {
   );
 }
 
-function LeadCard({ lead, masked }: { lead: Lead; masked: boolean }) {
+function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: ReqMeta }) {
   const phone = formatPhoneIN(lead.phone, masked);
   const tel = (lead.phone || "").replace(/\D/g, "");
+  const nextEvent = meta?.nextEvent ? new Date(meta.nextEvent) : null;
   return (
     <Link
       to="/leads/$leadId"
@@ -214,9 +245,19 @@ function LeadCard({ lead, masked }: { lead: Lead; masked: boolean }) {
             </div>
             <ScoreBadge score={lead.lead_score} />
           </div>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
               <StatusBadge status={lead.status} />
+              {nextEvent && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                  Event {String(nextEvent.getDate()).padStart(2,"0")}/{String(nextEvent.getMonth()+1).padStart(2,"0")}
+                </span>
+              )}
+              {meta?.holdActive && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  Hold active
+                </span>
+              )}
               <span className="text-[11px] text-muted-foreground truncate">{relativeTime(lead.updated_at)}</span>
             </div>
             <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
