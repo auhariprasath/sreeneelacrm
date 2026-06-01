@@ -32,6 +32,7 @@ import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
+import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -148,6 +149,12 @@ const ApiPublicHooksPreEventRemindersRoute =
     path: '/api/public/hooks/pre-event-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPostEventAutomationRoute =
+  ApiPublicHooksPostEventAutomationRouteImport.update({
+    id: '/api/public/hooks/post-event-automation',
+    path: '/api/public/hooks/post-event-automation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
+  '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
 }
 export interface FileRoutesByTo {
@@ -194,6 +202,7 @@ export interface FileRoutesByTo {
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
+  '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
 }
 export interface FileRoutesById {
@@ -220,6 +229,7 @@ export interface FileRoutesById {
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
+  '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
 }
 export interface FileRouteTypes {
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
+    | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
+    | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
   id:
     | '__root__'
@@ -294,6 +306,7 @@ export interface FileRouteTypes {
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
+    | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
   fileRoutesById: FileRoutesById
 }
@@ -306,6 +319,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
+  ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
 }
 
@@ -472,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPreEventRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/post-event-automation': {
+      id: '/api/public/hooks/post-event-automation'
+      path: '/api/public/hooks/post-event-automation'
+      fullPath: '/api/public/hooks/post-event-automation'
+      preLoaderRoute: typeof ApiPublicHooksPostEventAutomationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -530,8 +551,20 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   FeedbackBookingIdRoute: FeedbackBookingIdRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
+  ApiPublicHooksPostEventAutomationRoute:
+    ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
