@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/coming-soon";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+
 export const Route = createFileRoute("/_app/leads")({
-  component: () => <ComingSoon title="Leads" phase="Phase 2" desc="Capture, route, and follow up on enquiries." />,
+  component: () => <Outlet />,
 });
