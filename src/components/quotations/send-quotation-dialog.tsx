@@ -98,16 +98,17 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
   const buildPdf = (): Blob | null => pdfInput ? generateQuotationPdf(pdfInput) : null;
   const pdfFilename = quote ? `Quotation-${quote.quotation_number || quote.id.slice(0, 6)}-v${quote.version}.pdf` : "quotation.pdf";
 
-  const markSent = async (channel: "whatsapp" | "email" | "link") => {
+  const markSent = async (channel: "whatsapp" | "email" | "sms" | null, label: string) => {
     if (!quote) return;
-    await supabase.from("quotations").update({
+    const patch: Database["public"]["Tables"]["quotations"]["Update"] = {
       status: quote.status === "draft" ? "sent" : quote.status,
       sent_at: new Date().toISOString(),
-      sent_via: channel,
-    }).eq("id", quote.id);
+    };
+    if (channel) patch.sent_via = channel;
+    await supabase.from("quotations").update(patch).eq("id", quote.id);
     await supabase.from("activity_logs").insert({
       lead_id: quote.lead_id,
-      action: `Quotation v${quote.version} sent via ${channel === "whatsapp" ? "WhatsApp" : channel === "email" ? "Email" : "Link"}`,
+      action: `Quotation v${quote.version} sent via ${label}`,
       action_type: "system", performed_by: profile?.id ?? null,
       metadata: { quotation_id: quote.id, total: Number(quote.total) },
     });
