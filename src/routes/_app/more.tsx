@@ -37,6 +37,9 @@ function MorePage() {
         <Link to="/transfers" className="block">
           <Button variant="outline" className="w-full justify-start min-h-[48px]"><ArrowRightLeft className="h-4 w-4 mr-2" />Transfers</Button>
         </Link>
+        <Link to="/campaigns" className="block">
+          <Button variant="outline" className="w-full justify-start min-h-[48px]"><Megaphone className="h-4 w-4 mr-2" />Campaigns</Button>
+        </Link>
         {(role === "super_admin" || role === "admin") && (
           <Link to="/settings" className="block">
             <Button variant="outline" className="w-full justify-start min-h-[48px]"><Settings className="h-4 w-4 mr-2" />Settings</Button>
