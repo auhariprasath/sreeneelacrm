@@ -36,14 +36,15 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
   const [dropReason, setDropReason] = useState("");
   const [dropReasons, setDropReasons] = useState<string[]>([]);
   const [followUpAt, setFollowUpAt] = useState("");
+  const [competitor, setCompetitor] = useState("");
+  const [amountValue, setAmountValue] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setDecision("interested");
-    setNote("");
-    setDropReason("");
-    setFollowUpAt("");
+    setNote(""); setDropReason(""); setFollowUpAt("");
+    setCompetitor(""); setAmountValue("");
     supabase.from("companies").select("drop_reasons").eq("id", companyId).maybeSingle()
       .then(({ data }) => {
         const list = (data as any)?.drop_reasons;
@@ -52,7 +53,11 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
           : [];
         setDropReasons(arr);
       });
-  }, [open, companyId]);
+    // Prefill amount from latest agreed/sent quotation
+    supabase.from("quotations").select("total").eq("requirement_id", requirementId)
+      .order("created_at", { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => { if (data?.total != null) setAmountValue(String(data.total)); });
+  }, [open, companyId, requirementId]);
 
   const submit = async () => {
     if (decision === "not_interested" && !dropReason) {
