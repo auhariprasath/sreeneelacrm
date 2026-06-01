@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, KeyRound, LogOut, Sun, Moon, ClipboardList, CalendarDays, BarChart3, ArrowRightLeft, Megaphone } from "lucide-react";
+import { Settings, KeyRound, LogOut, Sun, Moon, ClipboardList, CalendarDays, BarChart3, ArrowRightLeft, Megaphone, Shield } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useNavigate } from "@tanstack/react-router";
 

@@ -24,6 +24,7 @@ import { Route as AppNotificationsRouteImport } from './routes/_app/notification
 import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCommandCentreRouteImport } from './routes/_app/command-centre'
 import { Route as AppCampaignsRouteImport } from './routes/_app/campaigns'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
 import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
@@ -106,6 +107,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCommandCentreRoute = AppCommandCentreRouteImport.update({
+  id: '/command-centre',
+  path: '/command-centre',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCampaignsRoute = AppCampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/bookings': typeof AppBookingsRoute
   '/calendar': typeof AppCalendarRoute
   '/campaigns': typeof AppCampaignsRoute
+  '/command-centre': typeof AppCommandCentreRoute
   '/dashboard': typeof AppDashboardRoute
   '/leads': typeof AppLeadsRouteWithChildren
   '/more': typeof AppMoreRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/bookings': typeof AppBookingsRoute
   '/calendar': typeof AppCalendarRoute
   '/campaigns': typeof AppCampaignsRoute
+  '/command-centre': typeof AppCommandCentreRoute
   '/dashboard': typeof AppDashboardRoute
   '/more': typeof AppMoreRoute
   '/notifications': typeof AppNotificationsRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_app/bookings': typeof AppBookingsRoute
   '/_app/calendar': typeof AppCalendarRoute
   '/_app/campaigns': typeof AppCampaignsRoute
+  '/_app/command-centre': typeof AppCommandCentreRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/leads': typeof AppLeadsRouteWithChildren
   '/_app/more': typeof AppMoreRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/calendar'
     | '/campaigns'
+    | '/command-centre'
     | '/dashboard'
     | '/leads'
     | '/more'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/bookings'
     | '/calendar'
     | '/campaigns'
+    | '/command-centre'
     | '/dashboard'
     | '/more'
     | '/notifications'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/_app/bookings'
     | '/_app/calendar'
     | '/_app/campaigns'
+    | '/_app/command-centre'
     | '/_app/dashboard'
     | '/_app/leads'
     | '/_app/more'
@@ -404,6 +416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/command-centre': {
+      id: '/_app/command-centre'
+      path: '/command-centre'
+      fullPath: '/command-centre'
+      preLoaderRoute: typeof AppCommandCentreRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/campaigns': {
       id: '/_app/campaigns'
       path: '/campaigns'
@@ -474,6 +493,7 @@ interface AppRouteChildren {
   AppBookingsRoute: typeof AppBookingsRoute
   AppCalendarRoute: typeof AppCalendarRoute
   AppCampaignsRoute: typeof AppCampaignsRoute
+  AppCommandCentreRoute: typeof AppCommandCentreRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMoreRoute: typeof AppMoreRoute
@@ -488,6 +508,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBookingsRoute: AppBookingsRoute,
   AppCalendarRoute: AppCalendarRoute,
   AppCampaignsRoute: AppCampaignsRoute,
+  AppCommandCentreRoute: AppCommandCentreRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMoreRoute: AppMoreRoute,
