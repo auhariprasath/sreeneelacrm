@@ -17,6 +17,7 @@ import { StaffSection } from "@/components/settings/staff-section";
 import { JsonListSection } from "@/components/settings/json-list-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
+import { VendorsSection } from "@/components/settings/vendors-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
