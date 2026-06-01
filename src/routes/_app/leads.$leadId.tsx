@@ -579,6 +579,13 @@ function LeadProfile() {
         onOpenChange={(v) => { if (!v) setSendQuoteId(null); }}
         quotationId={sendQuoteId}
         onResponded={() => { loadQuotations(); load(); }}
+        onAgreed={(qid) => setBookQuoteId(qid)}
+      />
+      <BookingConfirmDialog
+        open={!!bookQuoteId}
+        onOpenChange={(v) => { if (!v) setBookQuoteId(null); }}
+        quotationId={bookQuoteId}
+        onConfirmed={() => { loadBookings(); loadQuotations(); load(); }}
       />
     </div>
   );
