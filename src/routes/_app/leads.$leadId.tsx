@@ -460,6 +460,22 @@ function LeadProfile() {
                           ))}
                         </div>
                       )}
+                      <RemindersList bookingId={b.id} phone={lead.phone} />
+                      {b.status !== "cancelled" && b.status !== "completed" && (
+                        <div className="border-t pt-2 flex flex-wrap gap-1.5">
+                          {b.status === "cheque_pending" && (
+                            <Button size="sm" variant="outline" className="h-8" onClick={() => setChequeBooking(b)}>
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Cheque status
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
+                            <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-rose-600 hover:text-rose-700" onClick={() => setCancelBooking(b)}>
+                            Cancel booking
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
