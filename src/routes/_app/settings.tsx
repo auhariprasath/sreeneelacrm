@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { JsonListSection } from "@/components/settings/json-list-section";
+import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
