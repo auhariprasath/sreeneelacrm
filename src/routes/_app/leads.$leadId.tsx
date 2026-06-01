@@ -109,7 +109,7 @@ function LeadProfile() {
       lead_id: leadId, action: "Viewed lead", action_type: "view", performed_by: profile?.id ?? null,
     });
 
-    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }, { data: bks }, { data: pmts }] = await Promise.all([
+    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }, { data: bks }, { data: pmts }, { data: wls }] = await Promise.all([
       supabase.from("activity_logs").select("*").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(50),
       supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true }),
       supabase.from("requirements").select("*").eq("lead_id", leadId).is("deleted_at", null).order("requirement_number", { ascending: true }),
@@ -124,6 +124,7 @@ function LeadProfile() {
     setQuotations((quotes as Quotation[]) ?? []);
     setBookings((bks as Booking[]) ?? []);
     setPayments((pmts as Payment[]) ?? []);
+    setWinLoss((wls as any[]) ?? []);
 
     if ((data as Lead).referred_by_lead_id) {
       const { data: ref } = await supabase.from("leads").select("id,full_name").eq("id", (data as Lead).referred_by_lead_id!).maybeSingle();
