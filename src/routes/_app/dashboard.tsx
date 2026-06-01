@@ -155,6 +155,9 @@ function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "slots", filter: `company_id=eq.${companyId}` }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "requirements", filter: `company_id=eq.${companyId}` }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "follow_ups" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `company_id=eq.${companyId}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "booking_vendors", filter: `company_id=eq.${companyId}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `company_id=eq.${companyId}` }, refresh)
       .subscribe();
     return () => { cancelled = true; clearInterval(interval); supabase.removeChannel(ch); };
   }, [companyId, role, activeCompanyId]);
