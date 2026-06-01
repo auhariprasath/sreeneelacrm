@@ -38,6 +38,10 @@ function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc
   );
 }
 
+interface ExpiringHold {
+  id: string; lead_id: string | null; event_date: string;
+  start_time: string; end_time: string; held_until: string; full_name: string;
+}
 interface CompanyStats {
   newToday: number;
   active: number;
@@ -45,14 +49,17 @@ interface CompanyStats {
   followUps: number;
   activeHolds: number;
   upcoming: Array<{ id: string; lead_id: string; event_date: string; start_time: string; full_name: string }>;
+  expiringSoon: ExpiringHold[];
 }
 
 async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const today = new Date().toISOString().slice(0, 10);
+  const nowIso = new Date().toISOString();
+  const tenMin = new Date(Date.now() + 10 * 60_000).toISOString();
 
-  const [leadsToday, activeLeads, bookings, followUps, holds, upcoming] = await Promise.all([
+  const [leadsToday, activeLeads, bookings, followUps, holds, upcoming, expiring] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true })
       .eq("company_id", companyId).is("deleted_at", null)
       .gte("created_at", todayStart.toISOString()),
@@ -64,12 +71,16 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
     supabase.from("follow_ups").select("id, lead_id, leads!inner(company_id)", { count: "exact", head: true })
       .eq("leads.company_id", companyId).eq("is_sent", false).eq("is_cancelled", false),
     supabase.from("slots").select("id", { count: "exact", head: true })
-      .eq("company_id", companyId).eq("status", "soft_hold")
-      .gt("held_until", new Date().toISOString()),
+      .eq("company_id", companyId).eq("status", "soft_hold").gt("held_until", nowIso),
     supabase.from("requirements")
       .select("id, lead_id, event_date, start_time, leads!inner(full_name, company_id)")
       .eq("company_id", companyId).is("deleted_at", null)
       .gte("event_date", today).order("event_date", { ascending: true }).limit(5),
+    supabase.from("slots")
+      .select("id, held_by_lead_id, event_date, start_time, end_time, held_until, leads:held_by_lead_id(full_name)")
+      .eq("company_id", companyId).eq("status", "soft_hold")
+      .gt("held_until", nowIso).lt("held_until", tenMin)
+      .order("held_until", { ascending: true }).limit(10),
   ]);
 
   return {
@@ -81,6 +92,11 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
     upcoming: (upcoming.data ?? []).map((r: any) => ({
       id: r.id, lead_id: r.lead_id, event_date: r.event_date, start_time: r.start_time,
       full_name: r.leads?.full_name ?? "—",
+    })),
+    expiringSoon: (expiring.data ?? []).map((s: any) => ({
+      id: s.id, lead_id: s.held_by_lead_id, event_date: s.event_date,
+      start_time: s.start_time, end_time: s.end_time, held_until: s.held_until,
+      full_name: s.leads?.full_name ?? "—",
     })),
   };
 }
