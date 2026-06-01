@@ -21,6 +21,7 @@ import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
+import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog";
 import { RemindersList } from "@/components/bookings/reminders-list";
 import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
