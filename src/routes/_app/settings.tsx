@@ -323,6 +323,69 @@ function SettingsPage() {
             </CardContent>
           </Card>
         );
+      case "sessions":
+      case "event-types":
+      case "addons":
+      case "drop": {
+        const config = {
+          sessions: {
+            title: "Sessions & slots",
+            desc: "Available sessions for this company. Populates start time dropdown in the intake form.",
+            column: "sessions",
+            addLabel: "Add session",
+            fields: [
+              { key: "name", label: "Session name", placeholder: "e.g. Morning" },
+              { key: "start_time", label: "Start", type: "time" as const },
+              { key: "end_time", label: "End", type: "time" as const },
+            ],
+          },
+          "event-types": {
+            title: "Event types",
+            desc: "Populates event type dropdown in the intake form. \"Other — describe\" is always available.",
+            column: "event_types",
+            addLabel: "Add event type",
+            fields: [{ key: "label", label: "Label", placeholder: "e.g. Wedding reception" }],
+          },
+          addons: {
+            title: "Add-ons",
+            desc: "Add-ons offered for this company. Custom add-ons entered during intake auto-save here.",
+            column: "addons_catalog",
+            addLabel: "Add add-on",
+            fields: [
+              { key: "name", label: "Name", placeholder: "e.g. DJ" },
+              { key: "price", label: "Price (₹)", type: "number" as const },
+            ],
+          },
+          drop: {
+            title: "Drop reasons",
+            desc: "Reasons shown when staff marks a lead as not interested.",
+            column: "drop_reasons",
+            addLabel: "Add reason",
+            fields: [{ key: "label", label: "Reason", placeholder: "e.g. Budget too low" }],
+          },
+        }[section as "sessions" | "event-types" | "addons" | "drop"];
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>{config.title}</CardTitle>
+              <CardDescription>{config.desc}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <JsonListSection
+                companyId={activeCompanyId}
+                column={config.column}
+                fields={config.fields}
+                addLabel={config.addLabel}
+              />
+            </CardContent>
+          </Card>
+        );
+      }
       default: {
         const titleMap = Object.fromEntries(SECTIONS.map((s) => [s.id, s.label]));
         return (
