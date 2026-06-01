@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -19,6 +19,7 @@ import { RequirementSheet } from "@/components/requirements/requirement-sheet";
 import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
+import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -26,6 +27,8 @@ type Activity = Database["public"]["Tables"]["activity_logs"]["Row"];
 type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
+type Booking = Database["public"]["Tables"]["bookings"]["Row"];
+type Payment = Database["public"]["Tables"]["payments"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
@@ -47,6 +50,8 @@ function LeadProfile() {
 
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
@@ -59,6 +64,7 @@ function LeadProfile() {
   const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
   const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
+  const [bookQuoteId, setBookQuoteId] = useState<string | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
@@ -74,6 +80,15 @@ function LeadProfile() {
     setQuotations((data as Quotation[]) ?? []);
   };
 
+  const loadBookings = async () => {
+    const [{ data: bks }, { data: pmts }] = await Promise.all([
+      supabase.from("bookings").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("payments").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: true }),
+    ]);
+    setBookings((bks as Booking[]) ?? []);
+    setPayments((pmts as Payment[]) ?? []);
+  };
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("leads").select("*").eq("id", leadId).maybeSingle();
@@ -84,16 +99,20 @@ function LeadProfile() {
       lead_id: leadId, action: "Viewed lead", action_type: "view", performed_by: profile?.id ?? null,
     });
 
-    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }] = await Promise.all([
+    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }, { data: bks }, { data: pmts }] = await Promise.all([
       supabase.from("activity_logs").select("*").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(50),
       supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true }),
       supabase.from("requirements").select("*").eq("lead_id", leadId).is("deleted_at", null).order("requirement_number", { ascending: true }),
       supabase.from("quotations").select("*").eq("lead_id", leadId).is("deleted_at", null).order("version", { ascending: false }),
+      supabase.from("bookings").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("payments").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: true }),
     ]);
     setActivities((acts as Activity[]) ?? []);
     setFollowUps((fus as FollowUp[]) ?? []);
     setRequirements((reqs as Requirement[]) ?? []);
     setQuotations((quotes as Quotation[]) ?? []);
+    setBookings((bks as Booking[]) ?? []);
+    setPayments((pmts as Payment[]) ?? []);
 
     if ((data as Lead).referred_by_lead_id) {
       const { data: ref } = await supabase.from("leads").select("id,full_name").eq("id", (data as Lead).referred_by_lead_id!).maybeSingle();
@@ -378,16 +397,72 @@ function LeadProfile() {
                       <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
                         Open
                       </Button>
-                      <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
-                        <Send className="h-3.5 w-3.5 mr-1" /> Send
-                      </Button>
+                      {q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id) ? (
+                        <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Book
+                        </Button>
+                      ) : (
+                        <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
+                          <Send className="h-3.5 w-3.5 mr-1" /> Send
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Bookings card */}
+          {bookings.length > 0 && (
+            <div className="mt-4">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">Bookings</div>
+              <div className="space-y-2">
+                {bookings.map((b) => {
+                  const bookingPayments = payments.filter((p) => p.booking_id === b.id);
+                  const pending = bookingPayments.filter((p) => p.status === "pending");
+                  return (
+                    <div key={b.id} className="bg-card border rounded-md p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            {formatDateIN(b.event_date)}
+                            {b.start_time && ` · ${formatTimeOfDay(b.start_time)}`}
+                            <span className={`text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 ${b.status === "confirmed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : b.status === "cheque_pending" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : b.status === "cancelled" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300" : "bg-muted text-muted-foreground"}`}>
+                              {b.status.replace("_", " ")}
+                            </span>
+                          </div>
+                          {b.venue && <div className="text-[11px] text-muted-foreground mt-0.5">{b.venue}</div>}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div><div className="text-muted-foreground">Total</div><div className="font-semibold">{formatINR(Number(b.total_amount))}</div></div>
+                        <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(Number(b.amount_paid))}</div></div>
+                        <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-rose-700 dark:text-rose-400">{formatINR(Number(b.balance_due))}</div></div>
+                      </div>
+                      {pending.length > 0 && (
+                        <div className="border-t pt-2 space-y-1">
+                          <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1"><IndianRupee className="h-3 w-3" /> Pending payments</div>
+                          {pending.map((p) => (
+                            <div key={p.id} className="flex items-center justify-between text-xs">
+                              <span>
+                                {p.type === "instalment" ? `Instalment ${p.instalment_number}/${p.total_instalments}` : p.type.replace("_", " ")}
+                                {p.due_date && <span className="text-muted-foreground"> · due {formatDateIN(p.due_date)}</span>}
+                              </span>
+                              <span className="font-medium">{formatINR(Number(p.amount))}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </TabsContent>
+
 
 
 
@@ -504,6 +579,13 @@ function LeadProfile() {
         onOpenChange={(v) => { if (!v) setSendQuoteId(null); }}
         quotationId={sendQuoteId}
         onResponded={() => { loadQuotations(); load(); }}
+        onAgreed={(qid) => setBookQuoteId(qid)}
+      />
+      <BookingConfirmDialog
+        open={!!bookQuoteId}
+        onOpenChange={(v) => { if (!v) setBookQuoteId(null); }}
+        quotationId={bookQuoteId}
+        onConfirmed={() => { loadBookings(); loadQuotations(); load(); }}
       />
     </div>
   );
