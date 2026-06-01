@@ -36,6 +36,7 @@ export function StaffSection({ companyId }: { companyId: string | undefined }) {
   const create = useServerFn(createStaff);
   const setActive = useServerFn(setStaffActive);
   const update = useServerFn(updateStaffSettings);
+  const setLeave = useServerFn(setStaffLeave);
 
   const [rows, setRows] = useState<StaffRow[]>([]);
   const [loading, setLoading] = useState(true);
