@@ -417,6 +417,16 @@ function LeadProfile() {
         requirementId={editReqId}
         onSaved={loadRequirements}
       />
+      {decisionReqId && (
+        <DecisionDialog
+          open={!!decisionReqId}
+          onOpenChange={(v) => { if (!v) setDecisionReqId(null); }}
+          leadId={lead.id}
+          companyId={lead.company_id}
+          requirementId={decisionReqId}
+          onDone={() => { loadRequirements(); load(); }}
+        />
+      )}
     </div>
   );
 }
