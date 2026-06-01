@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { JsonListSection } from "@/components/settings/json-list-section";
+import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
@@ -382,6 +383,109 @@ function SettingsPage() {
                 fields={config.fields}
                 addLabel={config.addLabel}
               />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "services": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Services & pricing</CardTitle>
+              <CardDescription>Base services offered. Used in the quotation builder.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <JsonListSection
+                companyId={activeCompanyId}
+                column="services_catalog"
+                addLabel="Add service"
+                fields={[
+                  { key: "name", label: "Service name", placeholder: "e.g. Hall rental" },
+                  { key: "price", label: "Base price (₹)", type: "number" },
+                  { key: "unit", label: "Unit", placeholder: "e.g. per event / per plate" },
+                ]}
+              />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "discounts": {
+        const fields: CompanyField[] = [
+          { key: "staff_max_discount_percent", label: "Max discount – Staff", type: "number", suffix: "%", description: "Maximum discount staff can apply without approval." },
+          { key: "admin_max_discount_percent", label: "Max discount – Admin", type: "number", suffix: "%", description: "Maximum discount admins can apply." },
+          { key: "gst_percent", label: "GST %", type: "number", suffix: "%", description: "Default GST applied to quotations." },
+          { key: "require_discount_reason", label: "Require reason for discount", type: "switch", description: "Staff must enter a reason when applying any discount." },
+        ];
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Discount rules & GST</CardTitle>
+              <CardDescription>Caps, GST defaults and discount reason policy.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "cancellation": {
+        const fields: CompanyField[] = [
+          { key: "refund_over_30_percent", label: "Refund – Over 30 days before event", type: "number", suffix: "%" },
+          { key: "refund_15_30_percent", label: "Refund – 15 to 30 days before event", type: "number", suffix: "%" },
+          { key: "refund_under_15_percent", label: "Refund – Under 15 days before event", type: "number", suffix: "%" },
+          { key: "cancellation_policy", label: "Cancellation policy text", type: "textarea", rows: 5, placeholder: "Shown on quotations and booking confirmations.", fullWidth: true },
+        ];
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Cancellation policy</CardTitle>
+              <CardDescription>Refund tiers and the policy text printed on documents.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "wa": {
+        const tokens = "Available tokens: {{client_name}}, {{event_date}}, {{venue}}, {{amount}}, {{balance}}, {{company_name}}, {{quotation_number}}";
+        const fields: CompanyField[] = [
+          { key: "wa_template_payment_reminder", label: "Payment reminder", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Hi {{client_name}}, this is a reminder for the pending payment of ₹{{balance}} for your event on {{event_date}}." },
+          { key: "wa_template_thank_you", label: "Thank you / booking confirmation", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Thank you {{client_name}}! Your booking for {{event_date}} at {{venue}} is confirmed." },
+          { key: "wa_template_reschedule", label: "Reschedule notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
+          { key: "wa_template_competing_leads", label: "Competing leads notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
+          { key: "auto_wa_on_reschedule", label: "Send WhatsApp automatically on reschedule", type: "switch" },
+          { key: "auto_notify_competing_leads", label: "Auto-notify competing leads when a slot frees up", type: "switch" },
+          { key: "auto_sms_fallback", label: "Send SMS fallback if WhatsApp fails", type: "switch" },
+        ];
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>WhatsApp templates</CardTitle>
+              <CardDescription>Message templates used by the reminder engine and booking flows.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
             </CardContent>
           </Card>
         );
