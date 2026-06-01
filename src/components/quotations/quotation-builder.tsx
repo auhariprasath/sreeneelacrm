@@ -33,11 +33,12 @@ interface Props {
   /** If editing/revising an existing quotation, pass its id. New version is created on send. */
   quotationId?: string | null;
   onSaved?: () => void;
+  onContinueToSend?: (quotationId: string) => void;
 }
 
 const CUSTOM = "__custom__";
 
-export function QuotationBuilder({ open, onOpenChange, leadId, companyId, requirementId, quotationId, onSaved }: Props) {
+export function QuotationBuilder({ open, onOpenChange, leadId, companyId, requirementId, quotationId, onSaved, onContinueToSend }: Props) {
   const { role, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -385,9 +386,8 @@ export function QuotationBuilder({ open, onOpenChange, leadId, companyId, requir
               onClick={async () => {
                 const id = await saveDraft(true);
                 if (!id) return;
-                // Send flow comes in Chunk 3
-                toast.success("Draft saved — send flow opens next");
-                onOpenChange(false);
+                if (onContinueToSend) onContinueToSend(id);
+                else { toast.success("Draft saved"); onOpenChange(false); }
               }}
             >
               Continue to send

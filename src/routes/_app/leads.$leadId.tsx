@@ -18,6 +18,7 @@ import { TransferDialog } from "@/components/leads/transfer-dialog";
 import { RequirementSheet } from "@/components/requirements/requirement-sheet";
 import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
+import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -57,6 +58,7 @@ function LeadProfile() {
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
+  const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
@@ -372,9 +374,14 @@ function LeadProfile() {
                         Updated {relativeTime(q.updated_at)}
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
-                      Open
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
+                        Open
+                      </Button>
+                      <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
+                        <Send className="h-3.5 w-3.5 mr-1" /> Send
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -490,6 +497,13 @@ function LeadProfile() {
         requirementId={quoteReqId}
         quotationId={editQuoteId}
         onSaved={loadQuotations}
+        onContinueToSend={(id) => { setQuoteOpen(false); loadQuotations(); setSendQuoteId(id); }}
+      />
+      <SendQuotationDialog
+        open={!!sendQuoteId}
+        onOpenChange={(v) => { if (!v) setSendQuoteId(null); }}
+        quotationId={sendQuoteId}
+        onResponded={() => { loadQuotations(); load(); }}
       />
     </div>
   );
