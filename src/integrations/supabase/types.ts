@@ -85,6 +85,66 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_vendors: {
+        Row: {
+          amount_agreed: number | null
+          amount_paid: number
+          backup_vendor_suggested: boolean
+          booking_id: string
+          company_id: string
+          confirmed: boolean
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          no_show: boolean
+          no_show_logged_at: string | null
+          no_show_note: string | null
+          rated_at: string | null
+          rating: number | null
+          rating_comment: string | null
+          service_description: string | null
+          vendor_id: string
+        }
+        Insert: {
+          amount_agreed?: number | null
+          amount_paid?: number
+          backup_vendor_suggested?: boolean
+          booking_id: string
+          company_id: string
+          confirmed?: boolean
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          no_show?: boolean
+          no_show_logged_at?: string | null
+          no_show_note?: string | null
+          rated_at?: string | null
+          rating?: number | null
+          rating_comment?: string | null
+          service_description?: string | null
+          vendor_id: string
+        }
+        Update: {
+          amount_agreed?: number | null
+          amount_paid?: number
+          backup_vendor_suggested?: boolean
+          booking_id?: string
+          company_id?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          no_show?: boolean
+          no_show_logged_at?: string | null
+          no_show_note?: string | null
+          rated_at?: string | null
+          rating?: number | null
+          rating_comment?: string | null
+          service_description?: string | null
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           amount_paid: number
@@ -199,13 +259,116 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_leads: {
+        Row: {
+          campaign_id: string
+          channel_used: Database["public"]["Enums"]["campaign_lead_channel"]
+          company_id: string
+          created_at: string
+          delivered_at: string | null
+          error_text: string | null
+          id: string
+          lead_id: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["campaign_lead_status"]
+        }
+        Insert: {
+          campaign_id: string
+          channel_used: Database["public"]["Enums"]["campaign_lead_channel"]
+          company_id: string
+          created_at?: string
+          delivered_at?: string | null
+          error_text?: string | null
+          id?: string
+          lead_id: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_lead_status"]
+        }
+        Update: {
+          campaign_id?: string
+          channel_used?: Database["public"]["Enums"]["campaign_lead_channel"]
+          company_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          error_text?: string | null
+          id?: string
+          lead_id?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_lead_status"]
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          channel: Database["public"]["Enums"]["campaign_channel"]
+          company_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          message: string
+          name: string
+          segment_filters: Json
+          sent_at: string | null
+          sms_fallback: boolean
+          status: Database["public"]["Enums"]["campaign_status"]
+          total_delivered: number
+          total_failed: number
+          total_leads: number
+          total_sent: number
+          updated_at: string
+        }
+        Insert: {
+          channel?: Database["public"]["Enums"]["campaign_channel"]
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          message: string
+          name: string
+          segment_filters?: Json
+          sent_at?: string | null
+          sms_fallback?: boolean
+          status?: Database["public"]["Enums"]["campaign_status"]
+          total_delivered?: number
+          total_failed?: number
+          total_leads?: number
+          total_sent?: number
+          updated_at?: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["campaign_channel"]
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          message?: string
+          name?: string
+          segment_filters?: Json
+          sent_at?: string | null
+          sms_fallback?: boolean
+          status?: Database["public"]["Enums"]["campaign_status"]
+          total_delivered?: number
+          total_failed?: number
+          total_leads?: number
+          total_sent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           addons_catalog: Json
           address: string | null
           admin_max_discount_percent: number
+          auto_notify_backup_on_leave: boolean
           auto_notify_competing_leads: boolean
+          auto_notify_vendor_on_assign: boolean
+          auto_reassign_overdue_on_leave: boolean
           auto_sms_fallback: boolean
+          auto_wa_client_on_leave: boolean
           auto_wa_on_reschedule: boolean
           bank_account: string | null
           cancellation_policy: string | null
@@ -239,6 +402,7 @@ export type Database = {
           services_catalog: Json
           sessions: Json
           staff_max_discount_percent: number
+          task_templates: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id: string | null
           wa_number: string | null
@@ -251,8 +415,12 @@ export type Database = {
           addons_catalog?: Json
           address?: string | null
           admin_max_discount_percent?: number
+          auto_notify_backup_on_leave?: boolean
           auto_notify_competing_leads?: boolean
+          auto_notify_vendor_on_assign?: boolean
+          auto_reassign_overdue_on_leave?: boolean
           auto_sms_fallback?: boolean
+          auto_wa_client_on_leave?: boolean
           auto_wa_on_reschedule?: boolean
           bank_account?: string | null
           cancellation_policy?: string | null
@@ -286,6 +454,7 @@ export type Database = {
           services_catalog?: Json
           sessions?: Json
           staff_max_discount_percent?: number
+          task_templates?: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           wa_number?: string | null
@@ -298,8 +467,12 @@ export type Database = {
           addons_catalog?: Json
           address?: string | null
           admin_max_discount_percent?: number
+          auto_notify_backup_on_leave?: boolean
           auto_notify_competing_leads?: boolean
+          auto_notify_vendor_on_assign?: boolean
+          auto_reassign_overdue_on_leave?: boolean
           auto_sms_fallback?: boolean
+          auto_wa_client_on_leave?: boolean
           auto_wa_on_reschedule?: boolean
           bank_account?: string | null
           cancellation_policy?: string | null
@@ -333,6 +506,7 @@ export type Database = {
           services_catalog?: Json
           sessions?: Json
           staff_max_discount_percent?: number
+          task_templates?: Json
           type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           wa_number?: string | null
@@ -340,6 +514,60 @@ export type Database = {
           wa_template_payment_reminder?: string | null
           wa_template_reschedule?: string | null
           wa_template_thank_you?: string | null
+        }
+        Relationships: []
+      }
+      event_day_logs: {
+        Row: {
+          assigned_to: string | null
+          booking_id: string
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          log_type: Database["public"]["Enums"]["event_day_log_type"]
+          logged_by: string | null
+          metadata: Json | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["event_day_severity"] | null
+          status: Database["public"]["Enums"]["event_day_status"]
+          title: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          booking_id: string
+          company_id: string
+          created_at?: string
+          description: string
+          id?: string
+          log_type: Database["public"]["Enums"]["event_day_log_type"]
+          logged_by?: string | null
+          metadata?: Json | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["event_day_severity"] | null
+          status?: Database["public"]["Enums"]["event_day_status"]
+          title: string
+        }
+        Update: {
+          assigned_to?: string | null
+          booking_id?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          log_type?: Database["public"]["Enums"]["event_day_log_type"]
+          logged_by?: string | null
+          metadata?: Json | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["event_day_severity"] | null
+          status?: Database["public"]["Enums"]["event_day_status"]
+          title?: string
         }
         Relationships: []
       }
@@ -632,6 +860,7 @@ export type Database = {
       profiles: {
         Row: {
           auto_approve_transfers: boolean
+          backup_staff_id: string | null
           company_id: string | null
           created_at: string
           deleted_at: string | null
@@ -642,11 +871,13 @@ export type Database = {
           is_active: boolean
           last_active_at: string | null
           must_change_password: boolean
+          on_leave: boolean
           phone: string | null
           phone_masked: boolean
         }
         Insert: {
           auto_approve_transfers?: boolean
+          backup_staff_id?: string | null
           company_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -657,11 +888,13 @@ export type Database = {
           is_active?: boolean
           last_active_at?: string | null
           must_change_password?: boolean
+          on_leave?: boolean
           phone?: string | null
           phone_masked?: boolean
         }
         Update: {
           auto_approve_transfers?: boolean
+          backup_staff_id?: string | null
           company_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -672,6 +905,7 @@ export type Database = {
           is_active?: boolean
           last_active_at?: string | null
           must_change_password?: boolean
+          on_leave?: boolean
           phone?: string | null
           phone_masked?: boolean
         }
@@ -892,6 +1126,66 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          booking_id: string
+          company_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          due_at: string
+          id: string
+          is_from_template: boolean
+          notes: Json
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          booking_id: string
+          company_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_at: string
+          id?: string
+          is_from_template?: boolean
+          notes?: Json
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          booking_id?: string
+          company_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_at?: string
+          id?: string
+          is_from_template?: boolean
+          notes?: Json
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transfer_requests: {
         Row: {
           created_at: string
@@ -977,6 +1271,60 @@ export type Database = {
         }
         Relationships: []
       }
+      vendors: {
+        Row: {
+          company_id: string
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          rating: number | null
+          rating_count: number
+          service_type: string
+          standard_rate: number | null
+          total_bookings: number
+          updated_at: string
+          wa_number: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          rating?: number | null
+          rating_count?: number
+          service_type: string
+          standard_rate?: number | null
+          total_bookings?: number
+          updated_at?: string
+          wa_number?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          rating?: number | null
+          rating_count?: number
+          service_type?: string
+          standard_rate?: number | null
+          total_bookings?: number
+          updated_at?: string
+          wa_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1013,7 +1361,19 @@ export type Database = {
         | "rescheduled"
         | "completed"
         | "disputed"
+      campaign_channel: "whatsapp" | "sms" | "both"
+      campaign_lead_channel: "whatsapp" | "sms"
+      campaign_lead_status: "pending" | "sent" | "delivered" | "failed"
+      campaign_status: "draft" | "sent" | "completed"
       company_type: "garden" | "banquet" | "party" | "mandapam"
+      event_day_log_type:
+        | "amendment"
+        | "complaint"
+        | "vendor_no_show"
+        | "force_majeure"
+        | "note"
+      event_day_severity: "low" | "medium" | "high"
+      event_day_status: "open" | "in_progress" | "resolved" | "closed"
       follow_up_type: "auto_1hr" | "tomorrow_10am" | "custom" | "done"
       lead_score: "hot" | "warm" | "cold"
       lead_source: "inbound_call" | "walkin" | "referral" | "portal" | "manual"
@@ -1056,6 +1416,8 @@ export type Database = {
         | "complete"
       sent_channel: "whatsapp" | "email" | "sms" | "instagram"
       slot_status: "free" | "soft_hold" | "enquiry" | "confirmed"
+      task_priority: "low" | "medium" | "high"
+      task_status: "pending" | "in_progress" | "done" | "overdue"
       transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
     }
     CompositeTypes: {
@@ -1207,7 +1569,20 @@ export const Constants = {
         "completed",
         "disputed",
       ],
+      campaign_channel: ["whatsapp", "sms", "both"],
+      campaign_lead_channel: ["whatsapp", "sms"],
+      campaign_lead_status: ["pending", "sent", "delivered", "failed"],
+      campaign_status: ["draft", "sent", "completed"],
       company_type: ["garden", "banquet", "party", "mandapam"],
+      event_day_log_type: [
+        "amendment",
+        "complaint",
+        "vendor_no_show",
+        "force_majeure",
+        "note",
+      ],
+      event_day_severity: ["low", "medium", "high"],
+      event_day_status: ["open", "in_progress", "resolved", "closed"],
       follow_up_type: ["auto_1hr", "tomorrow_10am", "custom", "done"],
       lead_score: ["hot", "warm", "cold"],
       lead_source: ["inbound_call", "walkin", "referral", "portal", "manual"],
@@ -1255,6 +1630,8 @@ export const Constants = {
       ],
       sent_channel: ["whatsapp", "email", "sms", "instagram"],
       slot_status: ["free", "soft_hold", "enquiry", "confirmed"],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["pending", "in_progress", "done", "overdue"],
       transfer_status: ["pending", "approved", "rejected", "auto_approved"],
     },
   },
