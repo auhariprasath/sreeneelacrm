@@ -19,6 +19,7 @@ import { CompanyFieldsSection, type CompanyField } from "@/components/settings/c
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { PhotoGallerySection } from "@/components/settings/photo-gallery-section";
+import { CompaniesSection } from "@/components/settings/companies-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
