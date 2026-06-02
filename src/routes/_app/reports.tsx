@@ -270,9 +270,14 @@ function ReportsPage() {
                 ) : (
                   <ul className="divide-y text-sm">
                     {data.dropReasons.slice(0, 8).map((r) => (
-                      <li key={r.reason} className="py-2 flex items-center justify-between">
-                        <span className="truncate pr-2">{r.reason}</span>
-                        <span className="text-xs font-medium text-muted-foreground">{r.count}</span>
+                      <li key={r.reason}>
+                        <Link
+                          to="/command-centre"
+                          className="py-2 flex items-center justify-between gap-2 hover:bg-accent/40 rounded px-1 -mx-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className="truncate pr-2">{r.reason}</span>
+                          <span className="text-xs font-medium text-muted-foreground">{r.count}</span>
+                        </Link>
                       </li>
                     ))}
                   </ul>
