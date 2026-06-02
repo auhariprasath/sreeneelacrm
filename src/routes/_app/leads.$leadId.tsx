@@ -23,6 +23,7 @@ import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
 import { InvoiceRowMenu } from "@/components/quotations/invoice-row-menu";
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
+import { BookingConfirmationDialog } from "@/components/bookings/booking-confirmation-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog";
 import { RemindersList } from "@/components/bookings/reminders-list";
@@ -83,6 +84,7 @@ function LeadProfile() {
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
   const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
   const [completeBooking, setCompleteBooking] = useState<Booking | null>(null);
+  const [confirmationBookingId, setConfirmationBookingId] = useState<string | null>(null);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
@@ -562,6 +564,9 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setAddTaskBooking(b)}>
                             <ListChecks className="h-3.5 w-3.5 mr-1" /> Add task
                           </Button>
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmationBookingId(b.id)}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> {b.confirmation_sent_at ? "Resend confirmation" : "Send confirmation"}
+                          </Button>
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
@@ -740,7 +745,13 @@ function LeadProfile() {
         open={!!bookQuoteId}
         onOpenChange={(v) => { if (!v) setBookQuoteId(null); }}
         quotationId={bookQuoteId}
-        onConfirmed={() => { loadBookings(); loadQuotations(); load(); }}
+        onConfirmed={(bookingId) => { loadBookings(); loadQuotations(); load(); setConfirmationBookingId(bookingId); }}
+      />
+      <BookingConfirmationDialog
+        open={!!confirmationBookingId}
+        onOpenChange={(v) => { if (!v) setConfirmationBookingId(null); }}
+        bookingId={confirmationBookingId}
+        onSent={() => { loadBookings(); load(); }}
       />
       {chequeBooking && (
         <ChequeClearDialog open={!!chequeBooking} onOpenChange={(v) => { if (!v) setChequeBooking(null); }}
