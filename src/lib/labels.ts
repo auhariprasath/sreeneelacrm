@@ -35,10 +35,8 @@ export const REQUIREMENT_STATUS_LABEL: Record<RequirementStatus, string> = {
   collecting: "Getting details",
   slot_checking: "Checking date",
   slot_confirmed: "Date held",
-  quoted: "Quote sent",
-  agreed: "Quote accepted",
-  booked: "Booking confirmed",
-  dropped: "Not interested",
+  muhurtham_conflict: "Muhurtham conflict",
+  complete: "Details complete",
 };
 
 export const QUOTATION_STATUS_LABEL: Record<QuotationStatus, string> = {
@@ -52,9 +50,8 @@ export const QUOTATION_STATUS_LABEL: Record<QuotationStatus, string> = {
 export const SLOT_STATUS_LABEL: Record<SlotStatus, string> = {
   free: "Date available",
   soft_hold: "Date reserved",
-  hard_conflict: "Date already booked",
-  soft_conflict: "Multiple enquiries on this date",
-  partial: "Some slots free today",
+  enquiry: "Multiple enquiries on this date",
+  confirmed: "Date already booked",
 };
 
 /** Reusable plain-language phrases (use anywhere instead of jargon). */
