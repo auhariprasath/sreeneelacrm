@@ -12,6 +12,7 @@ import { CheckCircle2, Clock, AlertTriangle, Circle, User as UserIcon, Plus } fr
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
 import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
+import { TaskReplies } from "@/components/tasks/task-replies";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/tasks")({ component: TasksPage });
