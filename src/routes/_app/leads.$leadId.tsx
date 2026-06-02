@@ -282,6 +282,9 @@ function LeadProfile() {
               <Button variant="outline" className="h-11" onClick={() => setFuOpen(true)}>
                 <CalendarClock className="h-4 w-4 mr-1.5" /> Follow-up
               </Button>
+              <Button variant="outline" className="h-11" onClick={() => setMeetingOpen(true)}>
+                <Building2 className="h-4 w-4 mr-1.5" /> Venue meeting
+              </Button>
               <Button
                 variant="outline"
                 className={`h-11 ${lead.is_blacklisted ? "" : "text-rose-700 dark:text-rose-300 border-rose-500/40"}`}
