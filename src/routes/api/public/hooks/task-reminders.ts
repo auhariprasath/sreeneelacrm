@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 //  - at-due     : fires when due_at has been reached (and not done)
 // Idempotency: tag `[task-reminder:<taskId>:<stage>]` in notification body.
 
-type Stage = "on_create" | "t_minus_2d" | "at_due";
+type Stage = "on_create" | "t_minus_2d" | "at_due" | "escalation";
 
 function fmtIN(iso: string) {
   const d = new Date(iso);
