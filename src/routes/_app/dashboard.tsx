@@ -9,9 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
-function StatCard({ label, value, icon: Icon, hint }: { label: string; value: string | number; icon: any; hint?: string }) {
-  return (
-    <Card>
+function StatCard({ label, value, icon: Icon, hint, to }: { label: string; value: string | number; icon: any; hint?: string; to?: string }) {
+  const inner = (
+    <Card className={to ? "transition-colors hover:bg-accent/40 cursor-pointer h-full" : "h-full"}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div>
@@ -26,6 +26,8 @@ function StatCard({ label, value, icon: Icon, hint }: { label: string; value: st
       </CardContent>
     </Card>
   );
+  if (!to) return inner;
+  return <Link to={to} className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg">{inner}</Link>;
 }
 
 function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
@@ -199,11 +201,12 @@ function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="New leads today" value={stats.newToday} icon={Users} />
-        <StatCard label="Active leads" value={stats.active} icon={Users} />
-        <StatCard label="Bookings" value={stats.bookings} icon={ClipboardList} hint="completed requirements" />
-        <StatCard label="Pending follow-ups" value={stats.followUps} icon={ListTodo} />
+        <StatCard label="New enquiries today" value={stats.newToday} icon={Users} to="/leads" />
+        <StatCard label="Open leads" value={stats.active} icon={Users} hint="being worked on" to="/leads" />
+        <StatCard label="Confirmed bookings" value={stats.bookings} icon={ClipboardList} to="/bookings" />
+        <StatCard label="Calls to make today" value={stats.followUps} icon={ListTodo} to="/tasks" />
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
