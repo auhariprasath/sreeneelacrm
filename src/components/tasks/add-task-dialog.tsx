@@ -181,6 +181,17 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <TaskRequirementsDialog
+      taskId={requirementsTaskId}
+      open={!!requirementsTaskId}
+      onOpenChange={(v) => {
+        if (!v) {
+          setRequirementsTaskId(null);
+          onOpenChange(false);
+        }
+      }}
+    />
+  </>
   );
 }
 
