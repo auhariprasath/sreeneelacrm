@@ -19,11 +19,13 @@ import { CompanyFieldsSection, type CompanyField } from "@/components/settings/c
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { PhotoGallerySection } from "@/components/settings/photo-gallery-section";
+import { CompaniesSection } from "@/components/settings/companies-section";
 
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
 const SECTIONS = [
+  { id: "companies", label: "Companies", icon: Building2, superOnly: true },
   { id: "company", label: "Company details", icon: Building2, superOnly: false },
   { id: "location", label: "Location & Meeting", icon: MapPin, superOnly: false },
   { id: "photos", label: "Venue photos", icon: ImageIcon, superOnly: false },
@@ -263,6 +265,18 @@ function SettingsPage() {
 
   const renderSection = () => {
     switch (section) {
+      case "companies":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Companies</CardTitle>
+              <CardDescription>Add, rename or archive companies. Archived companies stay in the database but are hidden everywhere else.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompaniesSection onChange={() => window.location.reload()} />
+            </CardContent>
+          </Card>
+        );
       case "company":
         return (
           <Card>
