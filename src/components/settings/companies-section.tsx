@@ -174,6 +174,13 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CompanyDetailsDialog
+        companyId={detailsId}
+        open={detailsId !== null}
+        onOpenChange={(v) => { if (!v) setDetailsId(null); }}
+        onSaved={() => { load(); onChange?.(); }}
+      />
     </div>
   );
 }
