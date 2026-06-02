@@ -12,6 +12,8 @@ interface Task {
   due_at: string;
   assigned_to: string | null;
   assignee_name: string | null;
+  vendor_id: string | null;
+  vendor_name: string | null;
 }
 
 export function BookingTasksList({ bookingId }: { bookingId: string }) {
@@ -21,18 +23,28 @@ export function BookingTasksList({ bookingId }: { bookingId: string }) {
   const load = async () => {
     const { data } = await supabase
       .from("tasks")
-      .select("id, title, status, due_at, assigned_to")
+      .select("id, title, status, due_at, assigned_to, vendor_id")
       .eq("booking_id", bookingId)
       .is("deleted_at", null)
       .order("due_at", { ascending: true });
     const list = (data as any[]) ?? [];
-    const ids = Array.from(new Set(list.map((t) => t.assigned_to).filter(Boolean)));
-    const map = new Map<string, string>();
-    if (ids.length) {
-      const { data: ps } = await supabase.from("profiles").select("id, full_name").in("id", ids);
-      (ps ?? []).forEach((p: any) => map.set(p.id, p.full_name));
+    const staffIds = Array.from(new Set(list.map((t) => t.assigned_to).filter(Boolean)));
+    const vendorIds = Array.from(new Set(list.map((t) => t.vendor_id).filter(Boolean)));
+    const staffMap = new Map<string, string>();
+    const vendorMap = new Map<string, string>();
+    if (staffIds.length) {
+      const { data: ps } = await supabase.from("profiles").select("id, full_name").in("id", staffIds);
+      (ps ?? []).forEach((p: any) => staffMap.set(p.id, p.full_name));
     }
-    setTasks(list.map((t) => ({ ...t, assignee_name: t.assigned_to ? map.get(t.assigned_to) ?? "—" : null })));
+    if (vendorIds.length) {
+      const { data: vs } = await supabase.from("vendors").select("id, name").in("id", vendorIds);
+      (vs ?? []).forEach((v: any) => vendorMap.set(v.id, v.name));
+    }
+    setTasks(list.map((t) => ({
+      ...t,
+      assignee_name: t.assigned_to ? staffMap.get(t.assigned_to) ?? "—" : null,
+      vendor_name: t.vendor_id ? vendorMap.get(t.vendor_id) ?? null : null,
+    })));
   };
 
   useEffect(() => { load(); }, [bookingId]);
@@ -42,7 +54,7 @@ export function BookingTasksList({ bookingId }: { bookingId: string }) {
   return (
     <div className="border-t pt-2 space-y-1">
       <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
-        <ListChecks className="h-3 w-3" /> Tasks
+        <ListChecks className="h-3 w-3" /> Tasks <span className="text-[10px] font-normal italic">· internal staff</span>
       </div>
       {tasks.map((t) => (
         <div key={t.id} className="flex items-center justify-between text-xs gap-2">
@@ -50,8 +62,10 @@ export function BookingTasksList({ bookingId }: { bookingId: string }) {
             <div className="truncate">{t.title}</div>
             <div className="text-[10px] text-muted-foreground">
               {t.assignee_name ?? "Unassigned"} · {t.status.replace("_", " ")}
+              {t.vendor_name && <span className="ml-1">· vendor: {t.vendor_name}</span>}
             </div>
           </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-6 w-6" aria-label="Task actions">
