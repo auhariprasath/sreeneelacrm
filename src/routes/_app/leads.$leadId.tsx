@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InfoTip } from "@/components/ui/info-tip";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, ListChecks } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
@@ -30,6 +30,7 @@ import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
 import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials-dialog";
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
+import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -84,6 +85,7 @@ function LeadProfile() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
+  const [addTaskBooking, setAddTaskBooking] = useState<Booking | null>(null);
 
   const loadRequirements = async () => {
     const { data } = await supabase
@@ -555,6 +557,9 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => { setPayCredsBooking(b); setPayCredsOpen(true); }}>
                             <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay details
                           </Button>
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setAddTaskBooking(b)}>
+                            <ListChecks className="h-3.5 w-3.5 mr-1" /> Add task
+                          </Button>
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
@@ -751,6 +756,15 @@ function LeadProfile() {
         <EventCompleteDialog open={!!completeBooking} onOpenChange={(v) => { if (!v) setCompleteBooking(null); }}
           booking={completeBooking} leadId={lead.id} leadPhone={lead.phone}
           onDone={() => { loadBookings(); load(); }} />
+      )}
+      {addTaskBooking && (
+        <AddTaskDialog
+          open={!!addTaskBooking}
+          onOpenChange={(v) => { if (!v) setAddTaskBooking(null); }}
+          companyId={addTaskBooking.company_id}
+          bookingId={addTaskBooking.id}
+          defaultDueAt={addTaskBooking.event_date ? new Date(`${addTaskBooking.event_date}T${addTaskBooking.start_time ?? "10:00"}:00`).toISOString() : undefined}
+        />
       )}
     </div>
   );

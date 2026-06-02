@@ -8,9 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, AlertTriangle, Circle, User as UserIcon } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle, Circle, User as UserIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
+import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/tasks")({ component: TasksPage });
@@ -49,6 +50,7 @@ function TasksPage() {
   const [tab, setTab] = useState<"all" | "mine" | "overdue" | "done">("all");
   const [companyFilter, setCompanyFilter] = useState<string>("");
   const [items, setItems] = useState<EnrichedTask[] | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const load = async () => {
     setItems(null);
@@ -124,16 +126,23 @@ function TasksPage() {
           <h1 className="text-2xl font-semibold">Task board</h1>
           <p className="text-xs text-muted-foreground">Tasks auto-generated from booking templates</p>
         </div>
-        {role === "super_admin" && companies.length > 1 && (
-          <select
-            className="h-10 w-full sm:w-56 rounded-md border border-input bg-background px-3 text-sm"
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
-          >
-            <option value="">All companies</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        )}
+        <div className="flex items-center gap-2">
+          {role === "super_admin" && companies.length > 1 && (
+            <select
+              className="h-10 w-full sm:w-56 rounded-md border border-input bg-background px-3 text-sm"
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+            >
+              <option value="">All companies</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          )}
+          {(activeCompanyId || companies[0]?.id) && (
+            <Button size="sm" onClick={() => setAddOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Add task
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
@@ -178,6 +187,15 @@ function TasksPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {(activeCompanyId || companies[0]?.id) && (
+        <AddTaskDialog
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          companyId={(role === "super_admin" ? (companyFilter || activeCompanyId || companies[0]?.id) : (activeCompanyId || companies[0]?.id)) as string}
+          onCreated={load}
+        />
       )}
     </div>
   );
