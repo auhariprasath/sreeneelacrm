@@ -84,6 +84,7 @@ function LeadProfile() {
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
   const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
   const [completeBooking, setCompleteBooking] = useState<Booking | null>(null);
+  const [confirmationBookingId, setConfirmationBookingId] = useState<string | null>(null);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
