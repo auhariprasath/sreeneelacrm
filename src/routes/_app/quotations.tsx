@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { SkeletonList } from "@/components/skeleton-list";
 import { formatINR, formatDateIN, formatPhoneIN, relativeTime } from "@/lib/format";
 import { FileText, Search, Download, ExternalLink } from "lucide-react";
+import { InvoiceRowMenu } from "@/components/quotations/invoice-row-menu";
 
 export const Route = createFileRoute("/_app/quotations")({ component: QuotationsPage });
 
@@ -25,6 +26,7 @@ interface Row {
   sent_at: string | null;
   created_at: string;
   is_peak_season: boolean;
+  pdf_url: string | null;
   lead?: { full_name: string; phone: string } | null;
   company?: { name: string } | null;
   requirement?: { event_date: string | null; event_type: string | null } | null;
@@ -48,6 +50,8 @@ function QuotationsPage() {
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+  const refresh = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
     const today = new Date();
@@ -69,7 +73,7 @@ function QuotationsPage() {
     (async () => {
       setBusy(true);
       let q = supabase.from("quotations")
-        .select("id,lead_id,company_id,version,total,status,sent_at,created_at,is_peak_season,requirement_id")
+        .select("id,lead_id,company_id,version,total,status,sent_at,created_at,is_peak_season,pdf_url,requirement_id")
         .is("deleted_at", null)
         .gte("created_at", new Date(from).toISOString())
         .lte("created_at", new Date(new Date(to).getTime() + 86400_000).toISOString())
@@ -99,7 +103,7 @@ function QuotationsPage() {
       if (!cancelled) { setRows(merged); setBusy(false); }
     })();
     return () => { cancelled = true; };
-  }, [effectiveCompanyId, status, from, to]);
+  }, [effectiveCompanyId, status, from, to, reloadKey]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -203,7 +207,16 @@ function QuotationsPage() {
                 <CardContent className="p-3 space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-sm font-medium hover:underline truncate">{r.lead?.full_name ?? "—"}</Link>
-                    <Badge className={statusColor(r.status)}>{r.status}</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge className={statusColor(r.status)}>{r.status}</Badge>
+                      <InvoiceRowMenu
+                        quotationId={r.id}
+                        leadId={r.lead_id}
+                        pdfUrl={r.pdf_url}
+                        versionLabel={`v${r.version}`}
+                        onDeleted={refresh}
+                      />
+                    </div>
                   </div>
                   <div className="text-xs text-muted-foreground">{formatPhoneIN(r.lead?.phone ?? "", false)}</div>
                   <div className="text-xs flex items-center justify-between">
@@ -250,9 +263,18 @@ function QuotationsPage() {
                         <td className="p-3 text-center"><Badge className={statusColor(r.status)}>{r.status}</Badge></td>
                         <td className="p-3 text-xs text-muted-foreground">{r.sent_at ? formatDateIN(r.sent_at) : "—"}</td>
                         <td className="p-3 text-right">
-                          <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-primary hover:underline inline-flex items-center gap-1 text-xs">
-                            Open lead <ExternalLink className="h-3 w-3" />
-                          </Link>
+                          <div className="inline-flex items-center gap-1">
+                            <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-primary hover:underline inline-flex items-center gap-1 text-xs">
+                              Open lead <ExternalLink className="h-3 w-3" />
+                            </Link>
+                            <InvoiceRowMenu
+                              quotationId={r.id}
+                              leadId={r.lead_id}
+                              pdfUrl={r.pdf_url}
+                              versionLabel={`v${r.version}`}
+                              onDeleted={refresh}
+                            />
+                          </div>
                         </td>
                       </tr>
                     ))}
