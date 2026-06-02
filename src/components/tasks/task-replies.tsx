@@ -89,24 +89,38 @@ export function TaskReplies({
       }).eq("id", taskId);
       onStatusChange?.("done");
     }
-    // notify admins of the booking owner team
+    // notify admins
     try {
-      const { data: admins } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-      const adminIds = (admins ?? []).map((a: any) => a.user_id);
-      if (adminIds.length) {
-        await supabase.from("notifications").insert(
-          adminIds.map((uid: string) => ({
-            user_id: uid,
-            title: `Task ${type}`,
-            body: `${profile.full_name || "Staff"} ${type} a task`,
-            type: "system" as const,
-          })),
-        );
+      if (type === "completed") {
+        const { notifyTaskCompleted } = await import("@/lib/task-completion");
+        await notifyTaskCompleted({
+          taskId,
+          companyId,
+          completedByUserId: profile.id,
+        });
+      } else {
+        const { data: profs } = await supabase
+          .from("profiles").select("id").eq("company_id", companyId)
+          .eq("is_active", true).is("deleted_at", null);
+        const ids = (profs ?? []).map((p: any) => p.id);
+        if (ids.length) {
+          const { data: admins } = await supabase
+            .from("user_roles").select("user_id").eq("role", "admin").in("user_id", ids);
+          const adminIds = (admins ?? []).map((a: any) => a.user_id);
+          if (adminIds.length) {
+            await supabase.from("notifications").insert(
+              adminIds.map((uid: string) => ({
+                user_id: uid,
+                title: `Task ${type}`,
+                body: `${profile.full_name || "Staff"} ${type} a task`,
+                type: "system" as const,
+              })),
+            );
+          }
+        }
       }
     } catch { /* non-fatal */ }
+
     await load();
     setBusy(false);
     toast.success(`Marked ${type}`);
