@@ -148,17 +148,38 @@ export function StaffSection({ companyId }: { companyId: string | undefined }) {
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5 truncate">{r.email}</div>
                 </div>
-                <Button
-                  variant={r.is_active ? "outline" : "default"}
-                  size="sm"
-                  onClick={() => toggleActive(r)}
-                  disabled={r.id === profile?.id}
-                  className="min-h-11"
-                >
-                  {r.is_active
-                    ? (<><UserX className="h-4 w-4 mr-1.5" /> Deactivate</>)
-                    : (<><UserCheck className="h-4 w-4 mr-1.5" /> Reactivate</>)}
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {currentRole === "super_admin" && companies.filter((c) => c.id !== companyId).length > 0 && (
+                    <Select
+                      onValueChange={async (v) => {
+                        if (!v) return;
+                        try {
+                          await moveStaff({ data: { user_id: r.id, target_company_id: v } });
+                          toast.success("Moved to selected company");
+                          await load();
+                        } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                      }}
+                    >
+                      <SelectTrigger className="h-10 w-[180px]"><SelectValue placeholder="Move to company…" /></SelectTrigger>
+                      <SelectContent>
+                        {companies.filter((c) => c.id !== companyId).map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Button
+                    variant={r.is_active ? "outline" : "default"}
+                    size="sm"
+                    onClick={() => toggleActive(r)}
+                    disabled={r.id === profile?.id}
+                    className="min-h-11"
+                  >
+                    {r.is_active
+                      ? (<><UserX className="h-4 w-4 mr-1.5" /> Deactivate</>)
+                      : (<><UserCheck className="h-4 w-4 mr-1.5" /> Reactivate</>)}
+                  </Button>
+                </div>
               </div>
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="flex items-center justify-between gap-3 text-sm border rounded-md px-3 py-2.5">
