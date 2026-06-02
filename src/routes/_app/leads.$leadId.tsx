@@ -31,8 +31,8 @@ import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
 import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials-dialog";
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
-import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
+import { BookingAssignedTo } from "@/components/bookings/booking-assigned-to";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
