@@ -15,11 +15,13 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VendorStatusTokenRouteImport } from './routes/vendor-status.$token'
 import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
+import { Route as AppQuotationsRouteImport } from './routes/_app/quotations'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
 import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
@@ -63,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendorStatusTokenRoute = VendorStatusTokenRouteImport.update({
+  id: '/vendor-status/$token',
+  path: '/vendor-status/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeedbackBookingIdRoute = FeedbackBookingIdRouteImport.update({
   id: '/feedback/$bookingId',
   path: '/feedback/$bookingId',
@@ -86,6 +93,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuotationsRoute = AppQuotationsRouteImport.update({
+  id: '/quotations',
+  path: '/quotations',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
@@ -170,11 +182,13 @@ export interface FileRoutesByFullPath {
   '/leads': typeof AppLeadsRouteWithChildren
   '/more': typeof AppMoreRoute
   '/notifications': typeof AppNotificationsRoute
+  '/quotations': typeof AppQuotationsRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
@@ -194,11 +208,13 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/more': typeof AppMoreRoute
   '/notifications': typeof AppNotificationsRoute
+  '/quotations': typeof AppQuotationsRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
@@ -221,11 +237,13 @@ export interface FileRoutesById {
   '/_app/leads': typeof AppLeadsRouteWithChildren
   '/_app/more': typeof AppMoreRoute
   '/_app/notifications': typeof AppNotificationsRoute
+  '/_app/quotations': typeof AppQuotationsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
@@ -248,11 +266,13 @@ export interface FileRouteTypes {
     | '/leads'
     | '/more'
     | '/notifications'
+    | '/quotations'
     | '/reports'
     | '/settings'
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
+    | '/vendor-status/$token'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
@@ -272,11 +292,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/more'
     | '/notifications'
+    | '/quotations'
     | '/reports'
     | '/settings'
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
+    | '/vendor-status/$token'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
@@ -298,11 +320,13 @@ export interface FileRouteTypes {
     | '/_app/leads'
     | '/_app/more'
     | '/_app/notifications'
+    | '/_app/quotations'
     | '/_app/reports'
     | '/_app/settings'
     | '/_app/tasks'
     | '/_app/transfers'
     | '/feedback/$bookingId'
+    | '/vendor-status/$token'
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
@@ -318,6 +342,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
+  VendorStatusTokenRoute: typeof VendorStatusTokenRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
@@ -367,6 +392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendor-status/$token': {
+      id: '/vendor-status/$token'
+      path: '/vendor-status/$token'
+      fullPath: '/vendor-status/$token'
+      preLoaderRoute: typeof VendorStatusTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/feedback/$bookingId': {
       id: '/feedback/$bookingId'
       path: '/feedback/$bookingId'
@@ -400,6 +432,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/quotations': {
+      id: '/_app/quotations'
+      path: '/quotations'
+      fullPath: '/quotations'
+      preLoaderRoute: typeof AppQuotationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/notifications': {
@@ -519,6 +558,7 @@ interface AppRouteChildren {
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMoreRoute: typeof AppMoreRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppQuotationsRoute: typeof AppQuotationsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
@@ -534,6 +574,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMoreRoute: AppMoreRoute,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppQuotationsRoute: AppQuotationsRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
@@ -550,6 +591,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   FeedbackBookingIdRoute: FeedbackBookingIdRoute,
+  VendorStatusTokenRoute: VendorStatusTokenRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
   ApiPublicHooksPostEventAutomationRoute:
     ApiPublicHooksPostEventAutomationRoute,

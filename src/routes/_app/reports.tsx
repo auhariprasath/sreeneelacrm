@@ -300,8 +300,130 @@ function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+
+          <CallOutcomesReport from={from} to={to} companyId={companyId} />
         </>
       )}
     </div>
+  );
+}
+
+interface CallOutcomeRow {
+  id: string;
+  lead_id: string;
+  performed_by: string | null;
+  outcome: string;
+  notes: string | null;
+  created_at: string;
+  drop_reason: string | null;
+  lead?: { full_name: string; phone: string } | null;
+  performer?: { full_name: string } | null;
+}
+
+function CallOutcomesReport({ from, to, companyId }: { from: string; to: string; companyId: string | null }) {
+  const [rows, setRows] = useState<CallOutcomeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterOutcome, setFilterOutcome] = useState<string>("all");
+
+  useEffect(() => {
+    if (!companyId) { setLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const fromIso = new Date(from).toISOString();
+      const toIso = new Date(new Date(to).getTime() + 86400_000).toISOString();
+      const { data } = await supabase.from("call_outcomes" as any)
+        .select("id,lead_id,outcome,notes,created_at,drop_reason,performed_by")
+        .eq("company_id", companyId)
+        .gte("created_at", fromIso).lte("created_at", toIso)
+        .order("created_at", { ascending: false }).limit(500);
+      const base = (data as any[]) ?? [];
+      const leadIds = [...new Set(base.map((r) => r.lead_id))];
+      const perfIds = [...new Set(base.map((r) => r.performed_by).filter(Boolean))];
+      const [{ data: leads }, { data: profs }] = await Promise.all([
+        leadIds.length ? supabase.from("leads").select("id,full_name,phone").in("id", leadIds) : Promise.resolve({ data: [] as any[] }),
+        perfIds.length ? supabase.from("profiles").select("id,full_name").in("id", perfIds) : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const ml = new Map((leads ?? []).map((l: any) => [l.id, l]));
+      const mp = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      if (cancelled) return;
+      setRows(base.map((r) => ({ ...r, lead: ml.get(r.lead_id) ?? null, performer: mp.get(r.performed_by) ?? null })));
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [from, to, companyId]);
+
+  const filtered = filterOutcome === "all" ? rows : rows.filter((r) => r.outcome === filterOutcome);
+  const counts = {
+    total: rows.length,
+    interested: rows.filter((r) => r.outcome === "interested").length,
+    meeting_scheduled: rows.filter((r) => r.outcome === "meeting_scheduled").length,
+    callback_requested: rows.filter((r) => r.outcome === "callback_requested").length,
+    not_interested: rows.filter((r) => r.outcome === "not_interested").length,
+  };
+
+  const exportCsv = () => {
+    const headers = ["Lead", "Phone", "Outcome", "Notes", "Drop reason", "Staff", "Date"];
+    const lines = [headers.join(",")];
+    filtered.forEach((r) => {
+      lines.push([
+        r.lead?.full_name ?? "", r.lead?.phone ?? "", r.outcome,
+        r.notes ?? "", r.drop_reason ?? "", r.performer?.full_name ?? "", r.created_at,
+      ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `call-outcomes-${from}-${to}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle className="text-base">Call outcomes</CardTitle>
+          <CardDescription>Calls logged in this date range</CardDescription>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportCsv} disabled={!filtered.length}>
+          <Download className="h-4 w-4 mr-1" /> CSV
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Total</div><div className="text-lg font-semibold">{counts.total}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Interested</div><div className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">{counts.interested}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Meetings</div><div className="text-lg font-semibold text-blue-700 dark:text-blue-300">{counts.meeting_scheduled}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Callbacks</div><div className="text-lg font-semibold text-amber-700 dark:text-amber-300">{counts.callback_requested}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Not interested</div><div className="text-lg font-semibold text-rose-700 dark:text-rose-300">{counts.not_interested}</div></div>
+        </div>
+        <div className="flex gap-2 flex-wrap text-xs">
+          {(["all","interested","meeting_scheduled","callback_requested","other","not_interested"]).map((k) => (
+            <button key={k} onClick={() => setFilterOutcome(k)}
+              className={`px-2 py-1 rounded border ${filterOutcome === k ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`}>
+              {k.replace("_", " ")}
+            </button>
+          ))}
+        </div>
+        {loading ? <div className="text-xs text-muted-foreground py-2">Loading…</div> : filtered.length === 0 ? (
+          <div className="text-xs text-muted-foreground py-2">No call outcomes in this period.</div>
+        ) : (
+          <ul className="divide-y text-sm max-h-96 overflow-y-auto">
+            {filtered.map((r) => (
+              <li key={r.id} className="py-2 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{r.lead?.full_name ?? "—"}</div>
+                  <div className="text-xs text-muted-foreground">{r.outcome.replace("_", " ")}{r.notes ? ` — ${r.notes}` : ""}{r.drop_reason ? ` · ${r.drop_reason}` : ""}</div>
+                </div>
+                <div className="text-[11px] text-muted-foreground shrink-0 text-right">
+                  <div>{r.performer?.full_name ?? "—"}</div>
+                  <div>{new Date(r.created_at).toLocaleString("en-IN")}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -25,6 +25,8 @@ import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog
 import { RemindersList } from "@/components/bookings/reminders-list";
 import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
+import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials-dialog";
+import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -75,6 +77,9 @@ function LeadProfile() {
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
   const [reschedBooking, setReschedBooking] = useState<Booking | null>(null);
   const [completeBooking, setCompleteBooking] = useState<Booking | null>(null);
+  const [meetingOpen, setMeetingOpen] = useState(false);
+  const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
+  const [payCredsOpen, setPayCredsOpen] = useState(false);
 
   const loadRequirements = async () => {
     const { data } = await supabase
@@ -276,6 +281,9 @@ function LeadProfile() {
               </a>
               <Button variant="outline" className="h-11" onClick={() => setFuOpen(true)}>
                 <CalendarClock className="h-4 w-4 mr-1.5" /> Follow-up
+              </Button>
+              <Button variant="outline" className="h-11" onClick={() => setMeetingOpen(true)}>
+                <Building2 className="h-4 w-4 mr-1.5" /> Venue meeting
               </Button>
               <Button
                 variant="outline"
@@ -508,6 +516,9 @@ function LeadProfile() {
                               <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Cheque status
                             </Button>
                           )}
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => { setPayCredsBooking(b); setPayCredsOpen(true); }}>
+                            <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay details
+                          </Button>
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
@@ -593,10 +604,37 @@ function LeadProfile() {
         open={callOpen}
         onOpenChange={setCallOpen}
         leadId={lead.id}
-        currentFollowUpCount={lead.follow_up_count}
-        maxFollowUpAttempts={lead.max_follow_up_attempts}
+        companyId={lead.company_id}
         performedBy={profile?.id ?? null}
         onScheduleFollowUp={() => setFuOpen(true)}
+        onScheduleMeeting={() => setMeetingOpen(true)}
+        onInterested={() => {
+          // open intake if no requirements; else open quotation builder on latest requirement
+          const latest = requirements[requirements.length - 1];
+          if (!latest) { setEditReqId(null); setReqOpen(true); }
+          else if (latest.status === "slot_confirmed") { setQuoteReqId(latest.id); setEditQuoteId(null); setQuoteOpen(true); }
+          else { setEditReqId(latest.id); setReqOpen(true); }
+        }}
+        onChanged={() => { load(); }}
+      />
+      <MeetingSchedulerDialog
+        open={meetingOpen}
+        onOpenChange={setMeetingOpen}
+        leadId={lead.id}
+        leadName={lead.full_name}
+        leadPhone={lead.phone}
+        companyId={lead.company_id}
+        onScheduled={() => load()}
+      />
+      <PaymentCredentialsDialog
+        open={payCredsOpen}
+        onOpenChange={setPayCredsOpen}
+        leadId={lead.id}
+        leadName={lead.full_name}
+        leadPhone={lead.phone}
+        companyId={lead.company_id}
+        bookingId={payCredsBooking?.id ?? null}
+        amount={payCredsBooking ? Number(payCredsBooking.balance_due || payCredsBooking.total_amount) : null}
       />
       <FollowUpDialog
         open={fuOpen}

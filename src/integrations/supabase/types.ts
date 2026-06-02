@@ -103,6 +103,8 @@ export type Database = {
           rating: number | null
           rating_comment: string | null
           service_description: string | null
+          status_reminder_sent_at: string | null
+          status_token: string | null
           vendor_id: string
         }
         Insert: {
@@ -122,6 +124,8 @@ export type Database = {
           rating?: number | null
           rating_comment?: string | null
           service_description?: string | null
+          status_reminder_sent_at?: string | null
+          status_token?: string | null
           vendor_id: string
         }
         Update: {
@@ -141,6 +145,8 @@ export type Database = {
           rating?: number | null
           rating_comment?: string | null
           service_description?: string | null
+          status_reminder_sent_at?: string | null
+          status_token?: string | null
           vendor_id?: string
         }
         Relationships: []
@@ -277,6 +283,45 @@ export type Database = {
         }
         Relationships: []
       }
+      call_outcomes: {
+        Row: {
+          company_id: string
+          created_at: string
+          drop_reason: string | null
+          follow_up_id: string | null
+          id: string
+          lead_id: string
+          next_action: string | null
+          notes: string | null
+          outcome: Database["public"]["Enums"]["call_outcome_type"]
+          performed_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          drop_reason?: string | null
+          follow_up_id?: string | null
+          id?: string
+          lead_id: string
+          next_action?: string | null
+          notes?: string | null
+          outcome: Database["public"]["Enums"]["call_outcome_type"]
+          performed_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          drop_reason?: string | null
+          follow_up_id?: string | null
+          id?: string
+          lead_id?: string
+          next_action?: string | null
+          notes?: string | null
+          outcome?: Database["public"]["Enums"]["call_outcome_type"]
+          performed_by?: string | null
+        }
+        Relationships: []
+      }
       campaign_leads: {
         Row: {
           campaign_id: string
@@ -401,6 +446,8 @@ export type Database = {
           event_types: Json
           feedback_wa_delay_hours: number
           force_majeure_note: string | null
+          full_address: string | null
+          google_maps_link: string | null
           google_review_link: string | null
           gst_percent: number
           gstin: string | null
@@ -410,10 +457,16 @@ export type Database = {
           logo_url: string | null
           max_capacity: number | null
           max_follow_up_attempts: number
+          meeting_contact_name: string | null
+          meeting_contact_phone: string | null
           name: string
+          payment_method: Database["public"]["Enums"]["payment_method_type"]
           peak_season_dates: Json
           quotation_counter: number
           quotation_prefix: string
+          razorpay_key_id: string | null
+          razorpay_key_secret: string | null
+          razorpay_test_mode: boolean
           reengagement_auto_send: boolean
           reengagement_delay_days: number
           refund_15_30_percent: number
@@ -429,6 +482,8 @@ export type Database = {
           task_templates: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id: string | null
+          vendor_status_reminder_hours: number
+          venue_photos: Json
           wa_number: string | null
           wa_template_competing_leads: string | null
           wa_template_feedback: string | null
@@ -461,6 +516,8 @@ export type Database = {
           event_types?: Json
           feedback_wa_delay_hours?: number
           force_majeure_note?: string | null
+          full_address?: string | null
+          google_maps_link?: string | null
           google_review_link?: string | null
           gst_percent?: number
           gstin?: string | null
@@ -470,10 +527,16 @@ export type Database = {
           logo_url?: string | null
           max_capacity?: number | null
           max_follow_up_attempts?: number
+          meeting_contact_name?: string | null
+          meeting_contact_phone?: string | null
           name: string
+          payment_method?: Database["public"]["Enums"]["payment_method_type"]
           peak_season_dates?: Json
           quotation_counter?: number
           quotation_prefix?: string
+          razorpay_key_id?: string | null
+          razorpay_key_secret?: string | null
+          razorpay_test_mode?: boolean
           reengagement_auto_send?: boolean
           reengagement_delay_days?: number
           refund_15_30_percent?: number
@@ -489,6 +552,8 @@ export type Database = {
           task_templates?: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
+          vendor_status_reminder_hours?: number
+          venue_photos?: Json
           wa_number?: string | null
           wa_template_competing_leads?: string | null
           wa_template_feedback?: string | null
@@ -521,6 +586,8 @@ export type Database = {
           event_types?: Json
           feedback_wa_delay_hours?: number
           force_majeure_note?: string | null
+          full_address?: string | null
+          google_maps_link?: string | null
           google_review_link?: string | null
           gst_percent?: number
           gstin?: string | null
@@ -530,10 +597,16 @@ export type Database = {
           logo_url?: string | null
           max_capacity?: number | null
           max_follow_up_attempts?: number
+          meeting_contact_name?: string | null
+          meeting_contact_phone?: string | null
           name?: string
+          payment_method?: Database["public"]["Enums"]["payment_method_type"]
           peak_season_dates?: Json
           quotation_counter?: number
           quotation_prefix?: string
+          razorpay_key_id?: string | null
+          razorpay_key_secret?: string | null
+          razorpay_test_mode?: boolean
           reengagement_auto_send?: boolean
           reengagement_delay_days?: number
           refund_15_30_percent?: number
@@ -549,6 +622,8 @@ export type Database = {
           task_templates?: Json
           type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
+          vendor_status_reminder_hours?: number
+          venue_photos?: Json
           wa_number?: string | null
           wa_template_competing_leads?: string | null
           wa_template_feedback?: string | null
@@ -1415,6 +1490,42 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_status_updates: {
+        Row: {
+          booking_id: string
+          booking_vendor_id: string
+          company_id: string
+          id: string
+          note: string | null
+          status: Database["public"]["Enums"]["vendor_status_stage"]
+          updated_at: string
+          updated_via: Database["public"]["Enums"]["vendor_status_source"]
+          vendor_id: string
+        }
+        Insert: {
+          booking_id: string
+          booking_vendor_id: string
+          company_id: string
+          id?: string
+          note?: string | null
+          status: Database["public"]["Enums"]["vendor_status_stage"]
+          updated_at?: string
+          updated_via: Database["public"]["Enums"]["vendor_status_source"]
+          vendor_id: string
+        }
+        Update: {
+          booking_id?: string
+          booking_vendor_id?: string
+          company_id?: string
+          id?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["vendor_status_stage"]
+          updated_at?: string
+          updated_via?: Database["public"]["Enums"]["vendor_status_source"]
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       vendors: {
         Row: {
           company_id: string
@@ -1466,6 +1577,75 @@ export type Database = {
           total_bookings?: number
           updated_at?: string
           wa_number?: string | null
+        }
+        Relationships: []
+      }
+      venue_meetings: {
+        Row: {
+          company_id: string
+          contact_person_name: string | null
+          contact_person_phone: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          duration_minutes: number
+          id: string
+          lead_id: string
+          message_sent: string | null
+          notes: string | null
+          outcome_prompt_sent_at: string | null
+          outcome_recorded: boolean
+          photos_sent: Json
+          reminder_1day_sent_at: string | null
+          reminder_now_sent_at: string | null
+          scheduled_date: string
+          scheduled_time: string
+          status: Database["public"]["Enums"]["venue_meeting_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          duration_minutes?: number
+          id?: string
+          lead_id: string
+          message_sent?: string | null
+          notes?: string | null
+          outcome_prompt_sent_at?: string | null
+          outcome_recorded?: boolean
+          photos_sent?: Json
+          reminder_1day_sent_at?: string | null
+          reminder_now_sent_at?: string | null
+          scheduled_date: string
+          scheduled_time: string
+          status?: Database["public"]["Enums"]["venue_meeting_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          duration_minutes?: number
+          id?: string
+          lead_id?: string
+          message_sent?: string | null
+          notes?: string | null
+          outcome_prompt_sent_at?: string | null
+          outcome_recorded?: boolean
+          photos_sent?: Json
+          reminder_1day_sent_at?: string | null
+          reminder_now_sent_at?: string | null
+          scheduled_date?: string
+          scheduled_time?: string
+          status?: Database["public"]["Enums"]["venue_meeting_status"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1544,6 +1724,12 @@ export type Database = {
         | "rescheduled"
         | "completed"
         | "disputed"
+      call_outcome_type:
+        | "interested"
+        | "meeting_scheduled"
+        | "callback_requested"
+        | "other"
+        | "not_interested"
       campaign_channel: "whatsapp" | "sms" | "both"
       campaign_lead_channel: "whatsapp" | "sms"
       campaign_lead_status: "pending" | "sent" | "delivered" | "failed"
@@ -1577,6 +1763,7 @@ export type Database = {
         | "event_reminder"
         | "low_rating"
         | "system"
+      payment_method_type: "manual" | "razorpay"
       payment_status:
         | "pending"
         | "received"
@@ -1602,6 +1789,14 @@ export type Database = {
       task_priority: "low" | "medium" | "high"
       task_status: "pending" | "in_progress" | "done" | "overdue"
       transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
+      vendor_status_source: "tap_link" | "manual_staff"
+      vendor_status_stage: "packed" | "traveling" | "arrived" | "setup_done"
+      venue_meeting_status:
+        | "scheduled"
+        | "reminder_sent"
+        | "completed"
+        | "cancelled"
+        | "rescheduled"
       win_loss_outcome: "won" | "lost"
     }
     CompositeTypes: {
@@ -1753,6 +1948,13 @@ export const Constants = {
         "completed",
         "disputed",
       ],
+      call_outcome_type: [
+        "interested",
+        "meeting_scheduled",
+        "callback_requested",
+        "other",
+        "not_interested",
+      ],
       campaign_channel: ["whatsapp", "sms", "both"],
       campaign_lead_channel: ["whatsapp", "sms"],
       campaign_lead_status: ["pending", "sent", "delivered", "failed"],
@@ -1789,6 +1991,7 @@ export const Constants = {
         "low_rating",
         "system",
       ],
+      payment_method_type: ["manual", "razorpay"],
       payment_status: [
         "pending",
         "received",
@@ -1817,6 +2020,15 @@ export const Constants = {
       task_priority: ["low", "medium", "high"],
       task_status: ["pending", "in_progress", "done", "overdue"],
       transfer_status: ["pending", "approved", "rejected", "auto_approved"],
+      vendor_status_source: ["tap_link", "manual_staff"],
+      vendor_status_stage: ["packed", "traveling", "arrived", "setup_done"],
+      venue_meeting_status: [
+        "scheduled",
+        "reminder_sent",
+        "completed",
+        "cancelled",
+        "rescheduled",
+      ],
       win_loss_outcome: ["won", "lost"],
     },
   },
