@@ -435,6 +435,7 @@ export type Database = {
           auto_wa_on_reschedule: boolean
           balance_reminder_days_before: number
           bank_account: string | null
+          brand_color: string | null
           cancellation_policy: string | null
           company_phone: string | null
           created_at: string
@@ -505,6 +506,7 @@ export type Database = {
           auto_wa_on_reschedule?: boolean
           balance_reminder_days_before?: number
           bank_account?: string | null
+          brand_color?: string | null
           cancellation_policy?: string | null
           company_phone?: string | null
           created_at?: string
@@ -575,6 +577,7 @@ export type Database = {
           auto_wa_on_reschedule?: boolean
           balance_reminder_days_before?: number
           bank_account?: string | null
+          brand_color?: string | null
           cancellation_policy?: string | null
           company_phone?: string | null
           created_at?: string
