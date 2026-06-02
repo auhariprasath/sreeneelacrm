@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, AlertTriangle, Circle, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
