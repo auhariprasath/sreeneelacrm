@@ -37,7 +37,7 @@ type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 type Payment = Database["public"]["Tables"]["payments"]["Row"];
-type Status = Database["public"]["Enums"]["lead_status"];
+
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
 
