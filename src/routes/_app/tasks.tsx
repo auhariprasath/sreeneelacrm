@@ -237,6 +237,14 @@ function TaskCard({ task, onStatus, onOpenReminder }: { task: EnrichedTask; onSt
             </Link>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() => onOpenReminder(task.id)}
+          className={`shrink-0 inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted ${task.has_reminder ? "text-primary" : "text-muted-foreground"}`}
+          title={task.has_reminder ? "Edit reminder" : "Set reminder"}
+        >
+          {task.has_reminder ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+        </button>
         <Badge variant="secondary" className={meta.cls}>{meta.label}</Badge>
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -245,6 +253,15 @@ function TaskCard({ task, onStatus, onOpenReminder }: { task: EnrichedTask; onSt
           <span className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> {task.assignee_name}</span>
         )}
       </div>
+      {!task.has_reminder && task.status !== "done" && (
+        <button
+          type="button"
+          onClick={() => onOpenReminder(task.id)}
+          className="text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline self-start"
+        >
+          🔔 Set reminder
+        </button>
+      )}
       {task.status === "done" && (
         <Button size="sm" variant="ghost" className="w-full h-8 text-xs" onClick={() => onStatus(task.id, "pending")}>Reopen</Button>
       )}
