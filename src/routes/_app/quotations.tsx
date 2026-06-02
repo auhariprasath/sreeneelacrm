@@ -50,6 +50,8 @@ function QuotationsPage() {
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+  const refresh = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
     const today = new Date();
