@@ -8,11 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User as UserIcon, Plus } from "lucide-react";
+import { Clock, User as UserIcon, Plus, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
 import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import { TaskReplies } from "@/components/tasks/task-replies";
+import { TaskReminderDialog } from "@/components/tasks/task-reminder-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/tasks")({ component: TasksPage });
