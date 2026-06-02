@@ -226,7 +226,38 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
               </Select>
             </div>
           </div>
+          <div className="space-y-2 border-t pt-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={involvesVendor}
+                onChange={(e) => { setInvolvesVendor(e.target.checked); if (!e.target.checked) setVendorId(""); }}
+              />
+              This task involves an external vendor
+            </label>
+            {involvesVendor && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Supporting vendor (staff member still owns the task)</Label>
+                <Select value={vendorId || "none"} onValueChange={(v) => setVendorId(v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="Pick vendor…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {vendors.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.name}{v.service_type ? ` · ${v.service_type}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground mt-1 italic">
+                  Event details are sent to the vendor separately from the Vendors section.
+                </p>
+              </div>
+            )}
+          </div>
           <div className="space-y-2">
+
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
