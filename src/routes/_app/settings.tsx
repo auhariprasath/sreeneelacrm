@@ -223,6 +223,65 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
   );
 }
 
+function ConfirmationMessageSection({ companyId }: { companyId: string | undefined }) {
+  const [row, setRow] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!companyId) return;
+    supabase.from("companies").select("confirmation_reminder_lines,confirmation_closing_line,confirmation_auto_send").eq("id", companyId).maybeSingle().then(({ data }) => setRow(data as any));
+  }, [companyId]);
+
+  if (!companyId) return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
+  if (!row) return <div className="text-sm text-muted-foreground p-6">Loading…</div>;
+
+  const lines: string[] = Array.isArray(row.confirmation_reminder_lines) ? row.confirmation_reminder_lines : [];
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("companies").update({
+      confirmation_reminder_lines: lines.filter((l) => l.trim().length > 0) as any,
+      confirmation_closing_line: row.confirmation_closing_line || null,
+      confirmation_auto_send: !!row.confirmation_auto_send,
+    }).eq("id", companyId);
+    setSaving(false);
+    if (error) toast.error(error.message); else toast.success("Saved ✓");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Custom reminder lines</Label>
+        <p className="text-xs text-muted-foreground mb-2">Shown under "Important Reminders" in the booking confirmation message.</p>
+        <div className="space-y-2">
+          {lines.map((l, i) => (
+            <div key={i} className="flex gap-2">
+              <Input value={l} onChange={(e) => setRow({ ...row, confirmation_reminder_lines: lines.map((x, j) => j === i ? e.target.value : x) })} />
+              <Button variant="ghost" size="icon" onClick={() => setRow({ ...row, confirmation_reminder_lines: lines.filter((_, j) => j !== i) })} aria-label="Remove"><XCircle className="h-4 w-4" /></Button>
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => setRow({ ...row, confirmation_reminder_lines: [...lines, ""] })}><Plus className="h-4 w-4 mr-1" /> Add reminder line</Button>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Closing line</Label>
+        <Textarea rows={2} value={row.confirmation_closing_line ?? ""} onChange={(e) => setRow({ ...row, confirmation_closing_line: e.target.value })} placeholder="We look forward to making your [event_type] truly memorable." />
+        <p className="text-xs text-muted-foreground">Placeholders like <code>[event_type]</code>, <code>[company_name]</code> will be filled in.</p>
+      </div>
+      <div className="flex items-start justify-between gap-4 border rounded-md p-3">
+        <div className="space-y-0.5 min-w-0">
+          <Label>Auto-send confirmation on booking</Label>
+          <p className="text-xs text-muted-foreground">If ON, the confirmation message is sent automatically. If OFF (recommended), staff sees a preview first.</p>
+        </div>
+        <input type="checkbox" className="h-5 w-5 mt-1" checked={!!row.confirmation_auto_send} onChange={(e) => setRow({ ...row, confirmation_auto_send: e.target.checked })} />
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+      </div>
+    </div>
+  );
+}
+
 function PeakSection({ companyId }: { companyId: string | undefined }) {
   const [ranges, setRanges] = useState<{ start: string; end: string; label?: string }[]>([]);
   const [loading, setLoading] = useState(true);
