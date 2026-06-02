@@ -103,7 +103,7 @@ function QuotationsPage() {
       if (!cancelled) { setRows(merged); setBusy(false); }
     })();
     return () => { cancelled = true; };
-  }, [effectiveCompanyId, status, from, to]);
+  }, [effectiveCompanyId, status, from, to, reloadKey]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
