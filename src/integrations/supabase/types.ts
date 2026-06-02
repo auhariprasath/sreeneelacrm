@@ -1348,6 +1348,36 @@ export type Database = {
         }
         Relationships: []
       }
+      task_replies: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string | null
+          reply_type: Database["public"]["Enums"]["task_reply_type"]
+          task_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string | null
+          reply_type: Database["public"]["Enums"]["task_reply_type"]
+          task_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string | null
+          reply_type?: Database["public"]["Enums"]["task_reply_type"]
+          task_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -1790,6 +1820,7 @@ export type Database = {
       sent_channel: "whatsapp" | "email" | "sms" | "instagram"
       slot_status: "free" | "soft_hold" | "enquiry" | "confirmed"
       task_priority: "low" | "medium" | "high"
+      task_reply_type: "noted" | "started" | "completed" | "comment"
       task_status: "pending" | "in_progress" | "done" | "overdue"
       transfer_status: "pending" | "approved" | "rejected" | "auto_approved"
       vendor_status_source: "tap_link" | "manual_staff"
@@ -2021,6 +2052,7 @@ export const Constants = {
       sent_channel: ["whatsapp", "email", "sms", "instagram"],
       slot_status: ["free", "soft_hold", "enquiry", "confirmed"],
       task_priority: ["low", "medium", "high"],
+      task_reply_type: ["noted", "started", "completed", "comment"],
       task_status: ["pending", "in_progress", "done", "overdue"],
       transfer_status: ["pending", "approved", "rejected", "auto_approved"],
       vendor_status_source: ["tap_link", "manual_staff"],
