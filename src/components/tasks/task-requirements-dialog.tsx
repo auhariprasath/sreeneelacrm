@@ -3,9 +3,10 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Pencil, Send } from "lucide-react";
+import { MessageCircle, Pencil, Send } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { buildRequirementsMessage, loadTaskRequirementsContext, sendTaskRequirements, type TaskRequirementsContext } from "@/lib/task-requirements";
+import { buildRequirementsMessage, buildTaskWaLink, loadTaskRequirementsContext, sendTaskRequirements, type TaskRequirementsContext } from "@/lib/task-requirements";
+
 
 interface Props {
   taskId: string | null;
@@ -44,8 +45,13 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
     })();
   }, [open, taskId, onOpenChange]);
 
-  const send = async () => {
+  const send = async (channel: "in_app" | "whatsapp" = "in_app") => {
     if (!ctx || !taskId) return;
+    if (channel === "whatsapp") {
+      const link = buildTaskWaLink(ctx.assigneePhone, message);
+      if (!link) { toast.error(`${ctx.assigneeName} has no phone number on file`); return; }
+      window.open(link, "_blank", "noopener");
+    }
     setBusy(true);
     const { error } = await sendTaskRequirements({
       taskId,
@@ -55,13 +61,19 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
       leadId,
       companyId,
       sentByUserId: profile?.id ?? null,
+      channel,
     });
     setBusy(false);
     if (error) { toast.error(error); return; }
-    toast.success(`Requirements sent to ${ctx.assigneeName} ✓`);
+    toast.success(
+      channel === "whatsapp"
+        ? `WhatsApp opened for ${ctx.assigneeName} ✓`
+        : `Requirements sent to ${ctx.assigneeName} ✓`,
+    );
     onSent?.();
     onOpenChange(false);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,7 +95,10 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
           <Button variant="outline" onClick={() => setEditing((v) => !v)} disabled={!ctx || busy}>
             <Pencil className="h-3.5 w-3.5 mr-1" /> {editing ? "Done editing" : "Edit message"}
           </Button>
-          <Button onClick={send} disabled={!ctx || busy}>
+          <Button variant="outline" onClick={() => send("whatsapp")} disabled={!ctx || busy} title={ctx?.assigneePhone ? "Open WhatsApp" : "No phone on file"}>
+            <MessageCircle className="h-3.5 w-3.5 mr-1" /> WhatsApp
+          </Button>
+          <Button onClick={() => send("in_app")} disabled={!ctx || busy}>
             <Send className="h-3.5 w-3.5 mr-1" /> {busy ? "Sending…" : ctx ? `Send to ${ctx.assigneeName}` : "Send"}
           </Button>
         </DialogFooter>

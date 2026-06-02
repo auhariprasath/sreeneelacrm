@@ -6,6 +6,7 @@ export interface TaskRequirementsContext {
   taskDueAt: string;
   assigneeName: string;
   assigneeId: string;
+  assigneePhone: string | null;
   clientName: string;
   eventType: string;
   eventDate: string;
@@ -16,6 +17,16 @@ export interface TaskRequirementsContext {
   addons: { name: string; price?: number }[];
   clientNotes: string | null;
 }
+
+/** Build a wa.me deep link for an Indian phone number (defaults +91). */
+export function buildTaskWaLink(phone: string | null | undefined, message: string): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return null;
+  const intl = digits.length === 10 ? `91${digits}` : digits;
+  return `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
+}
+
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -80,7 +91,7 @@ export async function loadTaskRequirementsContext(taskId: string): Promise<TaskR
   if (!task || !task.assigned_to) return null;
 
   const [{ data: assignee }, { data: booking }, { data: company }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name").eq("id", task.assigned_to).maybeSingle(),
+    supabase.from("profiles").select("id, full_name, phone").eq("id", task.assigned_to).maybeSingle(),
     supabase.from("bookings").select("id, lead_id, requirement_id, event_date, start_time, end_time, venue").eq("id", task.booking_id).maybeSingle(),
     supabase.from("companies").select("name").eq("id", task.company_id).maybeSingle(),
   ]);
@@ -102,6 +113,7 @@ export async function loadTaskRequirementsContext(taskId: string): Promise<TaskR
     taskDueAt: task.due_at,
     assigneeId: task.assigned_to,
     assigneeName: assignee?.full_name ?? "—",
+    assigneePhone: assignee?.phone ?? null,
     clientName: lead?.full_name ?? "—",
     eventType: requirement?.event_type ?? "—",
     eventDate: booking.event_date,
@@ -114,6 +126,7 @@ export async function loadTaskRequirementsContext(taskId: string): Promise<TaskR
   };
 }
 
+
 /** Persist send: insert in-app notification, activity log, return ok. */
 export async function sendTaskRequirements(args: {
   taskId: string;
@@ -123,8 +136,11 @@ export async function sendTaskRequirements(args: {
   leadId: string;
   companyId: string;
   sentByUserId: string | null;
+  channel?: "in_app" | "whatsapp";
 }): Promise<{ error: string | null }> {
-  // 1. In-app notification to assignee
+  const channel = args.channel ?? "in_app";
+
+  // 1. In-app notification to assignee (always)
   const { error: nErr } = await supabase.from("notifications").insert({
     user_id: args.ctx.assigneeId,
     type: "event_reminder",
@@ -134,15 +150,20 @@ export async function sendTaskRequirements(args: {
   if (nErr) return { error: nErr.message };
 
   // 2. Activity log on the lead
+  const actionLabel =
+    channel === "whatsapp"
+      ? `Requirements sent via WhatsApp to ${args.ctx.assigneeName} for task: ${args.ctx.taskTitle}`
+      : `Requirements sent to ${args.ctx.assigneeName} for task: ${args.ctx.taskTitle}`;
   const { error: aErr } = await supabase.from("activity_logs").insert({
     lead_id: args.leadId,
     action_type: "system",
-    action: `Requirements sent to ${args.ctx.assigneeName} for task: ${args.ctx.taskTitle}`,
+    action: actionLabel,
     note: null,
     performed_by: args.sentByUserId,
-    metadata: { task_id: args.taskId, booking_id: args.bookingId },
+    metadata: { task_id: args.taskId, booking_id: args.bookingId, channel },
   });
   if (aErr) return { error: aErr.message };
 
   return { error: null };
 }
+
