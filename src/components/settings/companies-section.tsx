@@ -39,6 +39,7 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
