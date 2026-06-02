@@ -15,6 +15,7 @@ export const resolveTaskAssignees = createServerFn({ method: "POST" })
     z.object({ company_id: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Authorize: caller must be in the same company (or super_admin)
     const { data: callerProfile } = await supabaseAdmin
       .from("profiles").select("company_id").eq("id", context.userId).maybeSingle();
