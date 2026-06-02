@@ -54,6 +54,7 @@ function TasksPage() {
   const [companyFilter, setCompanyFilter] = useState<string>("");
   const [items, setItems] = useState<EnrichedTask[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [reminderTaskId, setReminderTaskId] = useState<string | null>(null);
 
   const load = async () => {
     setItems(null);
