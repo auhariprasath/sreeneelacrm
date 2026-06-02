@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
 import { FollowUpDialog } from "@/components/leads/follow-up-dialog";
 import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
@@ -37,11 +37,11 @@ type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 type Payment = Database["public"]["Tables"]["payments"]["Row"];
-type Status = Database["public"]["Enums"]["lead_status"];
+
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
 
-const STATUS_OPTS: Status[] = ["new","in_progress","neutral","positive","negative","unresponsive","closed","locked"];
+
 
 function LeadProfile() {
   const { leadId } = Route.useParams();
@@ -158,17 +158,8 @@ function LeadProfile() {
     return () => { supabase.removeChannel(ch); };
   }, [leadId]);
 
-  const updateStatus = async (s: Status) => {
-    if (!lead) return;
-    const prev = lead.status;
-    setLead({ ...lead, status: s });
-    const { error } = await supabase.from("leads").update({ status: s }).eq("id", lead.id);
-    if (error) { setLead({ ...lead, status: prev }); toast.error(error.message); return; }
-    await supabase.from("activity_logs").insert({
-      lead_id: lead.id, action: `Status changed: ${prev} → ${s}`, action_type: "status_change", performed_by: profile?.id ?? null,
-    });
-    toast.success("Status updated");
-  };
+  // Manual status updates removed — status changes are driven by call outcomes & lifecycle events.
+
 
   const addNote = async () => {
     if (!note.trim() || !lead) return;
@@ -303,14 +294,6 @@ function LeadProfile() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <div className="ml-auto min-w-[180px]">
-                <Select value={lead.status} onValueChange={(v) => updateStatus(v as Status)}>
-                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTS.map((s) => <SelectItem key={s} value={s}>{s.replace("_"," ")}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
         </div>
