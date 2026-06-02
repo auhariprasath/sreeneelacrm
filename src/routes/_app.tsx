@@ -74,9 +74,9 @@ function AppLayout() {
   const initials = initialsOf(profile?.full_name || profile?.email || "U");
 
   return (
-    <div className="flex min-h-screen w-full bg-background flex-col md:flex-row">
-      {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex w-60 shrink-0 bg-sidebar text-sidebar-foreground flex-col">
+    <div className="flex min-h-screen w-full bg-background flex-col lg:flex-row">
+      {/* Sidebar — desktop only (≥1024px). Tablets use the bottom nav so the main area isn't cramped. */}
+      <aside className="hidden lg:flex w-60 shrink-0 bg-sidebar text-sidebar-foreground flex-col">
         <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border">
           <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
           <div className="leading-tight">
@@ -114,15 +114,15 @@ function AppLayout() {
         <OfflineBanner />
 
         {/* Top header */}
-        <header className="h-14 md:h-16 border-b bg-card flex items-center gap-2 md:gap-3 px-3 md:px-6 sticky top-0 z-30">
-          {/* Mobile brand */}
-          <div className="md:hidden flex items-center gap-2">
+        <header className="h-14 lg:h-16 border-b bg-card flex items-center gap-2 lg:gap-3 px-3 lg:px-6 sticky top-0 z-30">
+          {/* Brand shown until sidebar takes over */}
+          <div className="lg:hidden flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">N</div>
             <span className="text-sm font-semibold">Neela CRM</span>
           </div>
 
           {role === "super_admin" && companies.length > 0 && (
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <Select
                 value={activeCompanyId ?? "__all"}
@@ -137,7 +137,7 @@ function AppLayout() {
             </div>
           )}
           {role !== "super_admin" && companies[0] && (
-            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
               <Building2 className="h-4 w-4" />
               {companies[0].name}
             </div>
@@ -145,7 +145,7 @@ function AppLayout() {
 
           <GlobalSearch />
 
-          <div className="ml-auto flex items-center gap-1 md:gap-2">
+          <div className="ml-auto flex items-center gap-1 lg:gap-2">
             <NotificationBell />
 
             <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggle} aria-label="Toggle theme">
@@ -154,9 +154,9 @@ function AppLayout() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 md:gap-3 rounded-md px-1 md:px-2 py-1.5 hover:bg-accent min-h-[44px]">
+                <button className="flex items-center gap-2 lg:gap-3 rounded-md px-1 lg:px-2 py-1.5 hover:bg-accent min-h-[44px]">
                   <Avatar className="h-8 w-8"><AvatarFallback>{initials}</AvatarFallback></Avatar>
-                  <div className="text-left leading-tight hidden lg:block">
+                  <div className="text-left leading-tight hidden xl:block">
                     <div className="text-sm font-medium">{profile?.full_name || profile?.email}</div>
                     <Badge variant="secondary" className="h-4 text-[10px] mt-0.5">{roleLabel}</Badge>
                   </div>
@@ -186,9 +186,9 @@ function AppLayout() {
           </div>
         </header>
 
-        {/* SA company switch on mobile */}
+        {/* SA company switch on phones + tablets (anything narrower than lg) */}
         {role === "super_admin" && companies.length > 0 && (
-          <div className="md:hidden border-b bg-card px-3 py-2">
+          <div className="lg:hidden border-b bg-card px-3 py-2">
             <Select
               value={activeCompanyId ?? "__all"}
               onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
@@ -202,12 +202,12 @@ function AppLayout() {
           </div>
         )}
 
-        <main className="flex-1 p-3 md:p-6 overflow-auto pb-20 md:pb-6">
+        <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 lg:pb-6">
           <Outlet />
         </main>
 
-        {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
+        {/* Bottom nav — phones + tablets (anything narrower than lg) */}
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
           {bottomItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
