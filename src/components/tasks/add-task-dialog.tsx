@@ -17,13 +17,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Staff { id: string; full_name: string }
+interface BookingOpt { id: string; event_date: string; lead_name: string }
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   companyId: string;
-  bookingId: string;
-  defaultDueAt?: string; // ISO
+  bookingId?: string;
+  defaultDueAt?: string;
   onCreated?: () => void;
 }
 
