@@ -52,27 +52,42 @@ export function VendorAssignment(props: Props) {
   const [ratingOpen, setRatingOpen] = useState<BookingVendor | null>(null);
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
+  const [paymentReceived, setPaymentReceived] = useState<boolean | null>(null);
+  const [statusLogOpen, setStatusLogOpen] = useState<string | null>(null);
+  const [statusUpdatesByBv, setStatusUpdatesByBv] = useState<Record<string, Array<{ status: string; updated_at: string; updated_via: string }>>>({});
 
   const load = async () => {
-    const [vRes, aRes] = await Promise.all([
+    const [vRes, aRes, pRes] = await Promise.all([
       supabase.from("vendors").select("*").eq("company_id", companyId)
         .eq("is_active", true).is("deleted_at", null).order("service_type").order("name"),
       supabase.from("booking_vendors").select("*").eq("booking_id", bookingId).order("created_at"),
+      supabase.from("payments").select("status").eq("booking_id", bookingId).is("deleted_at", null),
     ]);
     const vs = (vRes.data as Vendor[]) ?? [];
     const as = (aRes.data as BookingVendor[]) ?? [];
+    const ps = (pRes.data as any[]) ?? [];
+    setPaymentReceived(ps.some((p) => p.status === "received"));
     setVendors(vs);
-    // manual join vendor lookups
     const byId = new Map(vs.map((v) => [v.id, v]));
-    // also lookup vendors not in the active list (e.g. deactivated since assignment)
     const missing = as.map((a) => a.vendor_id).filter((id) => !byId.has(id));
-    let extras: Vendor[] = [];
     if (missing.length) {
       const { data } = await supabase.from("vendors").select("*").in("id", missing);
-      extras = (data as Vendor[]) ?? [];
-      extras.forEach((v) => byId.set(v.id, v));
+      ((data as Vendor[]) ?? []).forEach((v) => byId.set(v.id, v));
     }
     setAssigned(as.map((a) => ({ ...a, vendor: byId.get(a.vendor_id) ?? null })));
+
+    // Load status updates for each booking_vendor
+    if (as.length) {
+      const { data: ups } = await supabase.from("vendor_status_updates" as any)
+        .select("booking_vendor_id,status,updated_at,updated_via")
+        .in("booking_vendor_id", as.map((a) => a.id))
+        .order("updated_at", { ascending: true });
+      const map: Record<string, any[]> = {};
+      ((ups as any[]) ?? []).forEach((u) => {
+        (map[u.booking_vendor_id] ||= []).push(u);
+      });
+      setStatusUpdatesByBv(map);
+    }
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [bookingId, companyId]);
