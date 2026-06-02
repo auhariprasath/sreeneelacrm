@@ -201,11 +201,12 @@ function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="New leads today" value={stats.newToday} icon={Users} />
-        <StatCard label="Active leads" value={stats.active} icon={Users} />
-        <StatCard label="Bookings" value={stats.bookings} icon={ClipboardList} hint="completed requirements" />
-        <StatCard label="Pending follow-ups" value={stats.followUps} icon={ListTodo} />
+        <StatCard label="New enquiries today" value={stats.newToday} icon={Users} to="/leads" />
+        <StatCard label="Open leads" value={stats.active} icon={Users} hint="being worked on" to="/leads" />
+        <StatCard label="Confirmed bookings" value={stats.bookings} icon={ClipboardList} to="/bookings" />
+        <StatCard label="Calls to make today" value={stats.followUps} icon={ListTodo} to="/tasks" />
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
