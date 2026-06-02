@@ -534,6 +534,7 @@ function LeadProfile() {
                           ))}
                         </div>
                       )}
+                      <BookingTasksList bookingId={b.id} />
                       <RemindersList bookingId={b.id} phone={lead.phone} />
                       {b.status !== "cancelled" && (
                         <VendorAssignment
