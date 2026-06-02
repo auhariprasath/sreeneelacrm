@@ -20,6 +20,7 @@ import { TaskReminderSection } from "./task-reminder-section";
 import { DEFAULT_REMINDER_FORM, saveReminder, type ReminderFormState } from "@/lib/task-reminders";
 
 interface Staff { id: string; full_name: string }
+interface VendorOpt { id: string; name: string; service_type: string | null }
 interface BookingOpt { id: string; event_date: string; lead_name: string }
 
 interface Props {
