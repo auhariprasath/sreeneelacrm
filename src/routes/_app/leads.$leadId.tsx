@@ -133,6 +133,27 @@ function LeadProfile() {
     setPayments((pmts as Payment[]) ?? []);
     setWinLoss((wls as any[]) ?? []);
 
+    // Latest rejected transfer (only show if it's still the most recent transfer for this lead)
+    const { data: lastTransfer } = await supabase
+      .from("transfer_requests")
+      .select("status, rejection_reason, updated_at, to_company_id")
+      .eq("lead_id", leadId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lastTransfer && lastTransfer.status === "rejected") {
+      const toName = (data as Lead).company_id
+        ? (await supabase.from("companies").select("name").eq("id", lastTransfer.to_company_id).maybeSingle()).data?.name ?? "another company"
+        : "another company";
+      setRejectedTransfer({
+        rejection_reason: lastTransfer.rejection_reason,
+        updated_at: lastTransfer.updated_at,
+        to_name: toName,
+      });
+    } else {
+      setRejectedTransfer(null);
+    }
+
     if ((data as Lead).referred_by_lead_id) {
       const { data: ref } = await supabase.from("leads").select("id,full_name").eq("id", (data as Lead).referred_by_lead_id!).maybeSingle();
       setReferrer(ref ?? null);
