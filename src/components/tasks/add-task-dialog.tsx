@@ -62,6 +62,8 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     setReminderEnabled(false);
     setReminderForm(DEFAULT_REMINDER_FORM);
     setBookingEventDate(null);
+    setInvolvesVendor(false);
+    setVendorId("");
     const d = defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000);
     setDueDate(d.toISOString().slice(0, 10));
     setDueTime(d.toTimeString().slice(0, 5));
@@ -72,6 +74,13 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       .eq("is_active", true)
       .order("full_name")
       .then(({ data }) => setStaff((data as Staff[]) ?? []));
+    supabase
+      .from("vendors")
+      .select("id, name, service_type")
+      .eq("company_id", companyId)
+      .eq("is_active", true)
+      .order("name")
+      .then(({ data }) => setVendors((data as VendorOpt[]) ?? []));
 
     if (!bookingId) {
       (async () => {
