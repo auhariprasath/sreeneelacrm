@@ -50,6 +50,16 @@ interface ReferralRow {
   refer_count: number;
 }
 
+interface NotInterestedRow {
+  lead_id: string;
+  full_name: string;
+  phone: string | null;
+  company_id: string;
+  company_name: string;
+  drop_reason: string | null;
+  closed_at: string;
+}
+
 function CommandCentrePage() {
   const { role, loading } = useAuth();
   const [companyStats, setCompanyStats] = useState<CompanyRow[] | null>(null);
