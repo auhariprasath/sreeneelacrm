@@ -797,15 +797,6 @@ function LeadProfile() {
           booking={completeBooking} leadId={lead.id} leadPhone={lead.phone}
           onDone={() => { loadBookings(); load(); }} />
       )}
-      {addTaskBooking && (
-        <AddTaskDialog
-          open={!!addTaskBooking}
-          onOpenChange={(v) => { if (!v) setAddTaskBooking(null); }}
-          companyId={addTaskBooking.company_id}
-          bookingId={addTaskBooking.id}
-          defaultDueAt={addTaskBooking.event_date ? new Date(`${addTaskBooking.event_date}T${addTaskBooking.start_time ?? "10:00"}:00`).toISOString() : undefined}
-        />
-      )}
     </div>
   );
 }
