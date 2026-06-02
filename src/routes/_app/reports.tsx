@@ -300,11 +300,16 @@ function ReportsPage() {
                 ) : (
                   <ul className="divide-y text-sm">
                     {data.competitors.slice(0, 8).map((c) => (
-                      <li key={c.name} className="py-2 flex items-center justify-between">
-                        <span className="truncate pr-2">{c.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {c.count} · {formatINR(c.value)}
-                        </span>
+                      <li key={c.name}>
+                        <Link
+                          to="/command-centre"
+                          className="py-2 flex items-center justify-between gap-2 hover:bg-accent/40 rounded px-1 -mx-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className="truncate pr-2">{c.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {c.count} · {formatINR(c.value)}
+                          </span>
+                        </Link>
                       </li>
                     ))}
                   </ul>
