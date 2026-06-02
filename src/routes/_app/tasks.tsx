@@ -8,9 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, AlertTriangle, Circle, User as UserIcon } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle, Circle, User as UserIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
+import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/tasks")({ component: TasksPage });
