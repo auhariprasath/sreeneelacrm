@@ -224,19 +224,16 @@ function TaskCard({ task, onStatus, kanban }: { task: EnrichedTask; onStatus: (i
           <span className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> {task.assignee_name}</span>
         )}
       </div>
-      {task.status !== "done" && (
-        <div className="flex gap-1.5 pt-1">
-          {task.status !== "in_progress" && !kanban && (
-            <Button size="sm" variant="outline" className="flex-1 h-8" onClick={() => onStatus(task.id, "in_progress")}>Start</Button>
-          )}
-          <Button size="sm" className="flex-1 h-8" onClick={() => onStatus(task.id, "done")}>
-            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Done
-          </Button>
-        </div>
-      )}
       {task.status === "done" && (
         <Button size="sm" variant="ghost" className="w-full h-8 text-xs" onClick={() => onStatus(task.id, "pending")}>Reopen</Button>
       )}
+      <TaskReplies
+        taskId={task.id}
+        companyId={task.company_id}
+        bookingId={task.booking_id}
+        taskStatus={task.status as string}
+        onStatusChange={(s) => onStatus(task.id, s)}
+      />
     </Card>
   );
 }
