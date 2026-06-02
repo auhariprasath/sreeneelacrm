@@ -188,6 +188,15 @@ function TasksPage() {
           ))}
         </div>
       )}
+
+      {(activeCompanyId || companies[0]?.id) && (
+        <AddTaskDialog
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          companyId={(role === "super_admin" ? (companyFilter || activeCompanyId || companies[0]?.id) : (activeCompanyId || companies[0]?.id)) as string}
+          onCreated={load}
+        />
+      )}
     </div>
   );
 }
