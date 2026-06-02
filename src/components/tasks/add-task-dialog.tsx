@@ -20,6 +20,7 @@ import { TaskReminderSection } from "./task-reminder-section";
 import { DEFAULT_REMINDER_FORM, saveReminder, type ReminderFormState } from "@/lib/task-reminders";
 
 interface Staff { id: string; full_name: string }
+interface VendorOpt { id: string; name: string; service_type: string | null }
 interface BookingOpt { id: string; event_date: string; lead_name: string }
 
 interface Props {
@@ -34,6 +35,7 @@ interface Props {
 export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaultDueAt, onCreated }: Props) {
   const { profile } = useAuth();
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [vendors, setVendors] = useState<VendorOpt[]>([]);
   const [bookings, setBookings] = useState<BookingOpt[]>([]);
   const [pickedBookingId, setPickedBookingId] = useState<string>("");
   const [title, setTitle] = useState("");
@@ -48,6 +50,8 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderForm, setReminderForm] = useState<ReminderFormState>(DEFAULT_REMINDER_FORM);
   const [bookingEventDate, setBookingEventDate] = useState<string | null>(null);
+  const [involvesVendor, setInvolvesVendor] = useState(false);
+  const [vendorId, setVendorId] = useState<string>("");
 
 
 
@@ -58,6 +62,8 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     setReminderEnabled(false);
     setReminderForm(DEFAULT_REMINDER_FORM);
     setBookingEventDate(null);
+    setInvolvesVendor(false);
+    setVendorId("");
     const d = defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000);
     setDueDate(d.toISOString().slice(0, 10));
     setDueTime(d.toTimeString().slice(0, 5));
@@ -68,6 +74,13 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       .eq("is_active", true)
       .order("full_name")
       .then(({ data }) => setStaff((data as Staff[]) ?? []));
+    supabase
+      .from("vendors")
+      .select("id, name, service_type")
+      .eq("company_id", companyId)
+      .eq("is_active", true)
+      .order("name")
+      .then(({ data }) => setVendors((data as VendorOpt[]) ?? []));
 
     if (!bookingId) {
       (async () => {
@@ -116,6 +129,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       priority,
       due_at: dueAt,
       is_from_template: false,
+      vendor_id: involvesVendor && vendorId ? vendorId : null,
       created_by: profile?.id ?? null,
     }).select("id").maybeSingle();
     if (error || !inserted?.id) {
@@ -212,7 +226,38 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
               </Select>
             </div>
           </div>
+          <div className="space-y-2 border-t pt-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={involvesVendor}
+                onChange={(e) => { setInvolvesVendor(e.target.checked); if (!e.target.checked) setVendorId(""); }}
+              />
+              This task involves an external vendor
+            </label>
+            {involvesVendor && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Supporting vendor (staff member still owns the task)</Label>
+                <Select value={vendorId || "none"} onValueChange={(v) => setVendorId(v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="Pick vendor…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {vendors.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.name}{v.service_type ? ` · ${v.service_type}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground mt-1 italic">
+                  Event details are sent to the vendor separately from the Vendors section.
+                </p>
+              </div>
+            )}
+          </div>
           <div className="space-y-2">
+
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"

@@ -288,6 +288,7 @@ export function VendorAssignment(props: Props) {
       <div className="flex items-center justify-between">
         <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
           <Briefcase className="h-3 w-3" /> Vendors ({assigned.length})
+          <span className="text-[10px] font-normal italic ml-1">· optional</span>
         </div>
         <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAdding(true)}>
           <Plus className="h-3 w-3 mr-1" /> Assign vendor
@@ -295,7 +296,9 @@ export function VendorAssignment(props: Props) {
       </div>
 
       {assigned.length === 0 ? (
-        <p className="text-xs text-muted-foreground italic">No vendors assigned yet.</p>
+        <p className="text-xs text-muted-foreground italic">
+          No vendors assigned — staff handling all arrangements.
+        </p>
       ) : (
         <div className="space-y-1.5">
           {assigned.map((a) => {
