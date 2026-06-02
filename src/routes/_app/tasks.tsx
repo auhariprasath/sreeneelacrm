@@ -50,6 +50,7 @@ function TasksPage() {
   const [tab, setTab] = useState<"all" | "mine" | "overdue" | "done">("all");
   const [companyFilter, setCompanyFilter] = useState<string>("");
   const [items, setItems] = useState<EnrichedTask[] | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const load = async () => {
     setItems(null);
