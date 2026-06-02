@@ -82,6 +82,16 @@ function TasksPage() {
     const lMap = new Map((lRes.data ?? []).map((l: any) => [l.id, l.full_name as string]));
     const pMap = new Map(((pRes.data as { id: string; full_name: string }[]) ?? []).map((p) => [p.id, p.full_name]));
 
+    const taskIds = tasks.map((t) => t.id);
+    const { data: reminders } = taskIds.length
+      ? await supabase
+          .from("task_reminders")
+          .select("task_id")
+          .eq("is_active", true)
+          .in("task_id", taskIds)
+      : { data: [] as { task_id: string }[] };
+    const reminderSet = new Set(((reminders ?? []) as { task_id: string }[]).map((r) => r.task_id));
+
     setItems(tasks.map((t) => {
       const b = bMap.get(t.booking_id);
       return applyOverdue({
@@ -90,9 +100,11 @@ function TasksPage() {
         lead_name: b ? (lMap.get(b.lead_id) ?? null) : null,
         event_date: b?.event_date ?? null,
         assignee_name: t.assigned_to ? (pMap.get(t.assigned_to) ?? null) : null,
+        has_reminder: reminderSet.has(t.id),
       });
     }));
   };
+
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeCompanyId, companyFilter, role]);
 
