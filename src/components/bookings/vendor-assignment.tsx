@@ -227,6 +227,62 @@ export function VendorAssignment(props: Props) {
     load();
   };
 
+  const ensureToken = async (a: BookingVendor): Promise<string> => {
+    if ((a as any).status_token) return (a as any).status_token as string;
+    const token = (typeof crypto !== "undefined" && (crypto as any).randomUUID) ? (crypto as any).randomUUID().replace(/-/g, "") : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    await supabase.from("booking_vendors").update({ status_token: token } as any).eq("id", a.id);
+    return token;
+  };
+
+  const sendStatusLink = async (a: BookingVendor & { vendor?: Vendor | null }) => {
+    const token = await ensureToken(a);
+    const url = `${window.location.origin}/vendor-status/${token}`;
+    const msg = `Hi ${a.vendor?.name ?? ""}, please tap to update your status for the event on ${formatDateIN(eventDate)}${startTime ? ` at ${formatTimeOfDay(startTime)}` : ""}:\n\n${url}`;
+    if (a.vendor?.wa_number) {
+      waSend(a.vendor.wa_number, msg);
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied — vendor has no WhatsApp on file");
+    }
+    load();
+  };
+
+  const updateStatusManual = async (a: BookingVendor, stage: "packed" | "traveling" | "arrived" | "setup_done") => {
+    const { error } = await supabase.from("vendor_status_updates" as any).insert({
+      booking_vendor_id: a.id,
+      booking_id: bookingId,
+      vendor_id: a.vendor_id,
+      company_id: companyId,
+      status: stage,
+      updated_via: "manual_staff",
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Status: ${stage.replace("_", " ")}`);
+    load();
+  };
+
+  // Locked state
+  if (paymentReceived === false) {
+    return (
+      <div className="border-t pt-2">
+        <div className="rounded-md border border-dashed bg-muted/30 p-3 flex items-start gap-2">
+          <Lock className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <div className="text-xs text-muted-foreground">
+            <div className="font-semibold text-foreground">Vendor assignment locked</div>
+            <div>Vendors can be assigned after at least one payment is marked received (full or advance). For cheque bookings, unlocks after cheque is cleared.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const stageColor = (s: string) =>
+    s === "packed" ? "bg-blue-500/15 text-blue-700 dark:text-blue-300"
+      : s === "traveling" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+      : s === "arrived" ? "bg-orange-500/15 text-orange-700 dark:text-orange-300"
+      : s === "setup_done" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+      : "bg-muted text-muted-foreground";
+
   return (
     <div className="border-t pt-2 space-y-2">
       <div className="flex items-center justify-between">
@@ -242,7 +298,10 @@ export function VendorAssignment(props: Props) {
         <p className="text-xs text-muted-foreground italic">No vendors assigned yet.</p>
       ) : (
         <div className="space-y-1.5">
-          {assigned.map((a) => (
+          {assigned.map((a) => {
+            const ups = statusUpdatesByBv[a.id] ?? [];
+            const last = ups[ups.length - 1];
+            return (
             <div key={a.id} className="rounded-md border bg-background p-2 space-y-1">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -252,6 +311,7 @@ export function VendorAssignment(props: Props) {
                     {a.confirmed && <Badge variant="secondary" className="text-[10px] gap-0.5"><CheckCircle2 className="h-2.5 w-2.5" /> Confirmed</Badge>}
                     {a.no_show && <Badge variant="destructive" className="text-[10px] gap-0.5"><AlertTriangle className="h-2.5 w-2.5" /> No-show</Badge>}
                     {a.rating != null && <Badge variant="outline" className="text-[10px] gap-0.5"><Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" /> {Number(a.rating).toFixed(1)}</Badge>}
+                    {last && <Badge className={`text-[10px] ${stageColor(last.status)}`}>{last.status.replace("_", " ")}</Badge>}
                   </div>
                   {a.service_description && a.service_description !== a.vendor?.service_type && (
                     <div className="text-[11px] text-muted-foreground truncate">{a.service_description}</div>
@@ -279,6 +339,20 @@ export function VendorAssignment(props: Props) {
                     <MessageSquare className="h-3 w-3 mr-1" /> WA
                   </Button>
                 )}
+                <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => sendStatusLink(a)}>
+                  <LinkIcon className="h-3 w-3 mr-1" /> Status link
+                </Button>
+                <Select value="" onValueChange={(v) => updateStatusManual(a, v as any)}>
+                  <SelectTrigger className="h-6 px-2 text-[11px] w-auto min-w-[120px]">
+                    <SelectValue placeholder="Manual status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="packed">📦 Packed</SelectItem>
+                    <SelectItem value="traveling">🚗 Traveling</SelectItem>
+                    <SelectItem value="arrived">📍 Arrived</SelectItem>
+                    <SelectItem value="setup_done">✅ Setup done</SelectItem>
+                  </SelectContent>
+                </Select>
                 {!a.no_show && (
                   <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-rose-600" onClick={() => { setNoShowOpen(a); setNoShowNote(""); }}>
                     <AlertTriangle className="h-3 w-3 mr-1" /> No-show
@@ -289,9 +363,29 @@ export function VendorAssignment(props: Props) {
                     <Star className="h-3 w-3 mr-1" /> Rate
                   </Button>
                 )}
+                {ups.length > 0 && (
+                  <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => setStatusLogOpen(statusLogOpen === a.id ? null : a.id)}>
+                    {statusLogOpen === a.id ? "Hide log" : `View log (${ups.length})`}
+                  </Button>
+                )}
               </div>
+              {statusLogOpen === a.id && ups.length > 0 && (
+                <div className="border-t pt-1.5 mt-1 space-y-0.5">
+                  {ups.map((u, i) => {
+                    const Icon = u.status === "packed" ? Package : u.status === "traveling" ? Car : u.status === "arrived" ? MapPin : CheckCircle2;
+                    return (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <Icon className="h-3 w-3 text-muted-foreground" />
+                        <span className="font-medium capitalize">{u.status.replace("_", " ")}</span>
+                        <span className="text-muted-foreground">— {formatDateTimeIN(u.updated_at)}</span>
+                        <span className="text-muted-foreground">({u.updated_via === "tap_link" ? "via link" : "manual"})</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          ))}
+          );})}
         </div>
       )}
 
