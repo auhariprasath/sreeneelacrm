@@ -42,6 +42,7 @@ const SECTIONS = [
   { id: "cancellation", label: "Cancellation policy", icon: FileText, superOnly: true },
   { id: "drop", label: "Drop reasons", icon: XCircle, superOnly: true },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: true },
+  { id: "confirmation", label: "Confirmation message", icon: MessageSquare, superOnly: false },
   { id: "vendors", label: "Vendor list", icon: Users, superOnly: true },
   { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
 ] as const;
