@@ -77,6 +77,31 @@ export async function generateTasksForBooking(args: {
     .eq("booking_id", args.bookingId).is("deleted_at", null);
   if ((count ?? 0) > 0) return 0;
 
+  // Resolve role-based assignees if any template needs them
+  const needsResolution = templates.some(
+    (t) => t?.assign_to_role && t.assign_to_role !== "specific",
+  );
+  let resolved: { manager_id: string | null; ops_supervisor_id: string | null; any_available_id: string | null } = {
+    manager_id: null, ops_supervisor_id: null, any_available_id: null,
+  };
+  if (needsResolution) {
+    try {
+      const { resolveTaskAssignees } = await import("@/lib/api/tasks.functions");
+      resolved = await resolveTaskAssignees({ data: { company_id: args.companyId } });
+    } catch (e) {
+      console.warn("Could not resolve role-based assignees:", e);
+    }
+  }
+
+  const pickAssignee = (t: TaskTemplate): string | null => {
+    const role = t.assign_to_role ?? "specific";
+    if (role === "specific") return t.assigned_to ?? null;
+    if (role === "manager") return resolved.manager_id;
+    if (role === "ops_supervisor") return resolved.ops_supervisor_id;
+    if (role === "any_available") return resolved.any_available_id;
+    return t.assigned_to ?? null;
+  };
+
   const rows: Database["public"]["Tables"]["tasks"]["Insert"][] = templates
     .filter((t) => t && t.title?.trim())
     .map((t) => ({
@@ -84,7 +109,7 @@ export async function generateTasksForBooking(args: {
       company_id: args.companyId,
       title: t.title.trim(),
       description: t.description ?? null,
-      assigned_to: t.assigned_to ?? null,
+      assigned_to: pickAssignee(t),
       priority: t.priority ?? "medium",
       due_at: computeDueAt(args.eventDate, args.startTime, t).toISOString(),
       is_from_template: true,
