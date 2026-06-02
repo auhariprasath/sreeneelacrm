@@ -129,6 +129,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       priority,
       due_at: dueAt,
       is_from_template: false,
+      vendor_id: involvesVendor && vendorId ? vendorId : null,
       created_by: profile?.id ?? null,
     }).select("id").maybeSingle();
     if (error || !inserted?.id) {
