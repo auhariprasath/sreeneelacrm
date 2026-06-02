@@ -25,6 +25,9 @@ export const Route = createFileRoute("/_app/settings")({ component: SettingsPage
 
 const SECTIONS = [
   { id: "company", label: "Company details", icon: Building2, superOnly: false },
+  { id: "location", label: "Location & Meeting", icon: MapPin, superOnly: false },
+  { id: "photos", label: "Venue photos", icon: ImageIcon, superOnly: false },
+  { id: "payment", label: "Payment gateway", icon: CreditCard, superOnly: false },
   { id: "staff", label: "Staff & roles", icon: Users, superOnly: false },
   { id: "routing", label: "Routing rules", icon: Filter, superOnly: true },
   { id: "event-types", label: "Event types", icon: Tags, superOnly: true },
