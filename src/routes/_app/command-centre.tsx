@@ -65,6 +65,7 @@ function CommandCentrePage() {
   const [companyStats, setCompanyStats] = useState<CompanyRow[] | null>(null);
   const [logins, setLogins] = useState<LoginRow[] | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[] | null>(null);
+  const [notInterested, setNotInterested] = useState<NotInterestedRow[] | null>(null);
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
