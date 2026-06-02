@@ -502,6 +502,11 @@ function LeadProfile() {
                 {bookings.map((b) => {
                   const bookingPayments = payments.filter((p) => p.booking_id === b.id);
                   const pending = bookingPayments.filter((p) => p.status === "pending");
+                  const eventTs = new Date(`${b.event_date}T00:00:00`).getTime();
+                  const todayTs = new Date(new Date().toDateString()).getTime();
+                  const daysToEvent = Math.round((eventTs - todayTs) / 86400000);
+                  const showEventDayLogs = daysToEvent <= 1 && daysToEvent >= -1;
+                  const rescheduled = b.status === "rescheduled" && b.rescheduled_from_date;
                   return (
                     <div key={b.id} className="bg-card border rounded-md p-3 space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -514,6 +519,11 @@ function LeadProfile() {
                               {b.status.replace("_", " ")}
                             </span>
                           </div>
+                          {rescheduled && (
+                            <div className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
+                              Rescheduled from {formatDateIN(b.rescheduled_from_date)} → {formatDateIN(b.event_date)}
+                            </div>
+                          )}
                           {b.venue && <div className="text-[11px] text-muted-foreground mt-0.5">{b.venue}</div>}
                         </div>
                       </div>
@@ -522,6 +532,14 @@ function LeadProfile() {
                         <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(Number(b.amount_paid))}</div></div>
                         <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-rose-700 dark:text-rose-400">{formatINR(Number(b.balance_due))}</div></div>
                       </div>
+                      {b.status !== "cancelled" && (
+                        <BookingAssignedTo
+                          bookingId={b.id}
+                          companyId={b.company_id}
+                          assignedTo={(b as any).assigned_to ?? null}
+                          onChanged={loadBookings}
+                        />
+                      )}
                       {pending.length > 0 && (
                         <div className="border-t pt-2 space-y-1">
                           <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1"><IndianRupee className="h-3 w-3" /> Pending payments</div>
@@ -548,7 +566,7 @@ function LeadProfile() {
                           clientName={lead.full_name}
                         />
                       )}
-                      {b.status !== "cancelled" && (
+                      {b.status !== "cancelled" && showEventDayLogs && (
                         <EventDayLogs bookingId={b.id} companyId={b.company_id} leadId={lead.id} />
                       )}
                       {b.status !== "cancelled" && b.status !== "completed" && (
@@ -561,9 +579,6 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => { setPayCredsBooking(b); setPayCredsOpen(true); }}>
                             <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay details
                           </Button>
-                          <Button size="sm" variant="outline" className="h-8" onClick={() => setAddTaskBooking(b)}>
-                            <ListChecks className="h-3.5 w-3.5 mr-1" /> Add task
-                          </Button>
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmationBookingId(b.id)}>
                             <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> {b.confirmation_sent_at ? "Resend confirmation" : "Send confirmation"}
                           </Button>
@@ -573,9 +588,21 @@ function LeadProfile() {
                           <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => setCompleteBooking(b)}>
                             <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Mark complete
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 text-rose-600 hover:text-rose-700" onClick={() => setCancelBooking(b)}>
-                            Cancel booking
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="outline" className="h-8 w-8 p-0" aria-label="More booking actions">
+                                <MoreVertical className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
+                                onClick={() => setCancelBooking(b)}
+                                className="text-rose-600 dark:text-rose-400 focus:text-rose-700"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" /> Cancel booking
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       )}
                       {b.status === "completed" && (
