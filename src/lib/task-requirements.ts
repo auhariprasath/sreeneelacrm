@@ -91,7 +91,7 @@ export async function loadTaskRequirementsContext(taskId: string): Promise<TaskR
   if (!task || !task.assigned_to) return null;
 
   const [{ data: assignee }, { data: booking }, { data: company }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name").eq("id", task.assigned_to).maybeSingle(),
+    supabase.from("profiles").select("id, full_name, phone").eq("id", task.assigned_to).maybeSingle(),
     supabase.from("bookings").select("id, lead_id, requirement_id, event_date, start_time, end_time, venue").eq("id", task.booking_id).maybeSingle(),
     supabase.from("companies").select("name").eq("id", task.company_id).maybeSingle(),
   ]);
@@ -113,6 +113,7 @@ export async function loadTaskRequirementsContext(taskId: string): Promise<TaskR
     taskDueAt: task.due_at,
     assigneeId: task.assigned_to,
     assigneeName: assignee?.full_name ?? "—",
+    assigneePhone: assignee?.phone ?? null,
     clientName: lead?.full_name ?? "—",
     eventType: requirement?.event_type ?? "—",
     eventDate: booking.event_date,
@@ -124,6 +125,7 @@ export async function loadTaskRequirementsContext(taskId: string): Promise<TaskR
     clientNotes: requirement?.notes ?? null,
   };
 }
+
 
 /** Persist send: insert in-app notification, activity log, return ok. */
 export async function sendTaskRequirements(args: {
