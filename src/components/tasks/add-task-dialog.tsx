@@ -35,6 +35,7 @@ interface Props {
 export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaultDueAt, onCreated }: Props) {
   const { profile } = useAuth();
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [vendors, setVendors] = useState<VendorOpt[]>([]);
   const [bookings, setBookings] = useState<BookingOpt[]>([]);
   const [pickedBookingId, setPickedBookingId] = useState<string>("");
   const [title, setTitle] = useState("");
@@ -49,6 +50,8 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderForm, setReminderForm] = useState<ReminderFormState>(DEFAULT_REMINDER_FORM);
   const [bookingEventDate, setBookingEventDate] = useState<string | null>(null);
+  const [involvesVendor, setInvolvesVendor] = useState(false);
+  const [vendorId, setVendorId] = useState<string>("");
 
 
 
