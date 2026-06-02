@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN } from "@/lib/format";
 import { toast } from "sonner";
-import { Building2, Gift, Activity, Users } from "lucide-react";
+import { Building2, Gift, Activity, Users, XCircle, Lightbulb, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/command-centre")({
   beforeLoad: ({ context }) => {
