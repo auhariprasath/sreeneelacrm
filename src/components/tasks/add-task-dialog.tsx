@@ -93,6 +93,14 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     }
   }, [open, companyId, defaultDueAt, bookingId]);
 
+  // Load booking event date for "before event" reminder math
+  useEffect(() => {
+    const id = bookingId ?? pickedBookingId;
+    if (!id) { setBookingEventDate(null); return; }
+    supabase.from("bookings").select("event_date").eq("id", id).maybeSingle()
+      .then(({ data }) => setBookingEventDate(data?.event_date ?? null));
+  }, [bookingId, pickedBookingId]);
+
   const submit = async () => {
     const finalBookingId = bookingId ?? pickedBookingId;
     if (!finalBookingId) { toast.error("Pick a booking"); return; }
@@ -110,17 +118,36 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       is_from_template: false,
       created_by: profile?.id ?? null,
     }).select("id").maybeSingle();
+    if (error || !inserted?.id) {
+      setBusy(false);
+      if (error) toast.error(error.message);
+      return;
+    }
+
+    // Save reminder if enabled
+    if (reminderEnabled) {
+      const { error: rErr } = await saveReminder({
+        taskId: inserted.id,
+        companyId,
+        taskDueAtIso: dueAt,
+        bookingEventDate,
+        createdBy: profile?.id ?? null,
+        form: reminderForm,
+      });
+      if (rErr) { toast.error(`Task created but reminder failed: ${rErr}`); }
+    }
+
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
     toast.success("Task added");
     onCreated?.();
     // If task has an assignee, open the requirements preview dialog
-    if (assignedTo && inserted?.id) {
+    if (assignedTo) {
       setRequirementsTaskId(inserted.id);
     } else {
       onOpenChange(false);
     }
   };
+
 
   return (
     <>
