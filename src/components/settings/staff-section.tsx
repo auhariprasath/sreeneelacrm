@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, UserX, UserCheck } from "lucide-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import { SkeletonList } from "@/components/skeleton-list";
 import { useAuth } from "@/lib/auth";
 
