@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -214,12 +215,12 @@ function LeadProfile() {
         </div>
       )}
 
-      {/* Blacklist banner */}
+      {/* Flag banner */}
       {lead.is_blacklisted && (
         <div className="bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-lg p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div className="text-sm">
-            <div className="font-medium">Blacklisted across all companies</div>
+            <div className="font-medium">Flagged — do not contact (all companies)</div>
             {lead.blacklist_reason && <div className="text-xs opacity-90 mt-0.5">Reason: {lead.blacklist_reason}</div>}
           </div>
         </div>
@@ -285,18 +286,23 @@ function LeadProfile() {
               <Button variant="outline" className="h-11" onClick={() => setMeetingOpen(true)}>
                 <Building2 className="h-4 w-4 mr-1.5" /> Venue meeting
               </Button>
-              <Button
-                variant="outline"
-                className={`h-11 ${lead.is_blacklisted ? "" : "text-rose-700 dark:text-rose-300 border-rose-500/40"}`}
-                onClick={() => setBlOpen(true)}
-              >
-                {lead.is_blacklisted
-                  ? (<><ShieldOff className="h-4 w-4 mr-1.5" /> Unblock</>)
-                  : (<><ShieldAlert className="h-4 w-4 mr-1.5" /> Blacklist</>)}
-              </Button>
-              <Button variant="outline" className="h-11" onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
-                <ArrowRightLeft className="h-4 w-4 mr-1.5" /> Transfer
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 w-11 p-0" aria-label="More actions">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
+                    <ArrowRightLeft className="h-4 w-4 mr-2" /> Move to another team
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setBlOpen(true)} className={lead.is_blacklisted ? "" : "text-rose-600 dark:text-rose-400 focus:text-rose-700"}>
+                    {lead.is_blacklisted
+                      ? (<><ShieldOff className="h-4 w-4 mr-2" /> Remove flag</>)
+                      : (<><ShieldAlert className="h-4 w-4 mr-2" /> Flag — do not contact</>)}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div className="ml-auto min-w-[180px]">
                 <Select value={lead.status} onValueChange={(v) => updateStatus(v as Status)}>
                   <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
@@ -647,7 +653,7 @@ function LeadProfile() {
         onOpenChange={setBlOpen}
         leadId={lead.id}
         performedBy={profile?.id ?? null}
-        alreadyBlacklisted={lead.is_blacklisted}
+        alreadyFlagged={lead.is_blacklisted}
         currentReason={lead.blacklist_reason}
         onDone={() => { /* realtime will refresh */ }}
       />

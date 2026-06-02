@@ -11,35 +11,35 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   leadId: string;
   performedBy: string | null;
-  alreadyBlacklisted: boolean;
+  alreadyFlagged: boolean;
   currentReason: string | null;
   onDone: () => void;
 }
 
-export function BlacklistDialog({ open, onOpenChange, leadId, performedBy, alreadyBlacklisted, currentReason, onDone }: Props) {
+export function BlacklistDialog({ open, onOpenChange, leadId, performedBy, alreadyFlagged, currentReason, onDone }: Props) {
   const [reason, setReason] = useState(currentReason ?? "");
   const [saving, setSaving] = useState(false);
 
-  const apply = async (blacklist: boolean) => {
-    if (blacklist && !reason.trim()) { toast.error("Reason required"); return; }
+  const apply = async (flag: boolean) => {
+    if (flag && !reason.trim()) { toast.error("Please add a reason"); return; }
     setSaving(true);
     const { error } = await supabase.from("leads").update({
-      is_blacklisted: blacklist,
-      blacklist_reason: blacklist ? reason.trim() : null,
-      status: blacklist ? "locked" : "in_progress",
+      is_blacklisted: flag,
+      blacklist_reason: flag ? reason.trim() : null,
+      status: flag ? "locked" : "in_progress",
     }).eq("id", leadId);
     if (!error) {
       await supabase.from("activity_logs").insert({
         lead_id: leadId,
-        action: blacklist ? "Lead blacklisted" : "Lead removed from blacklist",
+        action: flag ? "Lead flagged (do not contact)" : "Flag removed from lead",
         action_type: "status_change",
-        note: blacklist ? reason.trim() : null,
+        note: flag ? reason.trim() : null,
         performed_by: performedBy,
       });
     }
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(blacklist ? "Blacklisted" : "Removed from blacklist");
+    toast.success(flag ? "Lead flagged" : "Flag removed");
     onDone();
     onOpenChange(false);
   };
@@ -48,29 +48,29 @@ export function BlacklistDialog({ open, onOpenChange, leadId, performedBy, alrea
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{alreadyBlacklisted ? "Remove from blacklist" : "Blacklist lead"}</DialogTitle>
+          <DialogTitle>{alreadyFlagged ? "Remove flag" : "Flag this lead"}</DialogTitle>
           <DialogDescription>
-            {alreadyBlacklisted
-              ? "Confirm you want to unblock this contact across the system."
-              : "Blacklisting prevents future contact and shows a warning across all companies."}
+            {alreadyFlagged
+              ? "This will allow your team to contact this person again."
+              : "Flagging stops future contact and shows a warning to everyone across all companies."}
           </DialogDescription>
         </DialogHeader>
 
-        {!alreadyBlacklisted && (
+        {!alreadyFlagged && (
           <div className="space-y-1.5">
-            <Label htmlFor="bl-reason">Reason</Label>
-            <Textarea id="bl-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. abusive, spam, do-not-call request" />
+            <Label htmlFor="bl-reason">Why are you flagging?</Label>
+            <Textarea id="bl-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. rude behaviour, spam, asked not to call" />
           </div>
         )}
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
-            variant={alreadyBlacklisted ? "default" : "destructive"}
-            onClick={() => apply(!alreadyBlacklisted)}
+            variant={alreadyFlagged ? "default" : "destructive"}
+            onClick={() => apply(!alreadyFlagged)}
             disabled={saving}
           >
-            {saving ? "Saving…" : alreadyBlacklisted ? "Remove" : "Blacklist"}
+            {saving ? "Saving…" : alreadyFlagged ? "Remove flag" : "Flag lead"}
           </Button>
         </DialogFooter>
       </DialogContent>

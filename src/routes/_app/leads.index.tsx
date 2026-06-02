@@ -237,7 +237,7 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
                 {lead.full_name}
                 {lead.is_blacklisted && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
-                    Blacklisted
+                    Flagged
                   </span>
                 )}
               </div>

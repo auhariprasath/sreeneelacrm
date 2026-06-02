@@ -310,7 +310,7 @@ function NewCampaignDialog({ companyId, onClose, onCreated }: { companyId: strin
               <Label className="text-xs">Language (exact match, optional)</Label>
               <Input value={filters.language ?? ""} onChange={(e) => setFilters({ ...filters, language: e.target.value })} placeholder="English / Tamil" className="h-10" />
             </div>
-            <div className="text-xs text-muted-foreground">Matching leads: <span className="font-semibold text-foreground">{count ?? "…"}</span> (blacklisted excluded)</div>
+            <div className="text-xs text-muted-foreground">Matching leads: <span className="font-semibold text-foreground">{count ?? "…"}</span> (flagged leads excluded)</div>
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
