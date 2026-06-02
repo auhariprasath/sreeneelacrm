@@ -80,6 +80,8 @@ function LeadProfile() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
+
+  const loadRequirements = async () => {
     const { data } = await supabase
       .from("requirements").select("*").eq("lead_id", leadId)
       .is("deleted_at", null).order("requirement_number", { ascending: true });
