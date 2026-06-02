@@ -126,16 +126,23 @@ function TasksPage() {
           <h1 className="text-2xl font-semibold">Task board</h1>
           <p className="text-xs text-muted-foreground">Tasks auto-generated from booking templates</p>
         </div>
-        {role === "super_admin" && companies.length > 1 && (
-          <select
-            className="h-10 w-full sm:w-56 rounded-md border border-input bg-background px-3 text-sm"
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
-          >
-            <option value="">All companies</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        )}
+        <div className="flex items-center gap-2">
+          {role === "super_admin" && companies.length > 1 && (
+            <select
+              className="h-10 w-full sm:w-56 rounded-md border border-input bg-background px-3 text-sm"
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+            >
+              <option value="">All companies</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          )}
+          {(activeCompanyId || companies[0]?.id) && (
+            <Button size="sm" onClick={() => setAddOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Add task
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
