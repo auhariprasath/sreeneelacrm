@@ -8,11 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User as UserIcon, Plus } from "lucide-react";
+import { Clock, User as UserIcon, Plus, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
 import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
 import { TaskReplies } from "@/components/tasks/task-replies";
+import { TaskReminderDialog } from "@/components/tasks/task-reminder-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_app/tasks")({ component: TasksPage });
@@ -23,6 +24,7 @@ type EnrichedTask = TaskRow & {
   lead_id: string | null;
   event_date: string | null;
   assignee_name: string | null;
+  has_reminder: boolean;
 };
 
 type Bucket = "pending" | "in_progress" | "done" | "overdue";
@@ -52,6 +54,7 @@ function TasksPage() {
   const [companyFilter, setCompanyFilter] = useState<string>("");
   const [items, setItems] = useState<EnrichedTask[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [reminderTaskId, setReminderTaskId] = useState<string | null>(null);
 
   const load = async () => {
     setItems(null);
@@ -80,6 +83,16 @@ function TasksPage() {
     const lMap = new Map((lRes.data ?? []).map((l: any) => [l.id, l.full_name as string]));
     const pMap = new Map(((pRes.data as { id: string; full_name: string }[]) ?? []).map((p) => [p.id, p.full_name]));
 
+    const taskIds = tasks.map((t) => t.id);
+    const { data: reminders } = taskIds.length
+      ? await supabase
+          .from("task_reminders")
+          .select("task_id")
+          .eq("is_active", true)
+          .in("task_id", taskIds)
+      : { data: [] as { task_id: string }[] };
+    const reminderSet = new Set(((reminders ?? []) as { task_id: string }[]).map((r) => r.task_id));
+
     setItems(tasks.map((t) => {
       const b = bMap.get(t.booking_id);
       return applyOverdue({
@@ -88,9 +101,11 @@ function TasksPage() {
         lead_name: b ? (lMap.get(b.lead_id) ?? null) : null,
         event_date: b?.event_date ?? null,
         assignee_name: t.assigned_to ? (pMap.get(t.assigned_to) ?? null) : null,
+        has_reminder: reminderSet.has(t.id),
       });
     }));
   };
+
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeCompanyId, companyFilter, role]);
 
@@ -166,7 +181,7 @@ function TasksPage() {
       {/* MOBILE list view */}
       {filtered && filtered.length > 0 && (
         <div className="space-y-2 md:hidden">
-          {filtered.map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} />)}
+          {filtered.map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} onOpenReminder={setReminderTaskId} />)}
         </div>
       )}
 
@@ -183,7 +198,7 @@ function TasksPage() {
                 <span className="text-xs text-muted-foreground">{buckets[b].length}</span>
               </div>
               <div className="space-y-2 min-h-[60px]">
-                {buckets[b].map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} kanban />)}
+               {buckets[b].map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} onOpenReminder={setReminderTaskId} kanban />)}
               </div>
             </div>
           ))}
@@ -198,11 +213,17 @@ function TasksPage() {
           onCreated={load}
         />
       )}
+      <TaskReminderDialog
+        taskId={reminderTaskId}
+        open={!!reminderTaskId}
+        onOpenChange={(v) => { if (!v) setReminderTaskId(null); }}
+        onSaved={load}
+      />
     </div>
   );
 }
 
-function TaskCard({ task, onStatus }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; kanban?: boolean }) {
+function TaskCard({ task, onStatus, onOpenReminder }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; onOpenReminder: (id: string) => void; kanban?: boolean }) {
   const meta = STATUS_META[task.status as Bucket];
   return (
     <Card className="p-3 space-y-2">
@@ -216,6 +237,14 @@ function TaskCard({ task, onStatus }: { task: EnrichedTask; onStatus: (id: strin
             </Link>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() => onOpenReminder(task.id)}
+          className={`shrink-0 inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted ${task.has_reminder ? "text-primary" : "text-muted-foreground"}`}
+          title={task.has_reminder ? "Edit reminder" : "Set reminder"}
+        >
+          {task.has_reminder ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+        </button>
         <Badge variant="secondary" className={meta.cls}>{meta.label}</Badge>
       </div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -224,6 +253,15 @@ function TaskCard({ task, onStatus }: { task: EnrichedTask; onStatus: (id: strin
           <span className="flex items-center gap-1"><UserIcon className="h-3 w-3" /> {task.assignee_name}</span>
         )}
       </div>
+      {!task.has_reminder && task.status !== "done" && (
+        <button
+          type="button"
+          onClick={() => onOpenReminder(task.id)}
+          className="text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline self-start"
+        >
+          🔔 Set reminder
+        </button>
+      )}
       {task.status === "done" && (
         <Button size="sm" variant="ghost" className="w-full h-8 text-xs" onClick={() => onStatus(task.id, "pending")}>Reopen</Button>
       )}

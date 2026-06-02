@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TaskRequirementsDialog } from "./task-requirements-dialog";
+import { TaskReminderSection } from "./task-reminder-section";
+import { DEFAULT_REMINDER_FORM, saveReminder, type ReminderFormState } from "@/lib/task-reminders";
 
 interface Staff { id: string; full_name: string }
 interface BookingOpt { id: string; event_date: string; lead_name: string }
@@ -43,11 +45,19 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   const [dueTime, setDueTime] = useState<string>(initialDate.toTimeString().slice(0, 5));
   const [busy, setBusy] = useState(false);
   const [requirementsTaskId, setRequirementsTaskId] = useState<string | null>(null);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderForm, setReminderForm] = useState<ReminderFormState>(DEFAULT_REMINDER_FORM);
+  const [bookingEventDate, setBookingEventDate] = useState<string | null>(null);
+
+
 
   useEffect(() => {
     if (!open) return;
     setTitle(""); setDescription(""); setAssignedTo(""); setPriority("medium");
     setPickedBookingId(bookingId ?? "");
+    setReminderEnabled(false);
+    setReminderForm(DEFAULT_REMINDER_FORM);
+    setBookingEventDate(null);
     const d = defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000);
     setDueDate(d.toISOString().slice(0, 10));
     setDueTime(d.toTimeString().slice(0, 5));
@@ -83,6 +93,14 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     }
   }, [open, companyId, defaultDueAt, bookingId]);
 
+  // Load booking event date for "before event" reminder math
+  useEffect(() => {
+    const id = bookingId ?? pickedBookingId;
+    if (!id) { setBookingEventDate(null); return; }
+    supabase.from("bookings").select("event_date").eq("id", id).maybeSingle()
+      .then(({ data }) => setBookingEventDate(data?.event_date ?? null));
+  }, [bookingId, pickedBookingId]);
+
   const submit = async () => {
     const finalBookingId = bookingId ?? pickedBookingId;
     if (!finalBookingId) { toast.error("Pick a booking"); return; }
@@ -100,22 +118,41 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       is_from_template: false,
       created_by: profile?.id ?? null,
     }).select("id").maybeSingle();
+    if (error || !inserted?.id) {
+      setBusy(false);
+      if (error) toast.error(error.message);
+      return;
+    }
+
+    // Save reminder if enabled
+    if (reminderEnabled) {
+      const { error: rErr } = await saveReminder({
+        taskId: inserted.id,
+        companyId,
+        taskDueAtIso: dueAt,
+        bookingEventDate,
+        createdBy: profile?.id ?? null,
+        form: reminderForm,
+      });
+      if (rErr) { toast.error(`Task created but reminder failed: ${rErr}`); }
+    }
+
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
     toast.success("Task added");
     onCreated?.();
     // If task has an assignee, open the requirements preview dialog
-    if (assignedTo && inserted?.id) {
+    if (assignedTo) {
       setRequirementsTaskId(inserted.id);
     } else {
       onOpenChange(false);
     }
   };
 
+
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add task</DialogTitle>
           <DialogDescription>Create a custom task for a booking.</DialogDescription>
@@ -174,6 +211,24 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={reminderEnabled}
+                onChange={(e) => setReminderEnabled(e.target.checked)}
+              />
+              Set a reminder for this task
+            </label>
+            {reminderEnabled && (
+              <TaskReminderSection
+                value={reminderForm}
+                onChange={setReminderForm}
+                hasBookingDate={!!bookingEventDate}
+              />
+            )}
           </div>
         </div>
         <DialogFooter>

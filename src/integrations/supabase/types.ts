@@ -1390,6 +1390,78 @@ export type Database = {
         }
         Relationships: []
       }
+      task_reminders: {
+        Row: {
+          absolute_at: string | null
+          cancelled_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          last_fired_at: string | null
+          mode: string
+          next_fire_at: string | null
+          notify_admin: boolean
+          notify_assignee: boolean
+          offset_unit: string | null
+          offset_value: number | null
+          repeat: boolean
+          repeat_frequency: string | null
+          repeat_interval_hours: number | null
+          scheduled_at: string
+          send_wa: boolean
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          absolute_at?: string | null
+          cancelled_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          last_fired_at?: string | null
+          mode: string
+          next_fire_at?: string | null
+          notify_admin?: boolean
+          notify_assignee?: boolean
+          offset_unit?: string | null
+          offset_value?: number | null
+          repeat?: boolean
+          repeat_frequency?: string | null
+          repeat_interval_hours?: number | null
+          scheduled_at: string
+          send_wa?: boolean
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          absolute_at?: string | null
+          cancelled_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          last_fired_at?: string | null
+          mode?: string
+          next_fire_at?: string | null
+          notify_admin?: boolean
+          notify_assignee?: boolean
+          offset_unit?: string | null
+          offset_value?: number | null
+          repeat?: boolean
+          repeat_frequency?: string | null
+          repeat_interval_hours?: number | null
+          scheduled_at?: string
+          send_wa?: boolean
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       task_replies: {
         Row: {
           company_id: string
