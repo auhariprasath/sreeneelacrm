@@ -166,6 +166,17 @@ function CommandCentrePage() {
       }));
       setReferrals([...flagRows, ...autoRows].sort((a, b) => b.refer_count - a.refer_count));
 
+      const companyNameMap = new Map(companies.map((c) => [c.id, c.name]));
+      setNotInterested(((lostRes.data ?? []) as any[]).map((r) => ({
+        lead_id: r.lead_id,
+        full_name: r.lead?.full_name ?? "—",
+        phone: r.lead?.phone ?? null,
+        company_id: r.company_id,
+        company_name: companyNameMap.get(r.company_id) ?? "—",
+        drop_reason: r.drop_reason ?? null,
+        closed_at: r.created_at,
+      })));
+
       setBusy(false);
     })();
     return () => { cancelled = true; };
