@@ -61,6 +61,7 @@ function LeadProfile() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [winLoss, setWinLoss] = useState<{ outcome: string; drop_reason: string | null; competitor_name: string | null; amount_value: number | null; closed_at: string }[]>([]);
+  const [rejectedTransfer, setRejectedTransfer] = useState<{ rejection_reason: string | null; updated_at: string; to_name: string } | null>(null);
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
