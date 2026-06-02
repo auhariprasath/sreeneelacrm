@@ -23,6 +23,7 @@ import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
 import { InvoiceRowMenu } from "@/components/quotations/invoice-row-menu";
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
+import { BookingConfirmationDialog } from "@/components/bookings/booking-confirmation-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog";
 import { RemindersList } from "@/components/bookings/reminders-list";
