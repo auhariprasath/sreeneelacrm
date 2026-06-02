@@ -58,7 +58,7 @@ export const Route = createFileRoute("/api/public/hooks/task-reminders")({
                 user_id: uid,
                 title,
                 body: `${body} ${tag}`,
-                type: "task_assigned",
+                type: "event_reminder",
               });
               if (!insErr) created++;
             }
