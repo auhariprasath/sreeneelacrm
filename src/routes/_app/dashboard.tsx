@@ -9,9 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
-function StatCard({ label, value, icon: Icon, hint }: { label: string; value: string | number; icon: any; hint?: string }) {
-  return (
-    <Card>
+function StatCard({ label, value, icon: Icon, hint, to }: { label: string; value: string | number; icon: any; hint?: string; to?: string }) {
+  const inner = (
+    <Card className={to ? "transition-colors hover:bg-accent/40 cursor-pointer h-full" : "h-full"}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div>
@@ -26,6 +26,8 @@ function StatCard({ label, value, icon: Icon, hint }: { label: string; value: st
       </CardContent>
     </Card>
   );
+  if (!to) return inner;
+  return <Link to={to} className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg">{inner}</Link>;
 }
 
 function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
