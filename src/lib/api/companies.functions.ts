@@ -178,7 +178,7 @@ export const updateCompanyDetails = createServerFn({ method: "POST" })
     for (const [k, v] of Object.entries(patch)) {
       cleaned[k] = v === "" ? null : v;
     }
-    const { error } = await supabaseAdmin.from("companies").update(cleaned).eq("id", id);
+    const { error } = await supabaseAdmin.from("companies").update(cleaned as never).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
