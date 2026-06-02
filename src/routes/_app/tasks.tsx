@@ -202,7 +202,7 @@ function TasksPage() {
   );
 }
 
-function TaskCard({ task, onStatus, kanban }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; kanban?: boolean }) {
+function TaskCard({ task, onStatus }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; kanban?: boolean }) {
   const meta = STATUS_META[task.status as Bucket];
   return (
     <Card className="p-3 space-y-2">
