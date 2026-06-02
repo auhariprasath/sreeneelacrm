@@ -88,7 +88,7 @@ function LeadProfile() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
-  const [addTaskBooking, setAddTaskBooking] = useState<Booking | null>(null);
+  
 
   const loadRequirements = async () => {
     const { data } = await supabase
