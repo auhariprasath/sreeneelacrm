@@ -165,6 +165,8 @@ export type Database = {
           company_id: string
           completed_at: string | null
           completed_by: string | null
+          confirmation_sent_at: string | null
+          confirmation_sent_by: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -208,6 +210,8 @@ export type Database = {
           company_id: string
           completed_at?: string | null
           completed_by?: string | null
+          confirmation_sent_at?: string | null
+          confirmation_sent_by?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -251,6 +255,8 @@ export type Database = {
           company_id?: string
           completed_at?: string | null
           completed_by?: string | null
+          confirmation_sent_at?: string | null
+          confirmation_sent_by?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -438,6 +444,9 @@ export type Database = {
           brand_color: string | null
           cancellation_policy: string | null
           company_phone: string | null
+          confirmation_auto_send: boolean
+          confirmation_closing_line: string | null
+          confirmation_reminder_lines: Json
           created_at: string
           default_callback_time: string
           default_follow_up_minutes: number
@@ -477,20 +486,29 @@ export type Database = {
           refund_tier_under15: string | null
           refund_under_15_percent: number
           require_discount_reason: boolean
+          send_task_requirements_wa: boolean
           services_catalog: Json
           sessions: Json
           staff_max_discount_percent: number
+          task_overdue_escalation_hours: number
+          task_reminder_2d: boolean
+          task_reminder_at_due: boolean
+          task_reminder_on_booking: boolean
           task_templates: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id: string | null
           vendor_status_reminder_hours: number
           venue_photos: Json
           wa_number: string | null
+          wa_template_booking_confirmed: string | null
           wa_template_competing_leads: string | null
           wa_template_feedback: string | null
           wa_template_payment_reminder: string | null
           wa_template_reengagement: string | null
           wa_template_reschedule: string | null
+          wa_template_task_assigned: string | null
+          wa_template_task_completed: string | null
+          wa_template_task_reminder_2d: string | null
           wa_template_thank_you: string | null
         }
         Insert: {
@@ -509,6 +527,9 @@ export type Database = {
           brand_color?: string | null
           cancellation_policy?: string | null
           company_phone?: string | null
+          confirmation_auto_send?: boolean
+          confirmation_closing_line?: string | null
+          confirmation_reminder_lines?: Json
           created_at?: string
           default_callback_time?: string
           default_follow_up_minutes?: number
@@ -548,20 +569,29 @@ export type Database = {
           refund_tier_under15?: string | null
           refund_under_15_percent?: number
           require_discount_reason?: boolean
+          send_task_requirements_wa?: boolean
           services_catalog?: Json
           sessions?: Json
           staff_max_discount_percent?: number
+          task_overdue_escalation_hours?: number
+          task_reminder_2d?: boolean
+          task_reminder_at_due?: boolean
+          task_reminder_on_booking?: boolean
           task_templates?: Json
           type: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           vendor_status_reminder_hours?: number
           venue_photos?: Json
           wa_number?: string | null
+          wa_template_booking_confirmed?: string | null
           wa_template_competing_leads?: string | null
           wa_template_feedback?: string | null
           wa_template_payment_reminder?: string | null
           wa_template_reengagement?: string | null
           wa_template_reschedule?: string | null
+          wa_template_task_assigned?: string | null
+          wa_template_task_completed?: string | null
+          wa_template_task_reminder_2d?: string | null
           wa_template_thank_you?: string | null
         }
         Update: {
@@ -580,6 +610,9 @@ export type Database = {
           brand_color?: string | null
           cancellation_policy?: string | null
           company_phone?: string | null
+          confirmation_auto_send?: boolean
+          confirmation_closing_line?: string | null
+          confirmation_reminder_lines?: Json
           created_at?: string
           default_callback_time?: string
           default_follow_up_minutes?: number
@@ -619,20 +652,29 @@ export type Database = {
           refund_tier_under15?: string | null
           refund_under_15_percent?: number
           require_discount_reason?: boolean
+          send_task_requirements_wa?: boolean
           services_catalog?: Json
           sessions?: Json
           staff_max_discount_percent?: number
+          task_overdue_escalation_hours?: number
+          task_reminder_2d?: boolean
+          task_reminder_at_due?: boolean
+          task_reminder_on_booking?: boolean
           task_templates?: Json
           type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           vendor_status_reminder_hours?: number
           venue_photos?: Json
           wa_number?: string | null
+          wa_template_booking_confirmed?: string | null
           wa_template_competing_leads?: string | null
           wa_template_feedback?: string | null
           wa_template_payment_reminder?: string | null
           wa_template_reengagement?: string | null
           wa_template_reschedule?: string | null
+          wa_template_task_assigned?: string | null
+          wa_template_task_completed?: string | null
+          wa_template_task_reminder_2d?: string | null
           wa_template_thank_you?: string | null
         }
         Relationships: []
