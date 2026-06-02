@@ -6,6 +6,7 @@ export interface TaskRequirementsContext {
   taskDueAt: string;
   assigneeName: string;
   assigneeId: string;
+  assigneePhone: string | null;
   clientName: string;
   eventType: string;
   eventDate: string;
@@ -16,6 +17,16 @@ export interface TaskRequirementsContext {
   addons: { name: string; price?: number }[];
   clientNotes: string | null;
 }
+
+/** Build a wa.me deep link for an Indian phone number (defaults +91). */
+export function buildTaskWaLink(phone: string | null | undefined, message: string): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return null;
+  const intl = digits.length === 10 ? `91${digits}` : digits;
+  return `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
+}
+
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
