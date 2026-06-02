@@ -647,7 +647,7 @@ function LeadProfile() {
         onOpenChange={setBlOpen}
         leadId={lead.id}
         performedBy={profile?.id ?? null}
-        alreadyBlacklisted={lead.is_blacklisted}
+        alreadyFlagged={lead.is_blacklisted}
         currentReason={lead.blacklist_reason}
         onDone={() => { /* realtime will refresh */ }}
       />
