@@ -136,8 +136,11 @@ export async function sendTaskRequirements(args: {
   leadId: string;
   companyId: string;
   sentByUserId: string | null;
+  channel?: "in_app" | "whatsapp";
 }): Promise<{ error: string | null }> {
-  // 1. In-app notification to assignee
+  const channel = args.channel ?? "in_app";
+
+  // 1. In-app notification to assignee (always)
   const { error: nErr } = await supabase.from("notifications").insert({
     user_id: args.ctx.assigneeId,
     type: "event_reminder",
@@ -147,15 +150,20 @@ export async function sendTaskRequirements(args: {
   if (nErr) return { error: nErr.message };
 
   // 2. Activity log on the lead
+  const actionLabel =
+    channel === "whatsapp"
+      ? `Requirements sent via WhatsApp to ${args.ctx.assigneeName} for task: ${args.ctx.taskTitle}`
+      : `Requirements sent to ${args.ctx.assigneeName} for task: ${args.ctx.taskTitle}`;
   const { error: aErr } = await supabase.from("activity_logs").insert({
     lead_id: args.leadId,
     action_type: "system",
-    action: `Requirements sent to ${args.ctx.assigneeName} for task: ${args.ctx.taskTitle}`,
+    action: actionLabel,
     note: null,
     performed_by: args.sentByUserId,
-    metadata: { task_id: args.taskId, booking_id: args.bookingId },
+    metadata: { task_id: args.taskId, booking_id: args.bookingId, channel },
   });
   if (aErr) return { error: aErr.message };
 
   return { error: null };
 }
+
