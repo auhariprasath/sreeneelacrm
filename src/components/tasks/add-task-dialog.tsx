@@ -45,6 +45,11 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   const [dueTime, setDueTime] = useState<string>(initialDate.toTimeString().slice(0, 5));
   const [busy, setBusy] = useState(false);
   const [requirementsTaskId, setRequirementsTaskId] = useState<string | null>(null);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderForm, setReminderForm] = useState<ReminderFormState>(DEFAULT_REMINDER_FORM);
+  const [bookingEventDate, setBookingEventDate] = useState<string | null>(null);
+
+
 
   useEffect(() => {
     if (!open) return;
