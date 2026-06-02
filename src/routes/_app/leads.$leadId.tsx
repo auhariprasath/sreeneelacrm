@@ -248,7 +248,7 @@ function LeadProfile() {
         <div className="bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-lg p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div className="text-sm">
-            <div className="font-medium">Flagged — do not contact (all companies)</div>
+            <div className="font-medium flex items-center">Flagged — do not contact (all companies)<InfoTip tip="flagContact" /></div>
             {lead.blacklist_reason && <div className="text-xs opacity-90 mt-0.5">Reason: {lead.blacklist_reason}</div>}
           </div>
         </div>
