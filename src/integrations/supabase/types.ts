@@ -1511,6 +1511,7 @@ export type Database = {
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           assigned_to?: string | null
@@ -1530,6 +1531,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           assigned_to?: string | null
@@ -1549,6 +1551,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: []
       }
