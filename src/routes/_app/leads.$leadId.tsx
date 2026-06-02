@@ -30,6 +30,8 @@ import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
 import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials-dialog";
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
+import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
+import { ListChecks } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
