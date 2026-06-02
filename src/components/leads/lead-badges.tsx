@@ -6,16 +6,9 @@ type Status = Database["public"]["Enums"]["lead_status"];
 type Score = Database["public"]["Enums"]["lead_score"];
 type Source = Database["public"]["Enums"]["lead_source"];
 
-const STATUS_LABEL: Record<Status, string> = {
-  new: "New",
-  in_progress: "In progress",
-  neutral: "Neutral",
-  positive: "Positive",
-  negative: "Negative",
-  closed: "Closed",
-  unresponsive: "Unresponsive",
-  locked: "Locked",
-};
+import { LEAD_STATUS_LABEL } from "@/lib/labels";
+
+const STATUS_LABEL = LEAD_STATUS_LABEL;
 
 const STATUS_CLASS: Record<Status, string> = {
   new: "bg-primary/15 text-primary border-primary/30",
