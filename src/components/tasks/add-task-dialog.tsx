@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TaskRequirementsDialog } from "./task-requirements-dialog";
+import { TaskReminderSection } from "./task-reminder-section";
+import { DEFAULT_REMINDER_FORM, saveReminder, type ReminderFormState } from "@/lib/task-reminders";
 
 interface Staff { id: string; full_name: string }
 interface BookingOpt { id: string; event_date: string; lead_name: string }
