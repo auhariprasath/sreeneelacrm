@@ -32,12 +32,13 @@ interface StaffRow {
 }
 
 export function StaffSection({ companyId }: { companyId: string | undefined }) {
-  const { profile } = useAuth();
+  const { profile, role: currentRole, companies } = useAuth();
   const list = useServerFn(listCompanyStaff);
   const create = useServerFn(createStaff);
   const setActive = useServerFn(setStaffActive);
   const update = useServerFn(updateStaffSettings);
   const setLeave = useServerFn(setStaffLeave);
+  const moveStaff = useServerFn(moveStaffToCompany);
 
   const [rows, setRows] = useState<StaffRow[]>([]);
   const [loading, setLoading] = useState(true);
