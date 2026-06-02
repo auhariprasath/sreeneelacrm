@@ -26,6 +26,7 @@ interface Row {
   sent_at: string | null;
   created_at: string;
   is_peak_season: boolean;
+  pdf_url: string | null;
   lead?: { full_name: string; phone: string } | null;
   company?: { name: string } | null;
   requirement?: { event_date: string | null; event_type: string | null } | null;
