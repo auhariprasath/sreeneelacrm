@@ -94,6 +94,56 @@ export const Route = createFileRoute("/api/public/hooks/task-reminders")({
               `${t.title} — was due ${fmtIN(t.due_at)}`,
             );
           }
+
+          // Stage 4: escalation — task overdue (>1h past due) and still not done → notify company admins
+          if (msUntilDue < -60 * 60 * 1000) {
+            const tag = `[task-reminder:${t.id}:escalation]`;
+            const { data: existing } = await sb
+              .from("notifications")
+              .select("id")
+              .ilike("body", `%${tag}%`)
+              .limit(1)
+              .maybeSingle();
+            if (!existing) {
+              // Lookup booking → lead name
+              let leadName = "—";
+              if (t.booking_id) {
+                const { data: b } = await sb.from("bookings").select("lead_id").eq("id", t.booking_id).maybeSingle();
+                if (b?.lead_id) {
+                  const { data: l } = await sb.from("leads").select("full_name").eq("id", b.lead_id).maybeSingle();
+                  leadName = l?.full_name ?? leadName;
+                }
+              }
+              let assigneeName = "—";
+              if (t.assigned_to) {
+                const { data: p } = await sb.from("profiles").select("full_name").eq("id", t.assigned_to).maybeSingle();
+                assigneeName = p?.full_name ?? assigneeName;
+              }
+              // Find company admins
+              const { data: roles } = await sb.from("user_roles").select("user_id").in("role", ["admin", "super_admin"]);
+              const ids = (roles ?? []).map((r: any) => r.user_id);
+              let adminIds: string[] = [];
+              if (ids.length) {
+                const { data: profs } = await sb
+                  .from("profiles")
+                  .select("id")
+                  .eq("company_id", t.company_id)
+                  .in("id", ids);
+                adminIds = (profs ?? []).map((p: any) => p.id);
+              }
+              const body = `⚠ Overdue task — ${t.title} for ${leadName}. Assigned to: ${assigneeName}. Was due: ${fmtIN(t.due_at)}. Please follow up. ${tag}`;
+              for (const uid of adminIds) {
+                const { error: insErr } = await sb.from("notifications").insert({
+                  user_id: uid,
+                  title: "Overdue task",
+                  body,
+                  type: "event_reminder",
+                });
+                if (!insErr) created++;
+              }
+              summaries.push({ task: t.id, stage: "escalation", recipients: adminIds.length });
+            }
+          }
         }
 
         return Response.json({
