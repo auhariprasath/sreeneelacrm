@@ -285,18 +285,23 @@ function LeadProfile() {
               <Button variant="outline" className="h-11" onClick={() => setMeetingOpen(true)}>
                 <Building2 className="h-4 w-4 mr-1.5" /> Venue meeting
               </Button>
-              <Button
-                variant="outline"
-                className={`h-11 ${lead.is_blacklisted ? "" : "text-rose-700 dark:text-rose-300 border-rose-500/40"}`}
-                onClick={() => setBlOpen(true)}
-              >
-                {lead.is_blacklisted
-                  ? (<><ShieldOff className="h-4 w-4 mr-1.5" /> Unblock</>)
-                  : (<><ShieldAlert className="h-4 w-4 mr-1.5" /> Blacklist</>)}
-              </Button>
-              <Button variant="outline" className="h-11" onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
-                <ArrowRightLeft className="h-4 w-4 mr-1.5" /> Transfer
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11 w-11 p-0" aria-label="More actions">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
+                    <ArrowRightLeft className="h-4 w-4 mr-2" /> Move to another team
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setBlOpen(true)} className={lead.is_blacklisted ? "" : "text-rose-600 dark:text-rose-400 focus:text-rose-700"}>
+                    {lead.is_blacklisted
+                      ? (<><ShieldOff className="h-4 w-4 mr-2" /> Remove flag</>)
+                      : (<><ShieldAlert className="h-4 w-4 mr-2" /> Flag — do not contact</>)}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div className="ml-auto min-w-[180px]">
                 <Select value={lead.status} onValueChange={(v) => updateStatus(v as Status)}>
                   <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
