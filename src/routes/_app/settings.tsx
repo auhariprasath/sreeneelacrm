@@ -577,10 +577,14 @@ function SettingsPage() {
         );
       }
       case "wa": {
-        const tokens = "Available tokens: {{client_name}}, {{event_date}}, {{venue}}, {{amount}}, {{balance}}, {{company_name}}, {{quotation_number}}";
+        const tokens = "Tokens: [client_name] [company_name] [event_type] [event_date] [start_time] [end_time] [guest_count] [total_amount] [amount_paid] [balance_amount] [staff_name] [task_title] [task_due_date] [venue_address]";
         const fields: CompanyField[] = [
-          { key: "wa_template_payment_reminder", label: "Payment reminder", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Hi {{client_name}}, this is a reminder for the pending payment of ₹{{balance}} for your event on {{event_date}}." },
-          { key: "wa_template_thank_you", label: "Thank you / booking confirmation", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Thank you {{client_name}}! Your booking for {{event_date}} at {{venue}} is confirmed." },
+          { key: "wa_template_booking_confirmed", label: "Booking confirmed", type: "textarea", rows: 8, fullWidth: true, description: tokens, placeholder: "Dear [client_name], your booking with [company_name] is confirmed for [event_date]…" },
+          { key: "wa_template_task_assigned", label: "Task assigned", type: "textarea", rows: 6, fullWidth: true, description: tokens, placeholder: "📋 Task assigned to you — [task_title]…" },
+          { key: "wa_template_task_reminder_2d", label: "Task reminder (2 days before)", type: "textarea", rows: 4, fullWidth: true, description: tokens },
+          { key: "wa_template_task_completed", label: "Task completed", type: "textarea", rows: 4, fullWidth: true, description: tokens },
+          { key: "wa_template_payment_reminder", label: "Payment reminder", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Hi [client_name], reminder for pending payment of ₹[balance_amount]…" },
+          { key: "wa_template_thank_you", label: "Thank you", type: "textarea", rows: 4, fullWidth: true, description: tokens },
           { key: "wa_template_reschedule", label: "Reschedule notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
           { key: "wa_template_competing_leads", label: "Competing leads notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
           { key: "auto_wa_on_reschedule", label: "Send WhatsApp automatically on reschedule", type: "switch" },
@@ -591,7 +595,7 @@ function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>WhatsApp templates</CardTitle>
-              <CardDescription>Message templates used by the reminder engine and booking flows.</CardDescription>
+              <CardDescription>Message templates used by the reminder engine and booking flows. Use square-bracket placeholders, e.g. <code>[client_name]</code>.</CardDescription>
             </CardHeader>
             <CardContent>
               {role === "super_admin" && companies.length > 0 && (
@@ -600,6 +604,24 @@ function SettingsPage() {
                 </Tabs>
               )}
               <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "confirmation": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Confirmation message</CardTitle>
+              <CardDescription>Reminder lines, closing line, and auto-send behaviour for the booking confirmation message sent to clients.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <ConfirmationMessageSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );
