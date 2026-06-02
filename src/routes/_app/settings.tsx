@@ -265,6 +265,18 @@ function SettingsPage() {
 
   const renderSection = () => {
     switch (section) {
+      case "companies":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Companies</CardTitle>
+              <CardDescription>Add, rename or archive companies. Archived companies stay in the database but are hidden everywhere else.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompaniesSection onChange={() => window.location.reload()} />
+            </CardContent>
+          </Card>
+        );
       case "company":
         return (
           <Card>
