@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN } from "@/lib/format";
 import { toast } from "sonner";
-import { Building2, Gift, Activity, Users } from "lucide-react";
+import { Building2, Gift, Activity, Users, XCircle, Lightbulb, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_app/command-centre")({
   beforeLoad: ({ context }) => {
@@ -50,11 +50,22 @@ interface ReferralRow {
   refer_count: number;
 }
 
+interface NotInterestedRow {
+  lead_id: string;
+  full_name: string;
+  phone: string | null;
+  company_id: string;
+  company_name: string;
+  drop_reason: string | null;
+  closed_at: string;
+}
+
 function CommandCentrePage() {
   const { role, loading } = useAuth();
   const [companyStats, setCompanyStats] = useState<CompanyRow[] | null>(null);
   const [logins, setLogins] = useState<LoginRow[] | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[] | null>(null);
+  const [notInterested, setNotInterested] = useState<NotInterestedRow[] | null>(null);
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
@@ -64,7 +75,7 @@ function CommandCentrePage() {
     setBusy(true);
     (async () => {
       const since30 = new Date(Date.now() - 30 * 86400_000).toISOString();
-      const [companiesRes, leadsRes, bookingsRes, wlRes, fbRes, loginRes, profilesRes, refRes, allLeadsRes] = await Promise.all([
+      const [companiesRes, leadsRes, bookingsRes, wlRes, fbRes, loginRes, profilesRes, refRes, allLeadsRes, lostRes] = await Promise.all([
         supabase.from("companies").select("id, name").is("deleted_at", null).order("name"),
         supabase.from("leads").select("company_id").is("deleted_at", null),
         supabase.from("bookings").select("company_id, total_amount, status").is("deleted_at", null),
@@ -76,6 +87,11 @@ function CommandCentrePage() {
         supabase.from("referral_loyalty_flags").select("id, referrer_lead_id, benefit_sent, benefit_sent_at, notes, flagged_by, created_at")
           .order("created_at", { ascending: false }),
         supabase.from("leads").select("id, full_name, referred_by_lead_id").is("deleted_at", null),
+        supabase.from("win_loss_log")
+          .select("lead_id, company_id, drop_reason, created_at, lead:leads(full_name, phone)")
+          .eq("outcome", "lost")
+          .order("created_at", { ascending: false })
+          .limit(200),
       ]);
       if (cancelled) return;
 
@@ -150,6 +166,17 @@ function CommandCentrePage() {
       }));
       setReferrals([...flagRows, ...autoRows].sort((a, b) => b.refer_count - a.refer_count));
 
+      const companyNameMap = new Map(companies.map((c) => [c.id, c.name]));
+      setNotInterested(((lostRes.data ?? []) as any[]).map((r) => ({
+        lead_id: r.lead_id,
+        full_name: r.lead?.full_name ?? "—",
+        phone: r.lead?.phone ?? null,
+        company_id: r.company_id,
+        company_name: companyNameMap.get(r.company_id) ?? "—",
+        drop_reason: r.drop_reason ?? null,
+        closed_at: r.created_at,
+      })));
+
       setBusy(false);
     })();
     return () => { cancelled = true; };
@@ -206,6 +233,7 @@ function CommandCentrePage() {
           <TabsTrigger value="overview"><Building2 className="h-4 w-4 mr-2" />Companies</TabsTrigger>
           <TabsTrigger value="sessions"><Activity className="h-4 w-4 mr-2" />Sessions</TabsTrigger>
           <TabsTrigger value="referrals"><Gift className="h-4 w-4 mr-2" />Referrals</TabsTrigger>
+          <TabsTrigger value="not_interested"><XCircle className="h-4 w-4 mr-2" />Not interested</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
@@ -353,7 +381,141 @@ function CommandCentrePage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="not_interested" className="mt-4 space-y-4">
+          {!notInterested ? <DashboardSkeleton /> : <NotInterestedSection rows={notInterested} />}
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function NotInterestedSection({ rows }: { rows: NotInterestedRow[] }) {
+  const total = rows.length;
+  const reasonCounts = new Map<string, number>();
+  rows.forEach((r) => {
+    const key = (r.drop_reason ?? "Not specified").trim() || "Not specified";
+    reasonCounts.set(key, (reasonCounts.get(key) ?? 0) + 1);
+  });
+  const topReasons = Array.from(reasonCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  // Plain-language suggestions
+  const suggestions: string[] = [];
+  if (total === 0) {
+    suggestions.push("No closed leads yet — nothing to learn from. Keep going.");
+  } else {
+    topReasons.forEach(([reason, count]) => {
+      const pct = Math.round((count / total) * 100);
+      const r = reason.toLowerCase();
+      if (r.includes("price") || r.includes("budget") || r.includes("cost") || r.includes("expensive")) {
+        suggestions.push(`${pct}% said price was too high. Try offering a smaller package or a payment plan.`);
+      } else if (r.includes("date") || r.includes("available") || r.includes("calendar")) {
+        suggestions.push(`${pct}% lost because the date wasn't free. Suggest nearby alternate dates earlier in the call.`);
+      } else if (r.includes("venue") || r.includes("location") || r.includes("distance")) {
+        suggestions.push(`${pct}% didn't like the venue or location. Send venue photos and a map link sooner.`);
+      } else if (r.includes("compet") || r.includes("other vendor") || r.includes("another")) {
+        suggestions.push(`${pct}% went with a competitor. Share what makes you unique within the first call.`);
+      } else if (r.includes("response") || r.includes("late") || r.includes("slow")) {
+        suggestions.push(`${pct}% felt the response was slow. Reply to new enquiries within 30 minutes.`);
+      } else {
+        suggestions.push(`${pct}% closed for: "${reason}". Worth a quick team chat to see how to handle it next time.`);
+      }
+    });
+  }
+
+  const reengageWhatsApp = (row: NotInterestedRow) => {
+    if (!row.phone) {
+      toast.error("No phone number on this lead");
+      return;
+    }
+    const phone = row.phone.replace(/[^0-9]/g, "");
+    const text = encodeURIComponent(
+      `Hi ${row.full_name.split(" ")[0] || "there"}, this is from Neela Events. Just checking in — would love another chance to help you plan your event. We have some new options that might work better. Can we share?`
+    );
+    window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2"><Lightbulb className="h-4 w-4 text-amber-500" /> What we're learning</CardTitle>
+          <CardDescription>Plain-language insights from leads that didn't convert</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="border rounded-md p-3">
+              <div className="text-xs text-muted-foreground">Closed leads (lost)</div>
+              <div className="text-2xl font-semibold mt-1">{total}</div>
+            </div>
+            <div className="border rounded-md p-3 col-span-2">
+              <div className="text-xs text-muted-foreground mb-1">Top reasons</div>
+              {topReasons.length === 0 ? (
+                <div className="text-sm text-muted-foreground">None yet</div>
+              ) : (
+                <div className="space-y-1">
+                  {topReasons.map(([r, c]) => (
+                    <div key={r} className="flex justify-between text-sm">
+                      <span className="truncate pr-2">{r}</span>
+                      <span className="text-muted-foreground tabular-nums">{c} · {Math.round((c / total) * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {suggestions.length > 0 && (
+            <ul className="space-y-1.5 text-sm border-t pt-3">
+              {suggestions.map((s, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-amber-500 shrink-0">•</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Closed leads</CardTitle>
+          <CardDescription>Send a friendly re-engagement message any time</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Lead</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Closed</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={`${r.lead_id}-${r.closed_at}`}>
+                  <TableCell className="font-medium">{r.full_name}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{r.company_name}</TableCell>
+                  <TableCell className="text-xs">{r.drop_reason ?? "—"}</TableCell>
+                  <TableCell className="text-xs">{formatDateIN(r.closed_at)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant="outline" disabled={!r.phone} onClick={() => reengageWhatsApp(r)}>
+                      <MessageCircle className="h-3.5 w-3.5 mr-1" /> Re-engage
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {rows.length === 0 && (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">No closed leads yet</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
   );
 }
