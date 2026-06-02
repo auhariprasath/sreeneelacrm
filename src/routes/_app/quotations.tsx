@@ -73,7 +73,7 @@ function QuotationsPage() {
     (async () => {
       setBusy(true);
       let q = supabase.from("quotations")
-        .select("id,lead_id,company_id,version,total,status,sent_at,created_at,is_peak_season,requirement_id")
+        .select("id,lead_id,company_id,version,total,status,sent_at,created_at,is_peak_season,pdf_url,requirement_id")
         .is("deleted_at", null)
         .gte("created_at", new Date(from).toISOString())
         .lte("created_at", new Date(new Date(to).getTime() + 86400_000).toISOString())
