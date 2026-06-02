@@ -122,7 +122,11 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
                 )}
               </div>
               {editId !== r.id && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" className="min-h-10"
+                    onClick={() => setDetailsId(r.id)}>
+                    <Settings2 className="h-4 w-4 mr-1.5" /> Edit details
+                  </Button>
                   <Button variant="outline" size="sm" className="min-h-10"
                     onClick={() => { setEditId(r.id); setEditName(r.name); }}>
                     <Pencil className="h-4 w-4 mr-1.5" /> Rename
