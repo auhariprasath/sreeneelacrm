@@ -41,7 +41,7 @@ type Status = Database["public"]["Enums"]["lead_status"];
 
 export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadProfile });
 
-const STATUS_OPTS: Status[] = ["new","in_progress","neutral","positive","negative","unresponsive","closed","locked"];
+
 
 function LeadProfile() {
   const { leadId } = Route.useParams();
