@@ -598,10 +598,37 @@ function LeadProfile() {
         open={callOpen}
         onOpenChange={setCallOpen}
         leadId={lead.id}
-        currentFollowUpCount={lead.follow_up_count}
-        maxFollowUpAttempts={lead.max_follow_up_attempts}
+        companyId={lead.company_id}
         performedBy={profile?.id ?? null}
         onScheduleFollowUp={() => setFuOpen(true)}
+        onScheduleMeeting={() => setMeetingOpen(true)}
+        onInterested={() => {
+          // open intake if no requirements; else open quotation builder on latest requirement
+          const latest = requirements[requirements.length - 1];
+          if (!latest) { setEditReqId(null); setReqOpen(true); }
+          else if (latest.status === "slot_confirmed") { setQuoteReqId(latest.id); setEditQuoteId(null); setQuoteOpen(true); }
+          else { setEditReqId(latest.id); setReqOpen(true); }
+        }}
+        onChanged={() => { load(); }}
+      />
+      <MeetingSchedulerDialog
+        open={meetingOpen}
+        onOpenChange={setMeetingOpen}
+        leadId={lead.id}
+        leadName={lead.full_name}
+        leadPhone={lead.phone}
+        companyId={lead.company_id}
+        onScheduled={() => load()}
+      />
+      <PaymentCredentialsDialog
+        open={payCredsOpen}
+        onOpenChange={setPayCredsOpen}
+        leadId={lead.id}
+        leadName={lead.full_name}
+        leadPhone={lead.phone}
+        companyId={lead.company_id}
+        bookingId={payCredsBooking?.id ?? null}
+        amount={payCredsBooking ? Number(payCredsBooking.balance_due || payCredsBooking.total_amount) : null}
       />
       <FollowUpDialog
         open={fuOpen}
