@@ -207,7 +207,16 @@ function QuotationsPage() {
                 <CardContent className="p-3 space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-sm font-medium hover:underline truncate">{r.lead?.full_name ?? "—"}</Link>
-                    <Badge className={statusColor(r.status)}>{r.status}</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge className={statusColor(r.status)}>{r.status}</Badge>
+                      <InvoiceRowMenu
+                        quotationId={r.id}
+                        leadId={r.lead_id}
+                        pdfUrl={r.pdf_url}
+                        versionLabel={`v${r.version}`}
+                        onDeleted={refresh}
+                      />
+                    </div>
                   </div>
                   <div className="text-xs text-muted-foreground">{formatPhoneIN(r.lead?.phone ?? "", false)}</div>
                   <div className="text-xs flex items-center justify-between">
