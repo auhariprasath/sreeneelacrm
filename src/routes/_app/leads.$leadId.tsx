@@ -158,17 +158,8 @@ function LeadProfile() {
     return () => { supabase.removeChannel(ch); };
   }, [leadId]);
 
-  const updateStatus = async (s: Status) => {
-    if (!lead) return;
-    const prev = lead.status;
-    setLead({ ...lead, status: s });
-    const { error } = await supabase.from("leads").update({ status: s }).eq("id", lead.id);
-    if (error) { setLead({ ...lead, status: prev }); toast.error(error.message); return; }
-    await supabase.from("activity_logs").insert({
-      lead_id: lead.id, action: `Status changed: ${prev} → ${s}`, action_type: "status_change", performed_by: profile?.id ?? null,
-    });
-    toast.success("Status updated");
-  };
+  // Manual status updates removed — status changes are driven by call outcomes & lifecycle events.
+
 
   const addNote = async () => {
     if (!note.trim() || !lead) return;
