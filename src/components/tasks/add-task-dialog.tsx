@@ -89,7 +89,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     if (!title.trim()) { toast.error("Task name is required"); return; }
     setBusy(true);
     const dueAt = new Date(`${dueDate}T${dueTime}:00`).toISOString();
-    const { error } = await supabase.from("tasks").insert({
+    const { data: inserted, error } = await supabase.from("tasks").insert({
       booking_id: finalBookingId,
       company_id: companyId,
       title: title.trim(),
@@ -99,12 +99,17 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       due_at: dueAt,
       is_from_template: false,
       created_by: profile?.id ?? null,
-    });
+    }).select("id").maybeSingle();
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Task added");
     onCreated?.();
-    onOpenChange(false);
+    // If task has an assignee, open the requirements preview dialog
+    if (assignedTo && inserted?.id) {
+      setRequirementsTaskId(inserted.id);
+    } else {
+      onOpenChange(false);
+    }
   };
 
   return (
