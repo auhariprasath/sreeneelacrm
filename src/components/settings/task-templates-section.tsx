@@ -40,7 +40,7 @@ export function TaskTemplatesSection({ companyId }: { companyId: string }) {
     const j = i + dir; if (j < 0 || j >= arr.length) return arr;
     const next = arr.slice(); [next[i], next[j]] = [next[j]!, next[i]!]; return next;
   });
-  const add = () => setItems((arr) => [...arr, { title: "", when: "7d_before", priority: "medium", assigned_to: null }]);
+  const add = () => setItems((arr) => [...arr, { title: "", when: "7d_before", priority: "medium", assigned_to: null, assign_to_role: "any_available" }]);
 
   const save = async () => {
     setSaving(true);
