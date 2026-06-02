@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
@@ -25,6 +25,8 @@ import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog
 import { RemindersList } from "@/components/bookings/reminders-list";
 import { VendorAssignment } from "@/components/bookings/vendor-assignment";
 import { EventDayLogs } from "@/components/bookings/event-day-logs";
+import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials-dialog";
+import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
