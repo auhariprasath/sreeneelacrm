@@ -198,7 +198,7 @@ function TasksPage() {
                 <span className="text-xs text-muted-foreground">{buckets[b].length}</span>
               </div>
               <div className="space-y-2 min-h-[60px]">
-                {buckets[b].map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} kanban />)}
+               {buckets[b].map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} onOpenReminder={setReminderTaskId} kanban />)}
               </div>
             </div>
           ))}
@@ -213,11 +213,17 @@ function TasksPage() {
           onCreated={load}
         />
       )}
+      <TaskReminderDialog
+        taskId={reminderTaskId}
+        open={!!reminderTaskId}
+        onOpenChange={(v) => { if (!v) setReminderTaskId(null); }}
+        onSaved={load}
+      />
     </div>
   );
 }
 
-function TaskCard({ task, onStatus }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; kanban?: boolean }) {
+function TaskCard({ task, onStatus, onOpenReminder }: { task: EnrichedTask; onStatus: (id: string, s: Bucket) => void; onOpenReminder: (id: string) => void; kanban?: boolean }) {
   const meta = STATUS_META[task.status as Bucket];
   return (
     <Card className="p-3 space-y-2">
