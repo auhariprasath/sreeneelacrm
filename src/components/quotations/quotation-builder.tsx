@@ -382,15 +382,26 @@ export function QuotationBuilder({ open, onOpenChange, leadId, companyId, requir
               <Save className="h-4 w-4 mr-1" /> Save draft
             </Button>
             <Button
+              className="bg-primary"
               disabled={!canSubmit || saving || loading}
               onClick={async () => {
                 const id = await saveDraft(true);
                 if (!id) return;
+                // mark as sent
+                await supabase.from("quotations").update({ status: "sent", sent_at: new Date().toISOString(), sent_via: "whatsapp" }).eq("id", id);
+                await supabase.from("activity_logs").insert({
+                  lead_id: leadId,
+                  action: `Quotation v${baseVersion} saved and sent via WhatsApp`,
+                  action_type: "system", performed_by: profile?.id ?? null,
+                  metadata: { quotation_id: id, total },
+                });
                 if (onContinueToSend) onContinueToSend(id);
-                else { toast.success("Draft saved"); onOpenChange(false); }
+                onSaved?.();
+                toast.success("Quotation saved and sent ✓");
+                onOpenChange(false);
               }}
             >
-              Continue to send
+              Save & Send
             </Button>
           </div>
         </div>
