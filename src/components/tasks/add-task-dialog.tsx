@@ -31,11 +31,13 @@ interface Props {
 export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaultDueAt, onCreated }: Props) {
   const { profile } = useAuth();
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [bookings, setBookings] = useState<BookingOpt[]>([]);
+  const [pickedBookingId, setPickedBookingId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState<string>("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
-  const initialDate = (defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000));
+  const initialDate = defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000);
   const [dueDate, setDueDate] = useState<string>(initialDate.toISOString().slice(0, 10));
   const [dueTime, setDueTime] = useState<string>(initialDate.toTimeString().slice(0, 5));
   const [busy, setBusy] = useState(false);
@@ -43,6 +45,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   useEffect(() => {
     if (!open) return;
     setTitle(""); setDescription(""); setAssignedTo(""); setPriority("medium");
+    setPickedBookingId(bookingId ?? "");
     const d = defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000);
     setDueDate(d.toISOString().slice(0, 10));
     setDueTime(d.toTimeString().slice(0, 5));
@@ -53,14 +56,39 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       .eq("is_active", true)
       .order("full_name")
       .then(({ data }) => setStaff((data as Staff[]) ?? []));
-  }, [open, companyId, defaultDueAt]);
+
+    if (!bookingId) {
+      (async () => {
+        const { data: bks } = await supabase
+          .from("bookings")
+          .select("id, event_date, lead_id")
+          .eq("company_id", companyId)
+          .is("deleted_at", null)
+          .in("status", ["confirmed", "cheque_pending"])
+          .order("event_date", { ascending: true })
+          .limit(100);
+        const ids = Array.from(new Set(((bks as { lead_id: string }[]) ?? []).map((b) => b.lead_id)));
+        const { data: leads } = ids.length
+          ? await supabase.from("leads").select("id, full_name").in("id", ids)
+          : { data: [] as { id: string; full_name: string }[] };
+        const lm = new Map((leads ?? []).map((l: { id: string; full_name: string }) => [l.id, l.full_name]));
+        setBookings(((bks as { id: string; event_date: string; lead_id: string }[]) ?? []).map((b) => ({
+          id: b.id,
+          event_date: b.event_date,
+          lead_name: lm.get(b.lead_id) ?? "—",
+        })));
+      })();
+    }
+  }, [open, companyId, defaultDueAt, bookingId]);
 
   const submit = async () => {
+    const finalBookingId = bookingId ?? pickedBookingId;
+    if (!finalBookingId) { toast.error("Pick a booking"); return; }
     if (!title.trim()) { toast.error("Task name is required"); return; }
     setBusy(true);
     const dueAt = new Date(`${dueDate}T${dueTime}:00`).toISOString();
     const { error } = await supabase.from("tasks").insert({
-      booking_id: bookingId,
+      booking_id: finalBookingId,
       company_id: companyId,
       title: title.trim(),
       description: description.trim() || null,
@@ -82,9 +110,22 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add task</DialogTitle>
-          <DialogDescription>Create a custom task for this booking.</DialogDescription>
+          <DialogDescription>Create a custom task for a booking.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          {!bookingId && (
+            <div>
+              <Label>Booking *</Label>
+              <Select value={pickedBookingId} onValueChange={setPickedBookingId}>
+                <SelectTrigger><SelectValue placeholder="Pick a booking" /></SelectTrigger>
+                <SelectContent>
+                  {bookings.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.lead_name} · {b.event_date}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>Task name *</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Confirm decoration count" />
@@ -135,3 +176,4 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     </Dialog>
   );
 }
+
