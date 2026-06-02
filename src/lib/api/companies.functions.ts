@@ -29,7 +29,7 @@ export const createCompany = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
       name: z.string().min(1).max(120),
-      type: z.enum(["banquet", "decor", "rental", "other"]).default("banquet"),
+      type: z.enum(["banquet", "garden", "mandapam", "party"]).default("banquet"),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
