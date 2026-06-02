@@ -152,7 +152,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add task</DialogTitle>
           <DialogDescription>Create a custom task for a booking.</DialogDescription>
