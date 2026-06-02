@@ -33,6 +33,7 @@ import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
+import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
 
@@ -155,6 +156,12 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
 } as any)
+const ApiPublicHooksTaskRemindersRoute =
+  ApiPublicHooksTaskRemindersRouteImport.update({
+    id: '/api/public/hooks/task-reminders',
+    path: '/api/public/hooks/task-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksPreEventRemindersRoute =
   ApiPublicHooksPreEventRemindersRouteImport.update({
     id: '/api/public/hooks/pre-event-reminders',
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/leads/': typeof AppLeadsIndexRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
+  '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -220,6 +228,7 @@ export interface FileRoutesByTo {
   '/leads': typeof AppLeadsIndexRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
+  '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -249,6 +258,7 @@ export interface FileRoutesById {
   '/_app/leads/': typeof AppLeadsIndexRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
+  '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/leads/'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
+    | '/api/public/hooks/task-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
+    | '/api/public/hooks/task-reminders'
   id:
     | '__root__'
     | '/'
@@ -332,6 +344,7 @@ export interface FileRouteTypes {
     | '/_app/leads/'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
+    | '/api/public/hooks/task-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -346,6 +359,7 @@ export interface RootRouteChildren {
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
+  ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -518,6 +532,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
     }
+    '/api/public/hooks/task-reminders': {
+      id: '/api/public/hooks/task-reminders'
+      path: '/api/public/hooks/task-reminders'
+      fullPath: '/api/public/hooks/task-reminders'
+      preLoaderRoute: typeof ApiPublicHooksTaskRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/pre-event-reminders': {
       id: '/api/public/hooks/pre-event-reminders'
       path: '/api/public/hooks/pre-event-reminders'
@@ -596,6 +617,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPostEventAutomationRoute:
     ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
+  ApiPublicHooksTaskRemindersRoute: ApiPublicHooksTaskRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
