@@ -280,6 +280,73 @@ function SettingsPage() {
             </CardContent>
           </Card>
         );
+      case "location": {
+        const fields: CompanyField[] = [
+          { key: "full_address", label: "Full venue address", type: "textarea", rows: 4, fullWidth: true, placeholder: "Street, landmark, area, city, pincode" },
+          { key: "google_maps_link", label: "Google Maps link", placeholder: "https://maps.google.com/...", fullWidth: true },
+          { key: "meeting_contact_name", label: "Meeting contact name", placeholder: "Person who meets clients" },
+          { key: "meeting_contact_phone", label: "Meeting contact phone", placeholder: "+91…" },
+        ];
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Location & meeting</CardTitle>
+              <CardDescription>Address, maps link and contact for venue visits. Used in meeting confirmation messages.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "photos": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Venue photo gallery</CardTitle>
+              <CardDescription>Up to 10 photos. Staff selects which to attach when sending meeting confirmations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <PhotoGallerySection companyId={activeCompanyId} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "payment": {
+        const fields: CompanyField[] = [
+          { key: "payment_method", label: "Payment method", placeholder: "manual or razorpay", description: "Set to 'razorpay' to enable auto-detection via Razorpay payment links.", fullWidth: true },
+          { key: "razorpay_key_id", label: "Razorpay Key ID", placeholder: "rzp_test_xxx or rzp_live_xxx" },
+          { key: "razorpay_key_secret", label: "Razorpay Key Secret", placeholder: "Stored encrypted server-side" },
+          { key: "razorpay_test_mode", label: "Razorpay test mode", type: "switch", description: "Off = live keys." },
+          { key: "vendor_status_reminder_hours", label: "Vendor status reminder (hours before event)", type: "number", suffix: "hrs", description: "Auto-WA to vendors who haven't updated status N hours before event." },
+        ];
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment gateway</CardTitle>
+              <CardDescription>Manual is always available. Razorpay enables auto-detected payments via webhook.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
       case "reminders":
         return (
           <Card>
