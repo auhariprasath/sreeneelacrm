@@ -42,6 +42,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   const [dueDate, setDueDate] = useState<string>(initialDate.toISOString().slice(0, 10));
   const [dueTime, setDueTime] = useState<string>(initialDate.toTimeString().slice(0, 5));
   const [busy, setBusy] = useState(false);
+  const [requirementsTaskId, setRequirementsTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
