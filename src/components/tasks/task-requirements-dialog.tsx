@@ -45,8 +45,13 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
     })();
   }, [open, taskId, onOpenChange]);
 
-  const send = async () => {
+  const send = async (channel: "in_app" | "whatsapp" = "in_app") => {
     if (!ctx || !taskId) return;
+    if (channel === "whatsapp") {
+      const link = buildTaskWaLink(ctx.assigneePhone, message);
+      if (!link) { toast.error(`${ctx.assigneeName} has no phone number on file`); return; }
+      window.open(link, "_blank", "noopener");
+    }
     setBusy(true);
     const { error } = await sendTaskRequirements({
       taskId,
@@ -56,13 +61,19 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
       leadId,
       companyId,
       sentByUserId: profile?.id ?? null,
+      channel,
     });
     setBusy(false);
     if (error) { toast.error(error); return; }
-    toast.success(`Requirements sent to ${ctx.assigneeName} ✓`);
+    toast.success(
+      channel === "whatsapp"
+        ? `WhatsApp opened for ${ctx.assigneeName} ✓`
+        : `Requirements sent to ${ctx.assigneeName} ✓`,
+    );
     onSent?.();
     onOpenChange(false);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
