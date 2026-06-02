@@ -742,7 +742,13 @@ function LeadProfile() {
         open={!!bookQuoteId}
         onOpenChange={(v) => { if (!v) setBookQuoteId(null); }}
         quotationId={bookQuoteId}
-        onConfirmed={() => { loadBookings(); loadQuotations(); load(); }}
+        onConfirmed={(bookingId) => { loadBookings(); loadQuotations(); load(); setConfirmationBookingId(bookingId); }}
+      />
+      <BookingConfirmationDialog
+        open={!!confirmationBookingId}
+        onOpenChange={(v) => { if (!v) setConfirmationBookingId(null); }}
+        bookingId={confirmationBookingId}
+        onSent={() => { loadBookings(); load(); }}
       />
       {chequeBooking && (
         <ChequeClearDialog open={!!chequeBooking} onOpenChange={(v) => { if (!v) setChequeBooking(null); }}
