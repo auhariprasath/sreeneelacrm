@@ -557,6 +557,9 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => { setPayCredsBooking(b); setPayCredsOpen(true); }}>
                             <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay details
                           </Button>
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setAddTaskBooking(b)}>
+                            <ListChecks className="h-3.5 w-3.5 mr-1" /> Add task
+                          </Button>
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
