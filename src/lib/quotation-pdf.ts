@@ -143,28 +143,38 @@ export function generateQuotationPdf(input: QuotationPdfInput): Blob {
   y += 4; line(y); y += 14;
   totRow("Total", formatINR(input.quotation.total), true);
 
-  // Payment info
-  y += 18;
-  ensure(80);
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Payment", M, y); y += 14;
-  doc.setFont("helvetica", "normal"); doc.setTextColor(80);
-  const pay: string[] = [];
-  if (input.company.upi_id) pay.push(`UPI: ${input.company.upi_id}`);
-  if (input.company.bank_account) pay.push(`A/C: ${input.company.bank_account}`);
-  if (input.company.ifsc) pay.push(`IFSC: ${input.company.ifsc}`);
-  if (!pay.length) pay.push("Payment details will be shared on confirmation.");
-  pay.forEach((l) => { doc.text(l, M, y); y += 12; });
+  // Notes line (no bank details on this clean format)
+  y += 14;
+  ensure(40);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(110);
+  doc.text("Payment details will be shared on confirmation.", M, y); y += 12;
   doc.setTextColor(20);
 
   // Cancellation policy
   if (input.company.cancellation_policy) {
     y += 10; ensure(40);
-    doc.setFont("helvetica", "bold"); doc.text("Cancellation policy", M, y); y += 12;
-    doc.setFont("helvetica", "normal"); doc.setTextColor(80);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("Cancellation policy", M, y); y += 12;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(80);
     const lines = doc.splitTextToSize(input.company.cancellation_policy, pageW - M * 2);
     lines.forEach((l: string) => { ensure(12); doc.text(l, M, y); y += 12; });
     doc.setTextColor(20);
   }
+
+  // Green acceptance box at bottom of last page
+  const boxH = 78;
+  if (y + boxH > pageH - M - 30) { doc.addPage(); y = M; }
+  y = Math.max(y + 16, pageH - M - boxH - 24);
+  doc.setFillColor(220, 247, 226);
+  doc.setDrawColor(34, 153, 84);
+  doc.roundedRect(M, y, pageW - M * 2, boxH, 8, 8, "FD");
+  doc.setTextColor(20, 83, 45);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+  doc.text("Ready to confirm?", M + 14, y + 22);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  const accept = `Reply "AGREED" on WhatsApp${input.company.wa_number ? ` to ${input.company.wa_number}` : ""} to lock your date and proceed with booking.`;
+  const acceptLines = doc.splitTextToSize(accept, pageW - M * 2 - 28);
+  doc.text(acceptLines, M + 14, y + 42);
+  doc.setTextColor(20);
 
   // Footer
   const pages = doc.getNumberOfPages();
