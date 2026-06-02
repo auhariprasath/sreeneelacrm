@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Briefcase, Plus, CheckCircle2, AlertTriangle, Star, MessageSquare, Trash2, UserPlus, Lock, Link as LinkIcon, Copy, Package, Car, MapPin,
+  Briefcase, Plus, CheckCircle2, AlertTriangle, Star, MessageSquare, Trash2, UserPlus, Lock, Link as LinkIcon, Package, Car, MapPin,
 } from "lucide-react";
 import { formatINR, formatDateIN, formatTimeOfDay, formatDateTimeIN } from "@/lib/format";
 import type { Database } from "@/integrations/supabase/types";
