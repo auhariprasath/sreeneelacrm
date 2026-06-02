@@ -12,8 +12,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Archive, ArchiveRestore, Pencil } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Pencil, Settings2 } from "lucide-react";
 import { SkeletonList } from "@/components/skeleton-list";
+import { CompanyDetailsDialog } from "@/components/settings/company-details-dialog";
 
 type CompanyType = "banquet" | "garden" | "mandapam" | "party";
 interface Row {
