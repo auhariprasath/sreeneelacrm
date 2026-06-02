@@ -564,6 +564,9 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setAddTaskBooking(b)}>
                             <ListChecks className="h-3.5 w-3.5 mr-1" /> Add task
                           </Button>
+                          <Button size="sm" variant="outline" className="h-8" onClick={() => setConfirmationBookingId(b.id)}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> {b.confirmation_sent_at ? "Resend confirmation" : "Send confirmation"}
+                          </Button>
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
