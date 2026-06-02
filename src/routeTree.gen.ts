@@ -36,6 +36,7 @@ import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
+import { Route as ApiPublicHooksCustomTaskRemindersRouteImport } from './routes/api/public/hooks/custom-task-reminders'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -174,6 +175,12 @@ const ApiPublicHooksPostEventAutomationRoute =
     path: '/api/public/hooks/post-event-automation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCustomTaskRemindersRoute =
+  ApiPublicHooksCustomTaskRemindersRouteImport.update({
+    id: '/api/public/hooks/custom-task-reminders',
+    path: '/api/public/hooks/custom-task-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
+  '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
@@ -226,6 +234,7 @@ export interface FileRoutesByTo {
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
+  '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
@@ -256,6 +265,7 @@ export interface FileRoutesById {
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
+  '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
+    | '/api/public/hooks/custom-task-reminders'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/task-reminders'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
+    | '/api/public/hooks/custom-task-reminders'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/task-reminders'
@@ -342,6 +354,7 @@ export interface FileRouteTypes {
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
+    | '/api/public/hooks/custom-task-reminders'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/task-reminders'
@@ -357,6 +370,7 @@ export interface RootRouteChildren {
   FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
   VendorStatusTokenRoute: typeof VendorStatusTokenRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
+  ApiPublicHooksCustomTaskRemindersRoute: typeof ApiPublicHooksCustomTaskRemindersRoute
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
   ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
@@ -553,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPostEventAutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/custom-task-reminders': {
+      id: '/api/public/hooks/custom-task-reminders'
+      path: '/api/public/hooks/custom-task-reminders'
+      fullPath: '/api/public/hooks/custom-task-reminders'
+      preLoaderRoute: typeof ApiPublicHooksCustomTaskRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -614,6 +635,8 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackBookingIdRoute: FeedbackBookingIdRoute,
   VendorStatusTokenRoute: VendorStatusTokenRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
+  ApiPublicHooksCustomTaskRemindersRoute:
+    ApiPublicHooksCustomTaskRemindersRoute,
   ApiPublicHooksPostEventAutomationRoute:
     ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
