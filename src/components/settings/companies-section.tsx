@@ -12,8 +12,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Archive, ArchiveRestore, Pencil } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Pencil, Settings2 } from "lucide-react";
 import { SkeletonList } from "@/components/skeleton-list";
+import { CompanyDetailsDialog } from "@/components/settings/company-details-dialog";
 
 type CompanyType = "banquet" | "garden" | "mandapam" | "party";
 interface Row {
@@ -38,6 +39,7 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -120,7 +122,11 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
                 )}
               </div>
               {editId !== r.id && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" className="min-h-10"
+                    onClick={() => setDetailsId(r.id)}>
+                    <Settings2 className="h-4 w-4 mr-1.5" /> Edit details
+                  </Button>
                   <Button variant="outline" size="sm" className="min-h-10"
                     onClick={() => { setEditId(r.id); setEditName(r.name); }}>
                     <Pencil className="h-4 w-4 mr-1.5" /> Rename
@@ -168,6 +174,13 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CompanyDetailsDialog
+        companyId={detailsId}
+        open={detailsId !== null}
+        onOpenChange={(v) => { if (!v) setDetailsId(null); }}
+        onSaved={() => { load(); onChange?.(); }}
+      />
     </div>
   );
 }
