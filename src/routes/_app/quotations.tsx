@@ -263,9 +263,18 @@ function QuotationsPage() {
                         <td className="p-3 text-center"><Badge className={statusColor(r.status)}>{r.status}</Badge></td>
                         <td className="p-3 text-xs text-muted-foreground">{r.sent_at ? formatDateIN(r.sent_at) : "—"}</td>
                         <td className="p-3 text-right">
-                          <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-primary hover:underline inline-flex items-center gap-1 text-xs">
-                            Open lead <ExternalLink className="h-3 w-3" />
-                          </Link>
+                          <div className="inline-flex items-center gap-1">
+                            <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-primary hover:underline inline-flex items-center gap-1 text-xs">
+                              Open lead <ExternalLink className="h-3 w-3" />
+                            </Link>
+                            <InvoiceRowMenu
+                              quotationId={r.id}
+                              leadId={r.lead_id}
+                              pdfUrl={r.pdf_url}
+                              versionLabel={`v${r.version}`}
+                              onDeleted={refresh}
+                            />
+                          </div>
                         </td>
                       </tr>
                     ))}
