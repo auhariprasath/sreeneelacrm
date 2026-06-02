@@ -24,6 +24,7 @@ type EnrichedTask = TaskRow & {
   lead_id: string | null;
   event_date: string | null;
   assignee_name: string | null;
+  has_reminder: boolean;
 };
 
 type Bucket = "pending" | "in_progress" | "done" | "overdue";
