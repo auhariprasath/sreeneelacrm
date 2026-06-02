@@ -25,6 +25,7 @@ import { CompaniesSection } from "@/components/settings/companies-section";
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
 const SECTIONS = [
+  { id: "companies", label: "Companies", icon: Building2, superOnly: true },
   { id: "company", label: "Company details", icon: Building2, superOnly: false },
   { id: "location", label: "Location & Meeting", icon: MapPin, superOnly: false },
   { id: "photos", label: "Venue photos", icon: ImageIcon, superOnly: false },
