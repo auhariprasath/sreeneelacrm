@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { SkeletonList } from "@/components/skeleton-list";
 import { formatINR, formatDateIN, formatPhoneIN, relativeTime } from "@/lib/format";
 import { FileText, Search, Download, ExternalLink } from "lucide-react";
+import { InvoiceRowMenu } from "@/components/quotations/invoice-row-menu";
 
 export const Route = createFileRoute("/_app/quotations")({ component: QuotationsPage });
 
