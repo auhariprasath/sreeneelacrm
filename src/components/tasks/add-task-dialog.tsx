@@ -212,6 +212,24 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
               </Select>
             </div>
           </div>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={reminderEnabled}
+                onChange={(e) => setReminderEnabled(e.target.checked)}
+              />
+              Set a reminder for this task
+            </label>
+            {reminderEnabled && (
+              <TaskReminderSection
+                value={reminderForm}
+                onChange={setReminderForm}
+                hasBookingDate={!!bookingEventDate}
+              />
+            )}
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>
