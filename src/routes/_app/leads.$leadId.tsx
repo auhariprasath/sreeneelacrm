@@ -460,7 +460,7 @@ function LeadProfile() {
                         Updated {relativeTime(q.updated_at)}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
                         Open
                       </Button>
@@ -473,6 +473,15 @@ function LeadProfile() {
                           <Send className="h-3.5 w-3.5 mr-1" /> Send
                         </Button>
                       )}
+                      <InvoiceRowMenu
+                        quotationId={q.id}
+                        leadId={leadId}
+                        pdfUrl={q.pdf_url}
+                        versionLabel={`v${q.version}`}
+                        onView={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}
+                        onResend={() => setSendQuoteId(q.id)}
+                        onDeleted={loadQuotations}
+                      />
                     </div>
                   </div>
                 ))}
