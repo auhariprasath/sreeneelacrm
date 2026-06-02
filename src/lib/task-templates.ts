@@ -10,6 +10,8 @@ export type TaskOffsetKey =
   | "day_of"
   | "custom";
 
+export type AssignToRole = "manager" | "ops_supervisor" | "any_available" | "specific";
+
 export interface TaskTemplate {
   id?: string;
   title: string;
@@ -17,6 +19,7 @@ export interface TaskTemplate {
   when: TaskOffsetKey;
   custom_hours?: number; // negative = before, used when when === "custom"
   assigned_to?: string | null;
+  assign_to_role?: AssignToRole;
   priority?: "low" | "medium" | "high";
 }
 

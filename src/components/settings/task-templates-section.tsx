@@ -40,7 +40,7 @@ export function TaskTemplatesSection({ companyId }: { companyId: string }) {
     const j = i + dir; if (j < 0 || j >= arr.length) return arr;
     const next = arr.slice(); [next[i], next[j]] = [next[j]!, next[i]!]; return next;
   });
-  const add = () => setItems((arr) => [...arr, { title: "", when: "7d_before", priority: "medium", assigned_to: null }]);
+  const add = () => setItems((arr) => [...arr, { title: "", when: "7d_before", priority: "medium", assigned_to: null, assign_to_role: "any_available" }]);
 
   const save = async () => {
     setSaving(true);
@@ -83,16 +83,31 @@ export function TaskTemplatesSection({ companyId }: { companyId: string }) {
               </div>
             )}
             <div>
-              <Label>Assign to</Label>
+              <Label>Assign to role</Label>
               <select
                 className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={t.assigned_to ?? ""}
-                onChange={(e) => update(i, { assigned_to: e.target.value || null })}
+                value={t.assign_to_role ?? "any_available"}
+                onChange={(e) => update(i, { assign_to_role: e.target.value as any, assigned_to: e.target.value === "specific" ? t.assigned_to ?? null : null })}
               >
-                <option value="">Unassigned</option>
-                {staff.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+                <option value="manager">Manager</option>
+                <option value="ops_supervisor">Operations supervisor</option>
+                <option value="any_available">Any available</option>
+                <option value="specific">Specific person</option>
               </select>
             </div>
+            {(t.assign_to_role ?? "any_available") === "specific" && (
+              <div>
+                <Label>Specific staff</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={t.assigned_to ?? ""}
+                  onChange={(e) => update(i, { assigned_to: e.target.value || null })}
+                >
+                  <option value="">— Select staff —</option>
+                  {staff.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+                </select>
+              </div>
+            )}
             <div>
               <Label>Priority</Label>
               <select

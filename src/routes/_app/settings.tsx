@@ -42,6 +42,7 @@ const SECTIONS = [
   { id: "cancellation", label: "Cancellation policy", icon: FileText, superOnly: true },
   { id: "drop", label: "Drop reasons", icon: XCircle, superOnly: true },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: true },
+  { id: "confirmation", label: "Confirmation message", icon: MessageSquare, superOnly: false },
   { id: "vendors", label: "Vendor list", icon: Users, superOnly: true },
   { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
 ] as const;
@@ -142,12 +143,12 @@ function CompanySection({ companyId }: { companyId: string }) {
 }
 
 function RemindersSection({ companyId }: { companyId: string | undefined }) {
-  const [row, setRow] = useState<Partial<CompanyRow> | null>(null);
+  const [row, setRow] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!companyId) return;
-    supabase.from("companies").select("default_follow_up_minutes,default_callback_time,max_follow_up_attempts").eq("id", companyId).maybeSingle().then(({ data }) => setRow(data as any));
+    supabase.from("companies").select("default_follow_up_minutes,default_callback_time,max_follow_up_attempts,task_reminder_on_booking,task_reminder_2d,task_reminder_at_due,send_task_requirements_wa,task_overdue_escalation_hours").eq("id", companyId).maybeSingle().then(({ data }) => setRow(data as any));
   }, [companyId]);
 
   if (!companyId) return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
@@ -159,13 +160,17 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
       default_follow_up_minutes: Number(row.default_follow_up_minutes) || 60,
       default_callback_time: row.default_callback_time || "10:00",
       max_follow_up_attempts: Number(row.max_follow_up_attempts) || 5,
+      task_reminder_on_booking: !!row.task_reminder_on_booking,
+      task_reminder_2d: !!row.task_reminder_2d,
+      task_reminder_at_due: !!row.task_reminder_at_due,
+      send_task_requirements_wa: !!row.send_task_requirements_wa,
+      task_overdue_escalation_hours: Number(row.task_overdue_escalation_hours) || 2,
     }).eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Saved ✓");
   };
 
-  // Convert minutes to HH:MM for time picker default-display
   const minutesToHHMM = (m: number) => {
     const h = Math.floor(m / 60); const mm = m % 60;
     return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
@@ -173,6 +178,16 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
   const hhmmToMinutes = (s: string) => {
     const [h, m] = s.split(":").map(Number); return (h || 0) * 60 + (m || 0);
   };
+
+  const Toggle = ({ k, label, desc }: { k: string; label: string; desc?: string }) => (
+    <div className="flex items-start justify-between gap-4 border rounded-md p-3 md:col-span-2">
+      <div className="space-y-0.5 min-w-0">
+        <Label>{label}</Label>
+        {desc && <p className="text-xs text-muted-foreground">{desc}</p>}
+      </div>
+      <input type="checkbox" className="h-5 w-5 mt-1" checked={!!row[k]} onChange={(e) => setRow({ ...row, [k]: e.target.checked })} />
+    </div>
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -190,7 +205,77 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
         <Input type="time" value={row.default_callback_time ?? "10:00"} onChange={(e) => setRow({ ...row, default_callback_time: e.target.value })} />
         <p className="text-xs text-muted-foreground">Default time for next-day callbacks.</p>
       </div>
+      <div className="md:col-span-2 pt-2 border-t" />
+      <div className="md:col-span-2 text-sm font-medium">Task reminders</div>
+      <Toggle k="task_reminder_on_booking" label="Task reminder on booking" desc="Notify assignee immediately when a task is created." />
+      <Toggle k="task_reminder_2d" label="Task reminder 2 days before event" desc="Fired at ~9 AM, 2 days before the event date." />
+      <Toggle k="task_reminder_at_due" label="Task reminder at due time" desc="Fired once the task's due_at is reached." />
+      <Toggle k="send_task_requirements_wa" label="Send task requirements via WhatsApp" desc="In addition to in-app notification." />
+      <div className="space-y-1.5 md:col-span-2">
+        <Label>Task overdue escalation delay (hours)</Label>
+        <Input type="number" min={0} value={row.task_overdue_escalation_hours ?? 2} onChange={(e) => setRow({ ...row, task_overdue_escalation_hours: Number(e.target.value) })} />
+        <p className="text-xs text-muted-foreground">Admin gets escalation notification this many hours after due_at if task is still not completed.</p>
+      </div>
       <div className="md:col-span-2 flex justify-end">
+        <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmationMessageSection({ companyId }: { companyId: string | undefined }) {
+  const [row, setRow] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!companyId) return;
+    supabase.from("companies").select("confirmation_reminder_lines,confirmation_closing_line,confirmation_auto_send").eq("id", companyId).maybeSingle().then(({ data }) => setRow(data as any));
+  }, [companyId]);
+
+  if (!companyId) return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
+  if (!row) return <div className="text-sm text-muted-foreground p-6">Loading…</div>;
+
+  const lines: string[] = Array.isArray(row.confirmation_reminder_lines) ? row.confirmation_reminder_lines : [];
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("companies").update({
+      confirmation_reminder_lines: lines.filter((l) => l.trim().length > 0) as any,
+      confirmation_closing_line: row.confirmation_closing_line || null,
+      confirmation_auto_send: !!row.confirmation_auto_send,
+    }).eq("id", companyId);
+    setSaving(false);
+    if (error) toast.error(error.message); else toast.success("Saved ✓");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Custom reminder lines</Label>
+        <p className="text-xs text-muted-foreground mb-2">Shown under "Important Reminders" in the booking confirmation message.</p>
+        <div className="space-y-2">
+          {lines.map((l, i) => (
+            <div key={i} className="flex gap-2">
+              <Input value={l} onChange={(e) => setRow({ ...row, confirmation_reminder_lines: lines.map((x, j) => j === i ? e.target.value : x) })} />
+              <Button variant="ghost" size="icon" onClick={() => setRow({ ...row, confirmation_reminder_lines: lines.filter((_, j) => j !== i) })} aria-label="Remove"><XCircle className="h-4 w-4" /></Button>
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => setRow({ ...row, confirmation_reminder_lines: [...lines, ""] })}><Plus className="h-4 w-4 mr-1" /> Add reminder line</Button>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Closing line</Label>
+        <Textarea rows={2} value={row.confirmation_closing_line ?? ""} onChange={(e) => setRow({ ...row, confirmation_closing_line: e.target.value })} placeholder="We look forward to making your [event_type] truly memorable." />
+        <p className="text-xs text-muted-foreground">Placeholders like <code>[event_type]</code>, <code>[company_name]</code> will be filled in.</p>
+      </div>
+      <div className="flex items-start justify-between gap-4 border rounded-md p-3">
+        <div className="space-y-0.5 min-w-0">
+          <Label>Auto-send confirmation on booking</Label>
+          <p className="text-xs text-muted-foreground">If ON, the confirmation message is sent automatically. If OFF (recommended), staff sees a preview first.</p>
+        </div>
+        <input type="checkbox" className="h-5 w-5 mt-1" checked={!!row.confirmation_auto_send} onChange={(e) => setRow({ ...row, confirmation_auto_send: e.target.checked })} />
+      </div>
+      <div className="flex justify-end">
         <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
       </div>
     </div>
@@ -551,10 +636,14 @@ function SettingsPage() {
         );
       }
       case "wa": {
-        const tokens = "Available tokens: {{client_name}}, {{event_date}}, {{venue}}, {{amount}}, {{balance}}, {{company_name}}, {{quotation_number}}";
+        const tokens = "Tokens: [client_name] [company_name] [event_type] [event_date] [start_time] [end_time] [guest_count] [total_amount] [amount_paid] [balance_amount] [staff_name] [task_title] [task_due_date] [venue_address]";
         const fields: CompanyField[] = [
-          { key: "wa_template_payment_reminder", label: "Payment reminder", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Hi {{client_name}}, this is a reminder for the pending payment of ₹{{balance}} for your event on {{event_date}}." },
-          { key: "wa_template_thank_you", label: "Thank you / booking confirmation", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Thank you {{client_name}}! Your booking for {{event_date}} at {{venue}} is confirmed." },
+          { key: "wa_template_booking_confirmed", label: "Booking confirmed", type: "textarea", rows: 8, fullWidth: true, description: tokens, placeholder: "Dear [client_name], your booking with [company_name] is confirmed for [event_date]…" },
+          { key: "wa_template_task_assigned", label: "Task assigned", type: "textarea", rows: 6, fullWidth: true, description: tokens, placeholder: "📋 Task assigned to you — [task_title]…" },
+          { key: "wa_template_task_reminder_2d", label: "Task reminder (2 days before)", type: "textarea", rows: 4, fullWidth: true, description: tokens },
+          { key: "wa_template_task_completed", label: "Task completed", type: "textarea", rows: 4, fullWidth: true, description: tokens },
+          { key: "wa_template_payment_reminder", label: "Payment reminder", type: "textarea", rows: 4, fullWidth: true, description: tokens, placeholder: "Hi [client_name], reminder for pending payment of ₹[balance_amount]…" },
+          { key: "wa_template_thank_you", label: "Thank you", type: "textarea", rows: 4, fullWidth: true, description: tokens },
           { key: "wa_template_reschedule", label: "Reschedule notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
           { key: "wa_template_competing_leads", label: "Competing leads notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
           { key: "auto_wa_on_reschedule", label: "Send WhatsApp automatically on reschedule", type: "switch" },
@@ -565,7 +654,7 @@ function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>WhatsApp templates</CardTitle>
-              <CardDescription>Message templates used by the reminder engine and booking flows.</CardDescription>
+              <CardDescription>Message templates used by the reminder engine and booking flows. Use square-bracket placeholders, e.g. <code>[client_name]</code>.</CardDescription>
             </CardHeader>
             <CardContent>
               {role === "super_admin" && companies.length > 0 && (
@@ -574,6 +663,24 @@ function SettingsPage() {
                 </Tabs>
               )}
               <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "confirmation": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Confirmation message</CardTitle>
+              <CardDescription>Reminder lines, closing line, and auto-send behaviour for the booking confirmation message sent to clients.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {role === "super_admin" && companies.length > 0 && (
+                <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
+                  <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
+                </Tabs>
+              )}
+              <ConfirmationMessageSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );
