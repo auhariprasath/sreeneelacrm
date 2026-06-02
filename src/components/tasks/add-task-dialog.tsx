@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TaskRequirementsDialog } from "./task-requirements-dialog";
 
 interface Staff { id: string; full_name: string }
 interface BookingOpt { id: string; event_date: string; lead_name: string }
@@ -41,6 +42,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   const [dueDate, setDueDate] = useState<string>(initialDate.toISOString().slice(0, 10));
   const [dueTime, setDueTime] = useState<string>(initialDate.toTimeString().slice(0, 5));
   const [busy, setBusy] = useState(false);
+  const [requirementsTaskId, setRequirementsTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -87,7 +89,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     if (!title.trim()) { toast.error("Task name is required"); return; }
     setBusy(true);
     const dueAt = new Date(`${dueDate}T${dueTime}:00`).toISOString();
-    const { error } = await supabase.from("tasks").insert({
+    const { data: inserted, error } = await supabase.from("tasks").insert({
       booking_id: finalBookingId,
       company_id: companyId,
       title: title.trim(),
@@ -97,15 +99,21 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
       due_at: dueAt,
       is_from_template: false,
       created_by: profile?.id ?? null,
-    });
+    }).select("id").maybeSingle();
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Task added");
     onCreated?.();
-    onOpenChange(false);
+    // If task has an assignee, open the requirements preview dialog
+    if (assignedTo && inserted?.id) {
+      setRequirementsTaskId(inserted.id);
+    } else {
+      onOpenChange(false);
+    }
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -174,6 +182,17 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <TaskRequirementsDialog
+      taskId={requirementsTaskId}
+      open={!!requirementsTaskId}
+      onOpenChange={(v) => {
+        if (!v) {
+          setRequirementsTaskId(null);
+          onOpenChange(false);
+        }
+      }}
+    />
+  </>
   );
 }
 

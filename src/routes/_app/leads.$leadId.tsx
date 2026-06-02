@@ -31,6 +31,7 @@ import { EventDayLogs } from "@/components/bookings/event-day-logs";
 import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials-dialog";
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
 import { AddTaskDialog } from "@/components/tasks/add-task-dialog";
+import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -533,6 +534,7 @@ function LeadProfile() {
                           ))}
                         </div>
                       )}
+                      <BookingTasksList bookingId={b.id} />
                       <RemindersList bookingId={b.id} phone={lead.phone} />
                       {b.status !== "cancelled" && (
                         <VendorAssignment
