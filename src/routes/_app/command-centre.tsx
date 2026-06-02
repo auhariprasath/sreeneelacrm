@@ -233,6 +233,7 @@ function CommandCentrePage() {
           <TabsTrigger value="overview"><Building2 className="h-4 w-4 mr-2" />Companies</TabsTrigger>
           <TabsTrigger value="sessions"><Activity className="h-4 w-4 mr-2" />Sessions</TabsTrigger>
           <TabsTrigger value="referrals"><Gift className="h-4 w-4 mr-2" />Referrals</TabsTrigger>
+          <TabsTrigger value="not_interested"><XCircle className="h-4 w-4 mr-2" />Not interested</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
