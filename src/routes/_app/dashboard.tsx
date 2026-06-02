@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox, Clock, CheckCircle2, UserCheck } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
@@ -211,7 +212,7 @@ function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Active soft holds</CardTitle>
+            <CardTitle className="text-base flex items-center">Active soft holds<InfoTip tip="activeDateHolds" /></CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

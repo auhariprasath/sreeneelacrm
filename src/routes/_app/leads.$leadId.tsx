@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { InfoTip } from "@/components/ui/info-tip";
 import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
@@ -247,7 +248,7 @@ function LeadProfile() {
         <div className="bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-lg p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div className="text-sm">
-            <div className="font-medium">Flagged — do not contact (all companies)</div>
+            <div className="font-medium flex items-center">Flagged — do not contact (all companies)<InfoTip tip="flagContact" /></div>
             {lead.blacklist_reason && <div className="text-xs opacity-90 mt-0.5">Reason: {lead.blacklist_reason}</div>}
           </div>
         </div>
