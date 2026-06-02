@@ -55,6 +55,9 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
     if (!open) return;
     setTitle(""); setDescription(""); setAssignedTo(""); setPriority("medium");
     setPickedBookingId(bookingId ?? "");
+    setReminderEnabled(false);
+    setReminderForm(DEFAULT_REMINDER_FORM);
+    setBookingEventDate(null);
     const d = defaultDueAt ? new Date(defaultDueAt) : new Date(Date.now() + 24 * 3600_000);
     setDueDate(d.toISOString().slice(0, 10));
     setDueTime(d.toTimeString().slice(0, 5));
