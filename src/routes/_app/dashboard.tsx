@@ -212,7 +212,7 @@ function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Active soft holds</CardTitle>
+            <CardTitle className="text-base flex items-center">Active soft holds<InfoTip tip="activeDateHolds" /></CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
