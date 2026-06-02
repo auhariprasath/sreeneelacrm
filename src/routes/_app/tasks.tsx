@@ -181,7 +181,7 @@ function TasksPage() {
       {/* MOBILE list view */}
       {filtered && filtered.length > 0 && (
         <div className="space-y-2 md:hidden">
-          {filtered.map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} />)}
+          {filtered.map((t) => <TaskCard key={t.id} task={t} onStatus={setStatus} onOpenReminder={setReminderTaskId} />)}
         </div>
       )}
 
