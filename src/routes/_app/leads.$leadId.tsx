@@ -303,14 +303,6 @@ function LeadProfile() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <div className="ml-auto min-w-[180px]">
-                <Select value={lead.status} onValueChange={(v) => updateStatus(v as Status)}>
-                  <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTS.map((s) => <SelectItem key={s} value={s}>{s.replace("_"," ")}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
         </div>
