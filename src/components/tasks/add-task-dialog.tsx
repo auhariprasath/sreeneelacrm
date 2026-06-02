@@ -113,6 +113,7 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
