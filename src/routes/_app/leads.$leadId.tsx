@@ -228,6 +228,20 @@ function LeadProfile() {
         </div>
       )}
 
+      {/* Rejected transfer banner */}
+      {rejectedTransfer && lead.status !== "locked" && (
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-200 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <div className="font-medium">Transfer to {rejectedTransfer.to_name} was rejected</div>
+            {rejectedTransfer.rejection_reason && (
+              <div className="text-xs opacity-90 mt-0.5">Reason: {rejectedTransfer.rejection_reason}</div>
+            )}
+            <div className="text-[11px] opacity-75 mt-0.5">{formatDateTimeIN(rejectedTransfer.updated_at)}</div>
+          </div>
+        </div>
+      )}
+
       {/* Flag banner */}
       {lead.is_blacklisted && (
         <div className="bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-lg p-3 flex items-start gap-2">
