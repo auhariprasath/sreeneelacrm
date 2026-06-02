@@ -143,12 +143,12 @@ function CompanySection({ companyId }: { companyId: string }) {
 }
 
 function RemindersSection({ companyId }: { companyId: string | undefined }) {
-  const [row, setRow] = useState<Partial<CompanyRow> | null>(null);
+  const [row, setRow] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!companyId) return;
-    supabase.from("companies").select("default_follow_up_minutes,default_callback_time,max_follow_up_attempts").eq("id", companyId).maybeSingle().then(({ data }) => setRow(data as any));
+    supabase.from("companies").select("default_follow_up_minutes,default_callback_time,max_follow_up_attempts,task_reminder_on_booking,task_reminder_2d,task_reminder_at_due,send_task_requirements_wa,task_overdue_escalation_hours").eq("id", companyId).maybeSingle().then(({ data }) => setRow(data as any));
   }, [companyId]);
 
   if (!companyId) return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
@@ -160,13 +160,17 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
       default_follow_up_minutes: Number(row.default_follow_up_minutes) || 60,
       default_callback_time: row.default_callback_time || "10:00",
       max_follow_up_attempts: Number(row.max_follow_up_attempts) || 5,
+      task_reminder_on_booking: !!row.task_reminder_on_booking,
+      task_reminder_2d: !!row.task_reminder_2d,
+      task_reminder_at_due: !!row.task_reminder_at_due,
+      send_task_requirements_wa: !!row.send_task_requirements_wa,
+      task_overdue_escalation_hours: Number(row.task_overdue_escalation_hours) || 2,
     }).eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Saved ✓");
   };
 
-  // Convert minutes to HH:MM for time picker default-display
   const minutesToHHMM = (m: number) => {
     const h = Math.floor(m / 60); const mm = m % 60;
     return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
@@ -174,6 +178,16 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
   const hhmmToMinutes = (s: string) => {
     const [h, m] = s.split(":").map(Number); return (h || 0) * 60 + (m || 0);
   };
+
+  const Toggle = ({ k, label, desc }: { k: string; label: string; desc?: string }) => (
+    <div className="flex items-start justify-between gap-4 border rounded-md p-3 md:col-span-2">
+      <div className="space-y-0.5 min-w-0">
+        <Label>{label}</Label>
+        {desc && <p className="text-xs text-muted-foreground">{desc}</p>}
+      </div>
+      <input type="checkbox" className="h-5 w-5 mt-1" checked={!!row[k]} onChange={(e) => setRow({ ...row, [k]: e.target.checked })} />
+    </div>
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -190,6 +204,17 @@ function RemindersSection({ companyId }: { companyId: string | undefined }) {
         <Label>Default callback time</Label>
         <Input type="time" value={row.default_callback_time ?? "10:00"} onChange={(e) => setRow({ ...row, default_callback_time: e.target.value })} />
         <p className="text-xs text-muted-foreground">Default time for next-day callbacks.</p>
+      </div>
+      <div className="md:col-span-2 pt-2 border-t" />
+      <div className="md:col-span-2 text-sm font-medium">Task reminders</div>
+      <Toggle k="task_reminder_on_booking" label="Task reminder on booking" desc="Notify assignee immediately when a task is created." />
+      <Toggle k="task_reminder_2d" label="Task reminder 2 days before event" desc="Fired at ~9 AM, 2 days before the event date." />
+      <Toggle k="task_reminder_at_due" label="Task reminder at due time" desc="Fired once the task's due_at is reached." />
+      <Toggle k="send_task_requirements_wa" label="Send task requirements via WhatsApp" desc="In addition to in-app notification." />
+      <div className="space-y-1.5 md:col-span-2">
+        <Label>Task overdue escalation delay (hours)</Label>
+        <Input type="number" min={0} value={row.task_overdue_escalation_hours ?? 2} onChange={(e) => setRow({ ...row, task_overdue_escalation_hours: Number(e.target.value) })} />
+        <p className="text-xs text-muted-foreground">Admin gets escalation notification this many hours after due_at if task is still not completed.</p>
       </div>
       <div className="md:col-span-2 flex justify-end">
         <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
