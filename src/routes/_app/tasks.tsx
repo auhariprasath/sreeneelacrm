@@ -140,7 +140,7 @@ function TasksPage() {
         <TabsList className="flex-wrap">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="mine">My tasks</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
+          <TabsTrigger value="overdue">Overdue<InfoTip tip="overdueFollowUp" className="ml-1" /></TabsTrigger>
           <TabsTrigger value="done">Done</TabsTrigger>
         </TabsList>
       </Tabs>
