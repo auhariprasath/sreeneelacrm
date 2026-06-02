@@ -75,7 +75,7 @@ function CommandCentrePage() {
     setBusy(true);
     (async () => {
       const since30 = new Date(Date.now() - 30 * 86400_000).toISOString();
-      const [companiesRes, leadsRes, bookingsRes, wlRes, fbRes, loginRes, profilesRes, refRes, allLeadsRes] = await Promise.all([
+      const [companiesRes, leadsRes, bookingsRes, wlRes, fbRes, loginRes, profilesRes, refRes, allLeadsRes, lostRes] = await Promise.all([
         supabase.from("companies").select("id, name").is("deleted_at", null).order("name"),
         supabase.from("leads").select("company_id").is("deleted_at", null),
         supabase.from("bookings").select("company_id, total_amount, status").is("deleted_at", null),
@@ -87,6 +87,11 @@ function CommandCentrePage() {
         supabase.from("referral_loyalty_flags").select("id, referrer_lead_id, benefit_sent, benefit_sent_at, notes, flagged_by, created_at")
           .order("created_at", { ascending: false }),
         supabase.from("leads").select("id, full_name, referred_by_lead_id").is("deleted_at", null),
+        supabase.from("win_loss_log")
+          .select("lead_id, company_id, drop_reason, created_at, lead:leads(full_name, phone)")
+          .eq("outcome", "lost")
+          .order("created_at", { ascending: false })
+          .limit(200),
       ]);
       if (cancelled) return;
 
