@@ -21,6 +21,7 @@ import { RequirementSheet } from "@/components/requirements/requirement-sheet";
 import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
+import { InvoiceRowMenu } from "@/components/quotations/invoice-row-menu";
 import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dialog";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog";
