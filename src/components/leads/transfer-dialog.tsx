@@ -105,16 +105,21 @@ export function TransferDialog({ open, onOpenChange, leadId, fromCompanyId, perf
       performed_by: performedBy,
     });
 
-    // Notify admins at the target company
-    const { data: notifyTargets } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("company_id", toCompanyId)
-      .eq("is_active", true);
-    if (notifyTargets && notifyTargets.length > 0) {
+    // Notify admins at the target company AND all super admins (for review)
+    const [{ data: notifyTargets }, { data: saRoles }] = await Promise.all([
+      supabase.from("profiles").select("id").eq("company_id", toCompanyId).eq("is_active", true),
+      autoApprove
+        ? Promise.resolve({ data: [] as { user_id: string }[] })
+        : supabase.from("user_roles").select("user_id").eq("role", "super_admin"),
+    ]);
+    const recipientIds = new Set<string>();
+    (notifyTargets ?? []).forEach((p) => recipientIds.add(p.id));
+    (saRoles ?? []).forEach((r: any) => recipientIds.add(r.user_id));
+    recipientIds.delete(performedBy);
+    if (recipientIds.size > 0) {
       await supabase.from("notifications").insert(
-        notifyTargets.map((p) => ({
-          user_id: p.id,
+        [...recipientIds].map((uid) => ({
+          user_id: uid,
           lead_id: leadId,
           type: "transfer" as const,
           title: autoApprove ? "Lead transferred to your company" : "New transfer request",

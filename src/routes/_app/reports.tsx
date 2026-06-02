@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,34 +168,40 @@ function ReportsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card><CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase text-muted-foreground">Conversion</div>
-                  <div className="text-2xl font-semibold mt-1">{data.conversionPct}%</div>
-                  <div className="text-xs text-muted-foreground mt-1">{data.won} won · {data.lost} lost</div>
+            <Link to="/bookings" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
+              <Card className="transition hover:bg-accent/40 cursor-pointer h-full"><CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Conversion</div>
+                    <div className="text-2xl font-semibold mt-1">{data.conversionPct}%</div>
+                    <div className="text-xs text-muted-foreground mt-1">{data.won} won · {data.lost} lost</div>
+                  </div>
+                  <Trophy className="h-8 w-8 text-emerald-600" />
                 </div>
-                <Trophy className="h-8 w-8 text-emerald-600" />
-              </div>
-            </CardContent></Card>
-            <Card><CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase text-muted-foreground">Won value</div>
-                  <div className="text-2xl font-semibold mt-1">{formatINR(data.wonValue)}</div>
+              </CardContent></Card>
+            </Link>
+            <Link to="/bookings" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
+              <Card className="transition hover:bg-accent/40 cursor-pointer h-full"><CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Won value</div>
+                    <div className="text-2xl font-semibold mt-1">{formatINR(data.wonValue)}</div>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-emerald-600" />
                 </div>
-                <TrendingUp className="h-8 w-8 text-emerald-600" />
-              </div>
-            </CardContent></Card>
-            <Card><CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs uppercase text-muted-foreground">Lost value</div>
-                  <div className="text-2xl font-semibold mt-1">{formatINR(data.lostValue)}</div>
+              </CardContent></Card>
+            </Link>
+            <Link to="/command-centre" className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
+              <Card className="transition hover:bg-accent/40 cursor-pointer h-full"><CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Lost value</div>
+                    <div className="text-2xl font-semibold mt-1">{formatINR(data.lostValue)}</div>
+                  </div>
+                  <TrendingDown className="h-8 w-8 text-rose-600" />
                 </div>
-                <TrendingDown className="h-8 w-8 text-rose-600" />
-              </div>
-            </CardContent></Card>
+              </CardContent></Card>
+            </Link>
             <Card><CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -209,6 +215,7 @@ function ReportsPage() {
               </div>
             </CardContent></Card>
           </div>
+
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
@@ -263,9 +270,14 @@ function ReportsPage() {
                 ) : (
                   <ul className="divide-y text-sm">
                     {data.dropReasons.slice(0, 8).map((r) => (
-                      <li key={r.reason} className="py-2 flex items-center justify-between">
-                        <span className="truncate pr-2">{r.reason}</span>
-                        <span className="text-xs font-medium text-muted-foreground">{r.count}</span>
+                      <li key={r.reason}>
+                        <Link
+                          to="/command-centre"
+                          className="py-2 flex items-center justify-between gap-2 hover:bg-accent/40 rounded px-1 -mx-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className="truncate pr-2">{r.reason}</span>
+                          <span className="text-xs font-medium text-muted-foreground">{r.count}</span>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -288,11 +300,16 @@ function ReportsPage() {
                 ) : (
                   <ul className="divide-y text-sm">
                     {data.competitors.slice(0, 8).map((c) => (
-                      <li key={c.name} className="py-2 flex items-center justify-between">
-                        <span className="truncate pr-2">{c.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {c.count} · {formatINR(c.value)}
-                        </span>
+                      <li key={c.name}>
+                        <Link
+                          to="/command-centre"
+                          className="py-2 flex items-center justify-between gap-2 hover:bg-accent/40 rounded px-1 -mx-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className="truncate pr-2">{c.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {c.count} · {formatINR(c.value)}
+                          </span>
+                        </Link>
                       </li>
                     ))}
                   </ul>
