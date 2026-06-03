@@ -477,8 +477,6 @@ export type Database = {
           peak_season_dates: Json
           quotation_counter: number
           quotation_prefix: string
-          razorpay_key_id: string | null
-          razorpay_key_secret: string | null
           razorpay_test_mode: boolean
           reengagement_auto_send: boolean
           reengagement_delay_days: number
@@ -560,8 +558,6 @@ export type Database = {
           peak_season_dates?: Json
           quotation_counter?: number
           quotation_prefix?: string
-          razorpay_key_id?: string | null
-          razorpay_key_secret?: string | null
           razorpay_test_mode?: boolean
           reengagement_auto_send?: boolean
           reengagement_delay_days?: number
@@ -643,8 +639,6 @@ export type Database = {
           peak_season_dates?: Json
           quotation_counter?: number
           quotation_prefix?: string
-          razorpay_key_id?: string | null
-          razorpay_key_secret?: string | null
           razorpay_test_mode?: boolean
           reengagement_auto_send?: boolean
           reengagement_delay_days?: number
@@ -681,6 +675,38 @@ export type Database = {
           wa_template_thank_you?: string | null
         }
         Relationships: []
+      }
+      company_payment_credentials: {
+        Row: {
+          company_id: string
+          created_at: string
+          razorpay_key_id: string | null
+          razorpay_key_secret: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          razorpay_key_id?: string | null
+          razorpay_key_secret?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          razorpay_key_id?: string | null
+          razorpay_key_secret?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_payment_credentials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_day_logs: {
         Row: {
@@ -1247,6 +1273,7 @@ export type Database = {
         Row: {
           benefit_sent: boolean
           benefit_sent_at: string | null
+          company_id: string | null
           created_at: string
           flagged_by: string | null
           id: string
@@ -1257,6 +1284,7 @@ export type Database = {
         Insert: {
           benefit_sent?: boolean
           benefit_sent_at?: string | null
+          company_id?: string | null
           created_at?: string
           flagged_by?: string | null
           id?: string
@@ -1267,6 +1295,7 @@ export type Database = {
         Update: {
           benefit_sent?: boolean
           benefit_sent_at?: string | null
+          company_id?: string | null
           created_at?: string
           flagged_by?: string | null
           id?: string
