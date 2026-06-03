@@ -42,12 +42,10 @@ function FeedbackPage() {
         .eq("id", bookingId)
         .maybeSingle();
       if (booking) {
-        const [{ data: company }, { data: lead }, { data: prior }] = await Promise.all([
+        const [{ data: company }, { data: lead }] = await Promise.all([
           supabase.from("companies").select("name").eq("id", booking.company_id).maybeSingle(),
           supabase.from("leads").select("full_name").eq("id", booking.lead_id).maybeSingle(),
-          supabase.from("feedback").select("id").eq("booking_id", booking.id).limit(1),
         ]);
-        if (prior && prior.length > 0) setAlreadyDone(true);
         setInfo({ ...booking, company_name: company?.name ?? null, client_name: lead?.full_name ?? null });
       }
       setLoading(false);
@@ -65,7 +63,10 @@ function FeedbackPage() {
         rating,
         comment: comment.trim() || null,
       });
-      if (error) throw error;
+      if (error) {
+        if ((error as any).code === "23505") { setAlreadyDone(true); return; }
+        throw error;
+      }
 
       // Low-rating SA alert
       if (rating <= 3) {

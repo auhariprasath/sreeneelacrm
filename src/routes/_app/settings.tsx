@@ -16,6 +16,7 @@ import {
 import { StaffSection } from "@/components/settings/staff-section";
 import { JsonListSection } from "@/components/settings/json-list-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
+import { PaymentCredentialsSection } from "@/components/settings/payment-credentials-section";
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { PhotoGallerySection } from "@/components/settings/photo-gallery-section";
@@ -424,8 +425,6 @@ function SettingsPage() {
       case "payment": {
         const fields: CompanyField[] = [
           { key: "payment_method", label: "Payment method", placeholder: "manual or razorpay", description: "Set to 'razorpay' to enable auto-detection via Razorpay payment links.", fullWidth: true },
-          { key: "razorpay_key_id", label: "Razorpay Key ID", placeholder: "rzp_test_xxx or rzp_live_xxx" },
-          { key: "razorpay_key_secret", label: "Razorpay Key Secret", placeholder: "Stored encrypted server-side" },
           { key: "razorpay_test_mode", label: "Razorpay test mode", type: "switch", description: "Off = live keys." },
           { key: "vendor_status_reminder_hours", label: "Vendor status reminder (hours before event)", type: "number", suffix: "hrs", description: "Auto-WA to vendors who haven't updated status N hours before event." },
         ];
@@ -435,13 +434,14 @@ function SettingsPage() {
               <CardTitle>Payment gateway</CardTitle>
               <CardDescription>Manual is always available. Razorpay enables auto-detected payments via webhook.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               {role === "super_admin" && companies.length > 0 && (
                 <Tabs value={companyTab} onValueChange={setCompanyTab} className="mb-6">
                   <TabsList className="flex-wrap">{companies.map((c) => <TabsTrigger key={c.id} value={c.id}>{c.name}</TabsTrigger>)}</TabsList>
                 </Tabs>
               )}
               <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+              <PaymentCredentialsSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );
