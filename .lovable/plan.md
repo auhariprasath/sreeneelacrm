@@ -1,84 +1,58 @@
-# Phase 2 — Neela Events CRM Build Plan
+# Settings restructure plan
 
-Phase 2 is large (~50 features). I'll deliver it in **6 sequential chunks**, each independently reviewable in the preview. After each chunk you can test and give feedback before I continue. This avoids a 2000-line single drop that's hard to verify.
+This is a large rebuild touching the sidebar, the Companies experience, and several new per-company fields (coordinators, service tabs, per-company discount rules). I'll ship it in three stages so each one is reviewable. Say "next" between stages.
 
 ---
 
-## Chunk 1 — Database foundation + global app shell
-**Goal:** Schema, RLS, indexes, soft delete, mobile shell ready for features.
+## Stage 1 — Sidebar + Companies entry (ship first)
 
-- Migrations:
-  - `leads`, `activity_logs`, `transfer_requests`, `notifications`, `follow_ups` tables
-  - Enums: lead_source, lead_score, lead_status, action_type, transfer_status, notification_type
-  - Add `fcm_token`, `phone_masked`, `last_active_at` to `profiles`
-  - Unique constraint: `(phone, company_id)` on leads
-  - Indexes on all columns listed in spec
-  - `deleted_at` soft-delete columns
-  - Full RLS: staff/admin scoped by `company_id`, super_admin bypass
-  - Enable realtime on `leads` and `notifications`
-- App shell:
-  - Mobile bottom nav (Dashboard | Leads | Tasks | Notifications | More) ≤768px
-  - Desktop sidebar preserved >768px
-  - Offline banner, session timeout (30min), toast system (sonner)
-  - Skeleton loader primitives
+Trim the left sidebar in `src/routes/_app/settings.tsx` to exactly:
 
-## Chunk 2 — Lead inbox + manual creation + lead profile shell
-- `/leads` inbox: list, filter bar, search (debounced), sort, infinite scroll (20/page)
-- Recently viewed (top 5, localStorage)
-- Realtime subscription — new leads appear live
-- "+ Add lead" form with duplicate check across all companies
-- Lead profile route `/leads/$id`: header, action bar (buttons only, handlers in chunk 3), activity timeline
-- Tel: / wa.me one-tap with activity logging
-- Quick note popup
-- Phone masking respected per user
-- Filter + scroll state preservation
-- Empty states with illustrations
-- Form auto-save to localStorage + unsaved-changes guard (reusable hook)
+1. Companies
+2. Staff and roles
+3. WhatsApp templates
+4. Peak season dates
+5. Vendor list
+6. Task templates
+7. Payment gateway
+8. Discount rules
 
-## Chunk 3 — Call flow, follow-ups, blacklist, referral
-- Post-call popup (5 outcomes)
-- Follow-up scheduler (4 options) + `follow_ups` records
-- Follow-up counter logic → unresponsive tag at max attempts
-- Action-required banner with 3 options
-- Referral linking (lead-to-lead) + activity entry on referrer
-- Blacklist flag + warning banner + 3-dot menu
-- "Not interested" drop reason flow
-- Returning client badge
+Remove all other top-level items (Company details, Location & Meeting, Venue photos, Routing rules, Event types, Sessions, Services, Add-ons, Reminders, Cancellation, Drop reasons, Confirmation message). Their content moves *inside* each company.
 
-## Chunk 4 — Transfer system
-- 3-step transfer flow (warning checklist → 20-char summary → details)
-- Lead lock state while pending
-- SA approval queue page + dashboard panel
-- Approve/reject with activity logs
-- Per-user `auto_approve_transfers` honored
-- Push/in-app notifications for all transfer events
+Companies section becomes a card grid. Each card shows logo, name, type, capacity, archived badge, and opens a new full-page view at `/settings/company/$companyId` (new route).
 
-## Chunk 5 — Notifications + staff management
-- In-app notification centre (slide-in panel, bell badge, mark read, grouped by date)
-- Realtime `notifications` subscription
-- Staff management in Settings: add, deactivate (force sign-out via admin API), phone-masking toggle, auto-approve toggle, reassignment prompt on deactivation
-- Global search in top nav (cross-company for SA)
+That page has a sticky jump-link bar at the top:
+`Company details · Venue and media · Services and pricing · Event types · Sessions · Confirmation message · Discount rules`
 
-## Chunk 6 — PWA + push + onboarding polish
-- `manifest.json`, app icons (192/512 purple "N"), service worker (kill-switch-safe, registration guarded against iframes/preview hosts per platform rules)
-- Web Push subscription + storing token
-- Edge function to send pushes on the 7 trigger events
-- "Add to Home Screen" prompt on second visit
-- First-login 5-step guided tour (dismissable, replay from settings)
-- (?) tooltips on non-obvious fields
-- Final QA pass: 44px tap targets, dropdown upward-detection, Indian currency/date formatters, plain-language errors
+Each section is an anchor (`#company-details`, `#venue-media`, etc.) and renders existing pieces wired to the chosen company:
+- Company details → reuses existing `CompanyDetailsDialog` content as an inline section
+- Venue and media → `PhotoGallerySection` + new portfolio/video/meeting-contact fields
+- Services and pricing → existing services UI (to be tab-ified in Stage 2)
+- Event types / Sessions / Confirmation message → existing components, scoped to this company
+- Discount rules → moved here per-company (Stage 3 expands it)
+
+## Stage 2 — New fields and tabbed services
+
+- **Company details additions**: phone vs WhatsApp split, "Not GST registered" toggle, bank name, account holder name, Google review URL with Test button, Google Maps Test button, white-logo auto-generate, event coordinators repeater (name + phone + WhatsApp).
+- **Venue and media additions**: portfolio link (+ Test), video tour link (+ Test), meeting contact name+phone, "Include photos in requirements message" toggle, "Include portfolio in day-5 follow-up" toggle.
+- **Services and pricing**: convert to tabbed UI. Default tabs: Hall rental, Extra rooms, Decoration and setup, Food and catering, Utility and operational. "+ Add service tab" and per-tab delete. Inside each tab: name, base price, complimentary rooms, duration, timing window, additional charges textarea. Collapsible subsections for extra rooms / decoration / food / utility.
+
+DB columns / JSON shape to add on `companies`: `company_phone_separate`, `not_gst_registered`, `bank_name`, `account_holder_name`, `google_review_url`, `event_coordinators` jsonb, `portfolio_url`, `video_tour_url`, `meeting_contact_name`, `meeting_contact_phone`, `include_photos_in_requirements`, `include_portfolio_in_day5`, `services_v2` jsonb (tabbed structure).
+
+## Stage 3 — Per-company Discount rules + global Discount rules sidebar item
+
+Per-company section (inside each company page):
+- Staff max % (default 5), Admin max % (default 15), Super admin unlimited (locked), Require reason toggle (default ON).
+- Quotation-send permission list: every staff in this company with ON/OFF toggle. Summary: "X staff can send quotations directly."
+
+Global Discount rules sidebar item (when no company selected) shows the same matrix across companies for quick auditing — read-only summary with deep-links into each company's section.
 
 ---
 
 ## Technical notes
+- New route: `src/routes/_app/settings.company.$companyId.tsx` (TanStack flat-dot routing).
+- Sidebar `SECTIONS` array slimmed to the 8 items; remove `companyTab` switcher.
+- Stage 2 & 3 require a migration (new columns + jsonb) — I'll surface the SQL when we get there.
+- All existing components stay; they just get re-parented under the per-company page.
 
-- **Stack:** TanStack Start server functions for all writes/reads requiring auth (not edge functions, per platform rules). One edge function only for push delivery in chunk 6.
-- **Reusables built in chunk 1–2 and reused everywhere:** `useAutoSaveDraft`, `useUnsavedGuard`, `formatINR`, `formatDateIN`, `formatPhoneIN`, `<SkeletonList>`, `<EmptyState>`, `<SmartDropdown>` (upward detection + search + pinned selection).
-- **PWA caveat:** Service workers don't work in the Lovable preview iframe — PWA install + push will only function on the published URL. I'll note this when we get to chunk 6.
-- **What I'm NOT building** (out of scope per your Phase 2 spec): intake form (Phase 3), quotation builder (Phase 4), site visit scheduler beyond a stub, reports (Phase 6).
-
----
-
-## Proposal
-
-Approve this plan and I'll start with **Chunk 1** (DB + shell) in the next message. After each chunk I'll pause for you to review in preview before continuing. Sound good?
+Reply **"go"** to start Stage 1, or tell me to merge/reorder stages.

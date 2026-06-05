@@ -33,6 +33,7 @@ import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
+import { Route as AppCompanySettingsCompanyIdRouteImport } from './routes/_app/company-settings.$companyId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
@@ -157,6 +158,12 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
 } as any)
+const AppCompanySettingsCompanyIdRoute =
+  AppCompanySettingsCompanyIdRouteImport.update({
+    id: '/company-settings/$companyId',
+    path: '/company-settings/$companyId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const ApiPublicHooksTaskRemindersRoute =
   ApiPublicHooksTaskRemindersRouteImport.update({
     id: '/api/public/hooks/task-reminders',
@@ -203,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
+  '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
@@ -231,6 +239,7 @@ export interface FileRoutesByTo {
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
+  '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
@@ -262,6 +271,7 @@ export interface FileRoutesById {
   '/_app/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
+  '/_app/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/transfers'
     | '/feedback/$bookingId'
     | '/vendor-status/$token'
+    | '/company-settings/$companyId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
@@ -321,6 +332,7 @@ export interface FileRouteTypes {
     | '/transfers'
     | '/feedback/$bookingId'
     | '/vendor-status/$token'
+    | '/company-settings/$companyId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
@@ -351,6 +363,7 @@ export interface FileRouteTypes {
     | '/_app/transfers'
     | '/feedback/$bookingId'
     | '/vendor-status/$token'
+    | '/_app/company-settings/$companyId'
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
@@ -546,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
     }
+    '/_app/company-settings/$companyId': {
+      id: '/_app/company-settings/$companyId'
+      path: '/company-settings/$companyId'
+      fullPath: '/company-settings/$companyId'
+      preLoaderRoute: typeof AppCompanySettingsCompanyIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/public/hooks/task-reminders': {
       id: '/api/public/hooks/task-reminders'
       path: '/api/public/hooks/task-reminders'
@@ -605,6 +625,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppTransfersRoute: typeof AppTransfersRoute
+  AppCompanySettingsCompanyIdRoute: typeof AppCompanySettingsCompanyIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -621,6 +642,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
   AppTransfersRoute: AppTransfersRoute,
+  AppCompanySettingsCompanyIdRoute: AppCompanySettingsCompanyIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
