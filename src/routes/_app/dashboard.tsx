@@ -7,6 +7,7 @@ import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SuperAdminDashboard } from "@/components/dashboard/super-admin-dashboard";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -139,9 +140,12 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
 
 function DashboardPage() {
   const { role, companies, profile, loading, activeCompanyId } = useAuth();
+  if (loading) return <DashboardSkeleton />;
+  if (role === "super_admin") return <SuperAdminDashboard />;
   const [stats, setStats] = useState<CompanyStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const companyId = role === "super_admin" ? activeCompanyId : companies[0]?.id ?? null;
+
 
   useEffect(() => {
     if (role === "super_admin" && !activeCompanyId) { setStatsLoading(false); return; }
