@@ -94,15 +94,17 @@ function SettingsPage() {
     if (!companyTab && companies[0]) setCompanyTab(companies[0].id);
   }, [companies, companyTab]);
 
+  // Non-super admins shouldn't land on "companies"
+  useEffect(() => {
+    if (role && role !== "super_admin" && section === "companies") {
+      setSection("staff");
+    }
+  }, [role, section]);
+
   if (loading) return null;
   if (!role || (role !== "super_admin" && role !== "admin")) return <Navigate to="/dashboard" replace />;
 
   const visible = SECTIONS.filter((s) => role === "super_admin" || !s.superOnly);
-  // Non-super admins land on the first section they're allowed to see.
-  useEffect(() => {
-    if (role !== "super_admin" && section === "companies") setSection(visible[0]?.id ?? "staff");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role]);
 
   const activeCompanyId = role === "super_admin" ? companyTab : companies[0]?.id;
 
