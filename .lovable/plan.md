@@ -1,58 +1,83 @@
-# Settings restructure plan
+# Super Admin Dashboard Redesign
 
-This is a large rebuild touching the sidebar, the Companies experience, and several new per-company fields (coordinators, service tabs, per-company discount rules). I'll ship it in three stages so each one is reviewable. Say "next" between stages.
+A full rebuild of `src/routes/_app/dashboard.tsx` for super admin only. Existing dashboard stays as the fallback for admin/staff. Shipped in 4 stages so each piece lands working and reviewable.
 
----
+## Scope guard
 
-## Stage 1 — Sidebar + Companies entry (ship first)
+- Super admin only. Admin/staff continue to see the current dashboard untouched.
+- Pure presentation + data fetching. No schema changes except a small `companies.brand_color` column (used as the "company colour" everywhere).
+- All sections live in one route: `/dashboard` (conditional render when `role === "super_admin"`).
 
-Trim the left sidebar in `src/routes/_app/settings.tsx` to exactly:
+## Stage 1 — Foundation + Calendar + Stats + Alerts
 
-1. Companies
-2. Staff and roles
-3. WhatsApp templates
-4. Peak season dates
-5. Vendor list
-6. Task templates
-7. Payment gateway
-8. Discount rules
+**1. Migration**
+- Add `companies.brand_color text default '#6366f1'`.
+- Settings → company details: color picker writes to this field.
 
-Remove all other top-level items (Company details, Location & Meeting, Venue photos, Routing rules, Event types, Sessions, Services, Add-ons, Reminders, Cancellation, Drop reasons, Confirmation message). Their content moves *inside* each company.
+**2. New route layout** (`src/routes/_app/dashboard.tsx`)
+Conditional: if super_admin → render `<SuperAdminDashboard />`, else existing dashboard.
 
-Companies section becomes a card grid. Each card shows logo, name, type, capacity, archived badge, and opens a new full-page view at `/settings/company/$companyId` (new route).
+**3. Section 1 — Combined calendar** (`src/components/dashboard/combined-calendar.tsx`)
+- Month grid (custom, not shadcn calendar — need dot stacks per day).
+- Loads `bookings` (confirmed, current month ± buffer) joined with `companies(brand_color, name)` and `leads(full_name)`.
+- Each day cell: up to 4 stacked dots in company colours, "+N" if more.
+- Hover (desktop) / tap (mobile) on a dot → popover with client, event type, time, company.
+- Tap a date → drawer with that day's bookings grouped by time slot.
+- Realtime: subscribe to `bookings` changes → refetch month.
 
-That page has a sticky jump-link bar at the top:
-`Company details · Venue and media · Services and pricing · Event types · Sessions · Confirmation message · Discount rules`
+**4. Section 2 — Stats row** (4 clickable cards)
+- Revenue this month: sum `payments.amount` where `created_at` in month, status paid.
+- New enquiries: count `leads` created this month.
+- Bookings: count `bookings` confirmed this month.
+- Conversion rate: won / (won + lost) from `win_loss_log` this month.
+- Each card is a `<Link>` to filtered list route.
 
-Each section is an anchor (`#company-details`, `#venue-media`, etc.) and renders existing pieces wired to the chosen company:
-- Company details → reuses existing `CompanyDetailsDialog` content as an inline section
-- Venue and media → `PhotoGallerySection` + new portfolio/video/meeting-contact fields
-- Services and pricing → existing services UI (to be tab-ified in Stage 2)
-- Event types / Sessions / Confirmation message → existing components, scoped to this company
-- Discount rules → moved here per-company (Stage 3 expands it)
+**5. Section 3 — Emergency alerts**
+- Query: bookings where `status='confirmed'`, `confirmed_at < now()-24h`, `coordinator_user_id is null` (use existing assigned-to field on bookings).
+- Red cards, non-dismissable, tap → `/leads/$leadId`.
 
-## Stage 2 — New fields and tabbed services
+## Stage 2 — Per-company panels
 
-- **Company details additions**: phone vs WhatsApp split, "Not GST registered" toggle, bank name, account holder name, Google review URL with Test button, Google Maps Test button, white-logo auto-generate, event coordinators repeater (name + phone + WhatsApp).
-- **Venue and media additions**: portfolio link (+ Test), video tour link (+ Test), meeting contact name+phone, "Include photos in requirements message" toggle, "Include portfolio in day-5 follow-up" toggle.
-- **Services and pricing**: convert to tabbed UI. Default tabs: Hall rental, Extra rooms, Decoration and setup, Food and catering, Utility and operational. "+ Add service tab" and per-tab delete. Inside each tab: name, base price, complimentary rooms, duration, timing window, additional charges textarea. Collapsible subsections for extra rooms / decoration / food / utility.
+**Section 4** — `<CompanyPanel companyId />` rendered once per company.
 
-DB columns / JSON shape to add on `companies`: `company_phone_separate`, `not_gst_registered`, `bank_name`, `account_holder_name`, `google_review_url`, `event_coordinators` jsonb, `portfolio_url`, `video_tour_url`, `meeting_contact_name`, `meeting_contact_phone`, `include_photos_in_requirements`, `include_portfolio_in_day5`, `services_v2` jsonb (tabbed structure).
+- Tabs: Overview | Pending works.
+- **Overview tab**: small bar chart for leads-this-month (recharts), plus 4 stat tiles (meetings, bookings, revenue, task completion %). Each tile/bar links to filtered list.
+- **Pending works tab**: 4 horizontally scrollable columns:
+  - Leads needing action (uncontacted, overdue follow-up, no reply tags)
+  - Quotations pending (sent + no reply, expired, revision requested)
+  - Confirmed bookings with task progress bars
+  - Upcoming events next 14 days (date, client, coordinator status, stage)
+- Each row → tap opens lead/booking.
+- Realtime: per-company channel on leads/bookings/tasks/quotations.
 
-## Stage 3 — Per-company Discount rules + global Discount rules sidebar item
+## Stage 3 — Post-event + Right panel
 
-Per-company section (inside each company page):
-- Staff max % (default 5), Admin max % (default 15), Super admin unlimited (locked), Require reason toggle (default ON).
-- Quotation-send permission list: every staff in this company with ON/OFF toggle. Summary: "X staff can send quotations directly."
+**Section 5** — Post-event panel
+- Feedback pending count (completed events with no feedback row).
+- Feedback received count.
+- Rating distribution bar chart (group `feedback.rating`).
+- List below: pending feedback rows with WhatsApp send button (`wa.me/<phone>?text=<prefilled>`).
 
-Global Discount rules sidebar item (when no company selected) shows the same matrix across companies for quick auditing — read-only summary with deep-links into each company's section.
+**Section 6** — Right panel desktop / bottom tabs mobile (`useIsMobile`)
+- Call backs due (overdue red first, then today).
+- Upcoming tasks (due within 48h).
+- Pending quotations (sent awaiting response, days since sent).
+- Overdue (calls + tasks combined).
+- All items tappable, action buttons (dial: `tel:`, follow up, etc.).
 
----
+## Stage 4 — Realtime polish
+
+- Single shared `useDashboardRealtime(companyIds)` hook wires postgres_changes for: leads, bookings, tasks, slots, quotations, payments, feedback, follow_ups, venue_meetings.
+- Uses React Query `invalidateQueries` per affected key so all sections refresh in lockstep with no full reloads.
+- Smoke test on preview: change a booking status in DB, confirm calendar dot + stats + company panel all update.
 
 ## Technical notes
-- New route: `src/routes/_app/settings.company.$companyId.tsx` (TanStack flat-dot routing).
-- Sidebar `SECTIONS` array slimmed to the 8 items; remove `companyTab` switcher.
-- Stage 2 & 3 require a migration (new columns + jsonb) — I'll surface the SQL when we get there.
-- All existing components stay; they just get re-parented under the per-company page.
 
-Reply **"go"** to start Stage 1, or tell me to merge/reorder stages.
+- Charts: `recharts` (already supported via `src/components/ui/chart.tsx`).
+- Data fetching: React Query with one query per section, keyed by `[section, companyId, monthKey]`.
+- Mobile: stack everything vertically; right panel becomes a sticky bottom tab bar.
+- No new tables, only `companies.brand_color` column. Everything else is reads against existing schema.
+
+---
+
+Reply **"go"** to start Stage 1 (migration + calendar + stats + alerts). I'll stop after each stage for review before continuing.

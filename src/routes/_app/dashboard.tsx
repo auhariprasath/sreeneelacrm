@@ -7,6 +7,7 @@ import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SuperAdminDashboard } from "@/components/dashboard/super-admin-dashboard";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
@@ -138,21 +139,27 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
 }
 
 function DashboardPage() {
-  const { role, companies, profile, loading, activeCompanyId } = useAuth();
+  const { role, loading } = useAuth();
+  if (loading) return <DashboardSkeleton />;
+  if (role === "super_admin") return <SuperAdminDashboard />;
+  return <CompanyDashboard />;
+}
+
+function CompanyDashboard() {
+  const { role, companies, profile, activeCompanyId } = useAuth();
   const [stats, setStats] = useState<CompanyStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const companyId = role === "super_admin" ? activeCompanyId : companies[0]?.id ?? null;
+  const companyId = companies[0]?.id ?? null;
+
+
 
   useEffect(() => {
-    if (role === "super_admin" && !activeCompanyId) { setStatsLoading(false); return; }
     if (!companyId) return;
     setStatsLoading(true);
     let cancelled = false;
     const refresh = () => loadCompanyStats(companyId).then((s) => { if (!cancelled) { setStats(s); setStatsLoading(false); } });
     refresh();
-    // Refresh every minute to update "minutes left" on expiring holds
     const interval = setInterval(refresh, 60_000);
-    // Realtime: any change to leads/slots/requirements/follow-ups for this company refreshes stats
     const ch = supabase.channel(`dash-${companyId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "leads", filter: `company_id=eq.${companyId}` }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "slots", filter: `company_id=eq.${companyId}` }, refresh)
@@ -165,30 +172,8 @@ function DashboardPage() {
     return () => { cancelled = true; clearInterval(interval); supabase.removeChannel(ch); };
   }, [companyId, role, activeCompanyId]);
 
-  if (loading) return <DashboardSkeleton />;
   const greeting = `Welcome, ${profile?.full_name || "there"}`;
 
-  if (role === "super_admin" && !activeCompanyId) {
-    return (
-      <div className="space-y-6 max-w-7xl">
-        <div>
-          <h1 className="text-2xl font-semibold">{greeting}</h1>
-          <p className="text-sm text-muted-foreground">Pick a company from the top bar to see live stats</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {companies.map((c) => (
-            <Card key={c.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{c.name}</CardTitle>
-                <CardDescription className="capitalize">{c.type} venue</CardDescription>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">Switch context to view</CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   if (statsLoading || !stats) return <DashboardSkeleton />;
 
