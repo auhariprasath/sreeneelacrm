@@ -22,7 +22,7 @@ function monthRange() {
 async function loadStats(): Promise<Stats> {
   const { start, end } = monthRange();
   const [pay, leads, bks, wl] = await Promise.all([
-    supabase.from("payments").select("amount").eq("status", "paid").gte("received_at", start).lt("received_at", end),
+    supabase.from("payments").select("amount").eq("status", "received").gte("received_at", start).lt("received_at", end),
     supabase.from("leads").select("id", { count: "exact", head: true }).is("deleted_at", null).gte("created_at", start).lt("created_at", end),
     supabase.from("bookings").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("status", "confirmed").gte("created_at", start).lt("created_at", end),
     supabase.from("win_loss_log").select("outcome").gte("closed_at", start).lt("closed_at", end),
