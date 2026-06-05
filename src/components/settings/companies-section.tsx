@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import {
   listAllCompanies, createCompany, renameCompany, archiveCompany,
 } from "@/lib/api/companies.functions";
@@ -12,7 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Archive, ArchiveRestore, Pencil, Settings2 } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Pencil, Settings2, ArrowRight, Building2 } from "lucide-react";
 import { SkeletonList } from "@/components/skeleton-list";
 import { CompanyDetailsDialog } from "@/components/settings/company-details-dialog";
 
