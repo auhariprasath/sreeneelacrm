@@ -11,7 +11,7 @@ import { formatPhoneIN, relativeTime, initialsOf } from "@/lib/format";
 import { StatusBadge, ScoreBadge, STATUS_LABELS } from "@/components/leads/lead-badges";
 import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";

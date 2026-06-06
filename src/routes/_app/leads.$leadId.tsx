@@ -11,6 +11,7 @@ import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, Shie
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
 
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
