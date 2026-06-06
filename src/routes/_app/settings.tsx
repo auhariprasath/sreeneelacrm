@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, CalendarCheck, Plus, Percent, MessageSquare, CreditCard,
-  ListChecks, XCircle, Lock,
+  ListChecks, XCircle, Lock, Clock,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
@@ -19,6 +19,7 @@ import { TaskTemplatesSection } from "@/components/settings/task-templates-secti
 import { WhatsappTemplatesSection } from "@/components/settings/whatsapp-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { CompaniesSection } from "@/components/settings/companies-section";
+import { ReminderTimingSection } from "@/components/settings/reminder-timing-section";
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
