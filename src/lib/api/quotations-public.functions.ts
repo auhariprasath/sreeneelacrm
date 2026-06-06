@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const tokenSchema = z.object({ token: z.string().min(8).max(128).regex(/^[a-f0-9]+$/i) });
+const requestChangesSchema = z.object({
+  token: z.string().min(8).max(128).regex(/^[a-f0-9]+$/i),
+  note: z.string().trim().min(1).max(2000),
+});
 
 export const getQuotationByToken = createServerFn({ method: "POST" })
   .inputValidator(tokenSchema)
