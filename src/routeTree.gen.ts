@@ -36,6 +36,7 @@ import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
+import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers.$customerId'
 import { Route as AppCompanySettingsCompanyIdRouteImport } from './routes/_app/company-settings.$companyId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
@@ -177,6 +178,11 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
 } as any)
+const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
+  id: '/customers/$customerId',
+  path: '/customers/$customerId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCompanySettingsCompanyIdRoute =
   AppCompanySettingsCompanyIdRouteImport.update({
     id: '/company-settings/$companyId',
@@ -239,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
+  '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
+  '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/_app/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
+  '/_app/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
@@ -344,6 +353,7 @@ export interface FileRouteTypes {
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
+    | '/customers/$customerId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
+    | '/customers/$customerId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/_app/company-settings/$companyId'
+    | '/_app/customers/$customerId'
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
@@ -632,6 +644,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
     }
+    '/_app/customers/$customerId': {
+      id: '/_app/customers/$customerId'
+      path: '/customers/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/company-settings/$companyId': {
       id: '/_app/company-settings/$companyId'
       path: '/company-settings/$companyId'
@@ -707,6 +726,7 @@ interface AppRouteChildren {
   AppTasksRoute: typeof AppTasksRoute
   AppTransfersRoute: typeof AppTransfersRoute
   AppCompanySettingsCompanyIdRoute: typeof AppCompanySettingsCompanyIdRoute
+  AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -725,6 +745,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTasksRoute: AppTasksRoute,
   AppTransfersRoute: AppTransfersRoute,
   AppCompanySettingsCompanyIdRoute: AppCompanySettingsCompanyIdRoute,
+  AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -752,3 +773,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
