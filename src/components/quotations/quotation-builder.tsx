@@ -174,7 +174,7 @@ export function QuotationBuilder({
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, requirementId, companyId, leadId, quotationId]);
+  }, [open, requirementId, companyId, leadId, quotationId, reviseFromId]);
 
   // Reset on close
   useEffect(() => {
