@@ -280,6 +280,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
           <div className="w-full sm:max-w-sm">{stale}</div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {overdueFollowUps}
           {callBacks}
           {overdue}
           {upcoming}
@@ -292,6 +293,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   return (
     <div className="space-y-4">
       {stale}
+      {overdueFollowUps}
       {callBacks}
       {overdue}
       {upcoming}
