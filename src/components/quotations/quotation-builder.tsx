@@ -81,6 +81,7 @@ export function QuotationBuilder({
 
   const [draftId, setDraftId] = useState<string | null>(quotationId ?? null);
   const [baseVersion, setBaseVersion] = useState(1);
+  const [revisingFromId, setRevisingFromId] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Preview message
