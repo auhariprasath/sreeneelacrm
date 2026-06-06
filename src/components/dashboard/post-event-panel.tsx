@@ -18,6 +18,7 @@ interface Completed {
 
 export function PostEventPanel() {
   const [rows, setRows] = useState<Completed[]>([]);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     const since = new Date(Date.now() - 60 * 86400_000).toISOString().slice(0, 10);
