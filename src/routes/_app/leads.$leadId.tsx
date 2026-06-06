@@ -514,9 +514,19 @@ function LeadProfile() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
+                      <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); }}>
                         Open
                       </Button>
+                      {["sent", "agreed", "declined"].includes(q.status) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
+                          className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                        >
+                          Revise
+                        </Button>
+                      )}
                       {q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id) ? (
                         <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                           <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Book
@@ -531,7 +541,7 @@ function LeadProfile() {
                         leadId={leadId}
                         pdfUrl={q.pdf_url}
                         versionLabel={`v${q.version}`}
-                        onView={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}
+                        onView={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); }}
                         onResend={() => setSendQuoteId(q.id)}
                         onDeleted={loadQuotations}
                       />
