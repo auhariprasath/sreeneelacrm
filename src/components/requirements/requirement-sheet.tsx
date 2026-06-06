@@ -446,79 +446,27 @@ function diffHours(a: string, b: string) {
   return Math.max(0.5, mins / 60);
 }
 
-function SlotPanel({
-  check, checking, canCheck, onCheck, heldUntilLabel, expired, onSoftHold, onRelease, saving, hasHold,
-}: {
-  check: SlotCheck | null;
-  checking: boolean;
-  canCheck: boolean;
-  onCheck: () => void;
-  heldUntilLabel: string | null;
-  expired: boolean;
-  onSoftHold: () => void;
-  onRelease: () => void;
-  saving: boolean;
-  hasHold: boolean;
-}) {
-  const status = check?.status;
-  const tone =
-    status === "free" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200"
-    : status === "soft_hold" ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200"
-    : status === "enquiry" ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200"
-    : status === "confirmed" ? "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300"
-    : status === "muhurtham_conflict" ? "bg-purple-500/10 border-purple-500/30 text-purple-800 dark:text-purple-200"
-    : "bg-muted border-border text-muted-foreground";
-
-  const Icon =
-    status === "free" ? CheckCircle2
-    : status === "confirmed" ? XCircle
-    : status === "muhurtham_conflict" ? AlertTriangle
-    : status ? AlertTriangle
-    : Clock;
-
-  return (
-    <div className={`rounded-lg border p-3 ${tone}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Icon className="h-4 w-4" />
-          {!status && "Check slot availability"}
-          {status === "free" && "Slot available"}
-          {status === "soft_hold" && "Slot is on a soft hold by someone else"}
-          {status === "enquiry" && "Slot has an active enquiry"}
-          {status === "confirmed" && "Slot already booked"}
-          {status === "muhurtham_conflict" && "Muhurtham time clashes with another confirmed booking"}
-        </div>
-        <Button size="sm" variant="outline" onClick={onCheck} disabled={!canCheck || checking}>
-          {checking ? "Checking…" : status ? "Re-check" : "Check slot"}
-        </Button>
+function DateInfoBanner({ count, loading, hasDate }: { count: number | null; loading: boolean; hasDate: boolean }) {
+  if (!hasDate) return null;
+  if (loading || count === null) {
+    return (
+      <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground inline-flex items-center gap-2">
+        <Info className="h-3.5 w-3.5" /> Checking other enquiries for this date…
       </div>
-
-      {hasHold && (
-        <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-          <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Soft hold: {heldUntilLabel} remaining</span>
-          <Button size="sm" variant="ghost" onClick={onRelease} disabled={saving}>Release</Button>
-        </div>
-      )}
-      {!hasHold && expired && (
-        <div className="mt-2 text-xs">Soft hold expired — slot is free again.</div>
-      )}
-      {status === "free" && !hasHold && (
-        <div className="mt-2">
-          <Button size="sm" onClick={onSoftHold} disabled={saving}>
-            {saving ? "Placing hold…" : "Place 30-min soft hold"}
-          </Button>
-        </div>
-      )}
-      {check?.conflicts && check.conflicts.length > 0 && (
-        <div className="mt-2 text-xs space-y-0.5">
-          {check.conflicts.map((c) => (
-            <div key={c.id}>
-              <Badge variant="secondary" className="mr-1 capitalize">{c.status.replace("_", " ")}</Badge>
-              {formatTimeOfDay(c.start_time)} – {formatTimeOfDay(c.end_time)}
-            </div>
-          ))}
-        </div>
-      )}
+    );
+  }
+  if (count === 0) {
+    return (
+      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 px-3 py-2 text-xs inline-flex items-center gap-2">
+        <Info className="h-3.5 w-3.5" /> No other enquiries — this date is free.
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs inline-flex items-center gap-2">
+      <Info className="h-3.5 w-3.5" />
+      {count} other {count === 1 ? "enquiry" : "enquiries"} on this date. First to pay locks the slot.
     </div>
   );
 }
+
