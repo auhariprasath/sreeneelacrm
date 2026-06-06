@@ -26,10 +26,8 @@ function CalendarPage() {
   const load = useCallback(async () => {
     if (!profile?.company_id) return;
     setLoading(true);
-    // Auto-free expired soft holds in range, then fetch
-    await supabase.from("slots").update({
-      status: "free", held_by_lead_id: null, held_by_requirement_id: null, held_until: null,
-    }).eq("company_id", profile.company_id!).eq("status", "soft_hold").lt("held_until", new Date().toISOString());
+
+
 
     const { data } = await supabase
       .from("slots").select("*")
