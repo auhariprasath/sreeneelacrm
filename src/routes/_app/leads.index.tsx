@@ -280,11 +280,6 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
                   Event {String(nextEvent.getDate()).padStart(2,"0")}/{String(nextEvent.getMonth()+1).padStart(2,"0")}
                 </span>
               )}
-              {meta?.holdActive && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                  Hold active
-                </span>
-              )}
               <span className="text-[11px] text-muted-foreground truncate">{relativeTime(lead.updated_at)}</span>
             </div>
             <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
