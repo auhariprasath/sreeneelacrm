@@ -1,8 +1,8 @@
 import { jsPDF } from "jspdf";
-import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { formatINR, formatINRPdf, formatDateIN, formatTimeOfDay } from "@/lib/format";
 
 interface LineItem { name: string; price: number; quantity: number; description?: string | null }
-interface AddonItem { name: string; price: number; description?: string | null }
+interface AddonItem { name: string; price: number; quantity?: number; unit?: string | null; description?: string | null }
 
 export interface QuotationPdfInput {
   company: {
