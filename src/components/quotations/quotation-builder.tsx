@@ -327,7 +327,7 @@ export function QuotationBuilder({
   }, [requirement, company, lead, evType, evDate, evStart, evEnd, evVenue, evGuests, baseVersion, services, addons, subtotal, effDiscountPercent, effDiscountAmount, gstApplied, gstPercent, gstAmount, total]);
 
   const pdfFilename = `Quotation-${(lead?.full_name || "client").replace(/\s+/g, "_")}-v${baseVersion}.pdf`;
-  const buildPdf = () => pdfInput ? generateQuotationPdf(pdfInput) : null;
+  const buildPdf = async (): Promise<Blob | null> => pdfInput ? await generateQuotationPdf({ ...pdfInput, authorisedBy: profile?.full_name ?? null }) : null;
 
   // Build preview message when entering step 4
   useEffect(() => {
@@ -369,7 +369,7 @@ export function QuotationBuilder({
     setSending("whatsapp");
     try {
       const id = await saveDraft(true); if (!id) return;
-      const blob = buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const num = lead.phone.replace(/[^\d]/g, ""); const intl = num.length === 10 ? `91${num}` : num;
       window.open(`https://wa.me/${intl}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
       await markSent("whatsapp", "WhatsApp", id);
@@ -382,7 +382,7 @@ export function QuotationBuilder({
     setSending("email");
     try {
       const id = await saveDraft(true); if (!id) return;
-      const blob = buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const subject = `Quotation from ${company?.name ?? ""} — v${baseVersion}`;
       window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
       await markSent("email", "Email", id);
@@ -395,12 +395,12 @@ export function QuotationBuilder({
     await navigator.clipboard.writeText(message);
     toast.success("Message copied");
   };
-  const downloadPdf = () => {
-    const blob = buildPdf(); if (blob) { downloadBlob(blob, pdfFilename); toast.success("PDF downloaded"); }
+  const downloadPdf = async () => {
+    const blob = await buildPdf(); if (blob) { downloadBlob(blob, pdfFilename); toast.success("PDF downloaded"); }
   };
   const saveAndSend = async () => {
     const id = await saveDraft(true); if (!id) return;
-    const blob = buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+    const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
     await markSent("whatsapp", "WhatsApp", id);
     onContinueToSend?.(id); onSaved?.();
     toast.success("Quotation saved and sent ✓");

@@ -96,7 +96,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
     };
   }, [quote, lead, requirement, company]);
 
-  const buildPdf = (): Blob | null => pdfInput ? generateQuotationPdf(pdfInput) : null;
+  const buildPdf = async (): Promise<Blob | null> => pdfInput ? await generateQuotationPdf({ ...pdfInput, authorisedBy: profile?.full_name ?? null }) : null;
   const pdfFilename = quote ? `Quotation-${quote.quotation_number || quote.id.slice(0, 6)}-v${quote.version}.pdf` : "quotation.pdf";
 
   const markSent = async (channel: "whatsapp" | "email" | "sms" | null, label: string) => {
@@ -120,7 +120,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
     if (!lead?.phone) { toast.error("Lead has no phone number"); return; }
     setSending("whatsapp");
     try {
-      const blob = buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const num = lead.phone.replace(/[^\d]/g, "");
       const intl = num.length === 10 ? `91${num}` : num;
       const url = `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
@@ -133,7 +133,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
   const sendViaEmail = async () => {
     setSending("email");
     try {
-      const blob = buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const subject = `Quotation from ${company?.name ?? ""} — v${quote?.version}`;
       const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
       window.location.href = url;
@@ -148,8 +148,8 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
     toast.success("Message copied to clipboard");
   };
 
-  const downloadOnly = () => {
-    const blob = buildPdf(); if (blob) { downloadBlob(blob, pdfFilename); toast.success("PDF downloaded"); }
+  const downloadOnly = async () => {
+    const blob = await buildPdf(); if (blob) { downloadBlob(blob, pdfFilename); toast.success("PDF downloaded"); }
   };
 
   const respond = async (kind: "agreed" | "negotiating" | "declined" | "revision") => {
