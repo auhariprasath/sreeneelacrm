@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { formatINR, formatDateIN, formatTimeOfDay, addHoursToTime } from "@/lib/format";
 import { toast } from "sonner";
 import { generateQuotationPdf, downloadBlob, type QuotationPdfInput } from "@/lib/quotation-pdf";
 import type { Database } from "@/integrations/supabase/types";
@@ -22,7 +22,7 @@ type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 
 interface LineItem { name: string; price: number; quantity: number }
-interface AddonItem { name: string; price: number }
+interface AddonItem { name: string; price: number; quantity?: number; unit?: string }
 interface CatalogItem { name: string; price?: number }
 interface PeakRange { start: string; end: string; label?: string }
 
