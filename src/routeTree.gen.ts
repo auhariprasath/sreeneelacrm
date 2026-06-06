@@ -29,6 +29,7 @@ import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
 import { Route as AppFeedbackRouteImport } from './routes/_app/feedback'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppCommandCentreRouteImport } from './routes/_app/command-centre'
 import { Route as AppCampaignsRouteImport } from './routes/_app/campaigns'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
@@ -36,6 +37,7 @@ import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
+import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers.$customerId'
 import { Route as AppCompanySettingsCompanyIdRouteImport } from './routes/_app/company-settings.$companyId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
@@ -142,6 +144,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCommandCentreRoute = AppCommandCentreRouteImport.update({
   id: '/command-centre',
   path: '/command-centre',
@@ -176,6 +183,11 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
+} as any)
+const AppCustomersCustomerIdRoute = AppCustomersCustomerIdRouteImport.update({
+  id: '/$customerId',
+  path: '/$customerId',
+  getParentRoute: () => AppCustomersRoute,
 } as any)
 const AppCompanySettingsCompanyIdRoute =
   AppCompanySettingsCompanyIdRouteImport.update({
@@ -224,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof AppCalendarRoute
   '/campaigns': typeof AppCampaignsRoute
   '/command-centre': typeof AppCommandCentreRoute
+  '/customers': typeof AppCustomersRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
   '/feedback': typeof AppFeedbackRoute
   '/leads': typeof AppLeadsRouteWithChildren
@@ -239,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
+  '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
@@ -258,6 +272,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof AppCalendarRoute
   '/campaigns': typeof AppCampaignsRoute
   '/command-centre': typeof AppCommandCentreRoute
+  '/customers': typeof AppCustomersRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
   '/feedback': typeof AppFeedbackRoute
   '/more': typeof AppMoreRoute
@@ -272,6 +287,7 @@ export interface FileRoutesByTo {
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
+  '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
@@ -293,6 +309,7 @@ export interface FileRoutesById {
   '/_app/calendar': typeof AppCalendarRoute
   '/_app/campaigns': typeof AppCampaignsRoute
   '/_app/command-centre': typeof AppCommandCentreRoute
+  '/_app/customers': typeof AppCustomersRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/feedback': typeof AppFeedbackRoute
   '/_app/leads': typeof AppLeadsRouteWithChildren
@@ -308,6 +325,7 @@ export interface FileRoutesById {
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/_app/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
+  '/_app/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
@@ -329,6 +347,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/command-centre'
+    | '/customers'
     | '/dashboard'
     | '/feedback'
     | '/leads'
@@ -344,6 +363,7 @@ export interface FileRouteTypes {
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
+    | '/customers/$customerId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads/'
@@ -363,6 +383,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/command-centre'
+    | '/customers'
     | '/dashboard'
     | '/feedback'
     | '/more'
@@ -377,6 +398,7 @@ export interface FileRouteTypes {
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
+    | '/customers/$customerId'
     | '/leads/$leadId'
     | '/api/public/seed'
     | '/leads'
@@ -397,6 +419,7 @@ export interface FileRouteTypes {
     | '/_app/calendar'
     | '/_app/campaigns'
     | '/_app/command-centre'
+    | '/_app/customers'
     | '/_app/dashboard'
     | '/_app/feedback'
     | '/_app/leads'
@@ -412,6 +435,7 @@ export interface FileRouteTypes {
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/_app/company-settings/$companyId'
+    | '/_app/customers/$customerId'
     | '/_app/leads/$leadId'
     | '/api/public/seed'
     | '/_app/leads/'
@@ -583,6 +607,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/customers': {
+      id: '/_app/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/command-centre': {
       id: '/_app/command-centre'
       path: '/command-centre'
@@ -632,6 +663,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
     }
+    '/_app/customers/$customerId': {
+      id: '/_app/customers/$customerId'
+      path: '/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof AppCustomersCustomerIdRouteImport
+      parentRoute: typeof AppCustomersRoute
+    }
     '/_app/company-settings/$companyId': {
       id: '/_app/company-settings/$companyId'
       path: '/company-settings/$companyId'
@@ -677,6 +715,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppCustomersRouteChildren {
+  AppCustomersCustomerIdRoute: typeof AppCustomersCustomerIdRoute
+}
+
+const AppCustomersRouteChildren: AppCustomersRouteChildren = {
+  AppCustomersCustomerIdRoute: AppCustomersCustomerIdRoute,
+}
+
+const AppCustomersRouteWithChildren = AppCustomersRoute._addFileChildren(
+  AppCustomersRouteChildren,
+)
+
 interface AppLeadsRouteChildren {
   AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
   AppLeadsIndexRoute: typeof AppLeadsIndexRoute
@@ -696,6 +746,7 @@ interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
   AppCampaignsRoute: typeof AppCampaignsRoute
   AppCommandCentreRoute: typeof AppCommandCentreRoute
+  AppCustomersRoute: typeof AppCustomersRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppFeedbackRoute: typeof AppFeedbackRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
@@ -714,6 +765,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCalendarRoute: AppCalendarRoute,
   AppCampaignsRoute: AppCampaignsRoute,
   AppCommandCentreRoute: AppCommandCentreRoute,
+  AppCustomersRoute: AppCustomersRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppFeedbackRoute: AppFeedbackRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,

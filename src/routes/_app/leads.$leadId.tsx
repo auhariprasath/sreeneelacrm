@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InfoTip } from "@/components/ui/info-tip";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
@@ -69,6 +69,7 @@ function LeadProfile() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [winLoss, setWinLoss] = useState<{ outcome: string; drop_reason: string | null; competitor_name: string | null; amount_value: number | null; closed_at: string }[]>([]);
   const [rejectedTransfer, setRejectedTransfer] = useState<{ rejection_reason: string | null; updated_at: string; to_name: string } | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
@@ -170,6 +171,10 @@ function LeadProfile() {
     } else {
       setReferrer(null);
     }
+
+    const { data: cust } = await supabase.from("customers").select("id").eq("lead_id", leadId).maybeSingle();
+    setCustomerId((cust as any)?.id ?? null);
+
     setLoading(false);
   };
 
@@ -319,6 +324,12 @@ function LeadProfile() {
                 <span className="text-[11px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-full px-2 py-0.5">
                   Follow-up: {formatDateTimeIN(upcomingFu.scheduled_at)}
                 </span>
+              )}
+              {customerId && (
+                <Link to="/customers/$customerId" params={{ customerId }}
+                  className="text-[11px] bg-primary/10 text-primary border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/20 inline-flex items-center gap-1">
+                  <Star className="h-3 w-3" /> Customer profile
+                </Link>
               )}
             </div>
 

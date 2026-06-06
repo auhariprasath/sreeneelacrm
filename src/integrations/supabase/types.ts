@@ -711,6 +711,72 @@ export type Database = {
           },
         ]
       }
+      customers: {
+        Row: {
+          avg_rating: number | null
+          company_id: string
+          created_at: string
+          email: string | null
+          first_event_date: string | null
+          full_name: string
+          id: string
+          last_event_date: string | null
+          lead_id: string
+          lifetime_value: number
+          phone: string
+          tags: string[]
+          total_events: number
+          updated_at: string
+        }
+        Insert: {
+          avg_rating?: number | null
+          company_id: string
+          created_at?: string
+          email?: string | null
+          first_event_date?: string | null
+          full_name: string
+          id?: string
+          last_event_date?: string | null
+          lead_id: string
+          lifetime_value?: number
+          phone: string
+          tags?: string[]
+          total_events?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_rating?: number | null
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          first_event_date?: string | null
+          full_name?: string
+          id?: string
+          last_event_date?: string | null
+          lead_id?: string
+          lifetime_value?: number
+          phone?: string
+          tags?: string[]
+          total_events?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_day_logs: {
         Row: {
           assigned_to: string | null
