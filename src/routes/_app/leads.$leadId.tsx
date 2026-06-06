@@ -34,6 +34,7 @@ import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dia
 import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
 import { BookingAssignedTo } from "@/components/bookings/booking-assigned-to";
 import { SourcesTab } from "@/components/leads/sources-tab";
+import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
