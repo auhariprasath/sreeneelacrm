@@ -27,6 +27,7 @@ const SECTIONS = [
   { id: "companies", label: "Companies", icon: Building2, superOnly: true },
   { id: "staff", label: "Staff and roles", icon: Users, superOnly: false },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: false },
+  { id: "reminders", label: "Reminder timing", icon: Clock, superOnly: false },
   { id: "peak", label: "Peak season dates", icon: CalendarCheck, superOnly: false },
   { id: "vendors", label: "Vendor list", icon: Users, superOnly: false },
   { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
