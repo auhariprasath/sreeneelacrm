@@ -469,7 +469,32 @@ function DateInfoBanner({ count, loading, hasDate }: { count: number | null; loa
     <div className="rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs inline-flex items-center gap-2">
       <Info className="h-3.5 w-3.5" />
       {count} other {count === 1 ? "enquiry" : "enquiries"} on this date. First to pay locks the slot.
+  );
+}
+
+function DurationSelect({ value, onChange }: { value: number; onChange: (h: number) => void }) {
+  const presets = [2, 3, 4, 5, 6, 8];
+  const isPreset = presets.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  return (
+    <div className="space-y-1">
+      <select
+        className="h-10 w-full rounded-md border bg-background px-2 text-sm"
+        value={custom ? "custom" : String(value)}
+        onChange={(e) => {
+          if (e.target.value === "custom") setCustom(true);
+          else { setCustom(false); onChange(Number(e.target.value)); }
+        }}
+      >
+        {presets.map((p) => <option key={p} value={p}>{p} hours</option>)}
+        <option value="custom">Custom…</option>
+      </select>
+      {custom && (
+        <Input type="number" min={0.5} max={24} step={0.5} value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)} placeholder="Hours" />
+      )}
     </div>
   );
 }
+
 
