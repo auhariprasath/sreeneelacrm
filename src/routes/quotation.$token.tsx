@@ -79,6 +79,7 @@ function PublicQuotationPage() {
   const addons = (quote.addons as Array<{ name: string; amount: number }>) ?? [];
   const isAgreed = approved || quote.status === "agreed";
   const isDeclined = requested || quote.status === "declined";
+  const isExpired = quote.status === "expired";
 
   return (
     <div className="min-h-dvh bg-muted/30 py-6 px-4">
