@@ -113,6 +113,10 @@ export function CompanyDetailsDialog({
           brand_color: d.brand_color ?? "#6366f1",
           max_capacity: d.max_capacity != null ? String(d.max_capacity) : "",
           cancellation_policy: d.cancellation_policy ?? "",
+          portfolio_url: (d as any).portfolio_url ?? "",
+          video_url: (d as any).video_url ?? "",
+          include_photos_in_requirements: (d as any).include_photos_in_requirements ?? true,
+          include_portfolio_in_day5: (d as any).include_portfolio_in_day5 ?? true,
         });
         setLogoPath(d.logo_url ?? null);
         setLogoUrl(d.logoSignedUrl ?? null);
