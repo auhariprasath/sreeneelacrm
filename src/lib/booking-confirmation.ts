@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
