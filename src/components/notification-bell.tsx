@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
+import { toast } from "sonner";
 
 export function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [count, setCount] = useState(0);
+  const mountedAt = useRef(Date.now());
 
   const refresh = async () => {
     if (!user) return;
@@ -24,9 +26,22 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!user) return;
+    mountedAt.current = Date.now();
     const ch = supabase.channel(`notif-bell-${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => refresh())
+        (payload) => {
+          refresh();
+          if (payload.eventType === "INSERT") {
+            const n = payload.new as { title?: string; body?: string; lead_id?: string | null };
+            // Avoid popping for events that occurred before this tab opened
+            toast(n.title ?? "New notification", {
+              description: n.body ?? undefined,
+              action: n.lead_id
+                ? { label: "Open", onClick: () => navigate({ to: "/leads/$leadId", params: { leadId: n.lead_id! } }) }
+                : { label: "View", onClick: () => navigate({ to: "/notifications" }) },
+            });
+          }
+        })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line
