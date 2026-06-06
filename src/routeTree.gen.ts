@@ -21,6 +21,7 @@ import { Route as PaymentTokenRouteImport } from './routes/payment.$token'
 import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
+import { Route as AppStaleLeadsRouteImport } from './routes/_app/stale-leads'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppQuotationsRouteImport } from './routes/_app/quotations'
@@ -40,6 +41,7 @@ import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers.$customerId'
 import { Route as AppCompanySettingsCompanyIdRouteImport } from './routes/_app/company-settings.$companyId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
+import { Route as ApiPublicHooksStaleLeadScanRouteImport } from './routes/api/public/hooks/stale-lead-scan'
 import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
@@ -102,6 +104,11 @@ const AppTransfersRoute = AppTransfersRouteImport.update({
 const AppTasksRoute = AppTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStaleLeadsRoute = AppStaleLeadsRouteImport.update({
+  id: '/stale-leads',
+  path: '/stale-leads',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -201,6 +208,12 @@ const ApiPublicHooksTaskRemindersRoute =
     path: '/api/public/hooks/task-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksStaleLeadScanRoute =
+  ApiPublicHooksStaleLeadScanRouteImport.update({
+    id: '/api/public/hooks/stale-lead-scan',
+    path: '/api/public/hooks/stale-lead-scan',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksQuotationExpiryRoute =
   ApiPublicHooksQuotationExpiryRouteImport.update({
     id: '/api/public/hooks/quotation-expiry',
@@ -245,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/quotations': typeof AppQuotationsRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/stale-leads': typeof AppStaleLeadsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
@@ -260,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
+  '/api/public/hooks/stale-lead-scan': typeof ApiPublicHooksStaleLeadScanRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRoutesByTo {
@@ -280,6 +295,7 @@ export interface FileRoutesByTo {
   '/quotations': typeof AppQuotationsRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/stale-leads': typeof AppStaleLeadsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
@@ -295,6 +311,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
+  '/api/public/hooks/stale-lead-scan': typeof ApiPublicHooksStaleLeadScanRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRoutesById {
@@ -318,6 +335,7 @@ export interface FileRoutesById {
   '/_app/quotations': typeof AppQuotationsRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/stale-leads': typeof AppStaleLeadsRoute
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
@@ -333,6 +351,7 @@ export interface FileRoutesById {
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
+  '/api/public/hooks/stale-lead-scan': typeof ApiPublicHooksStaleLeadScanRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRouteTypes {
@@ -356,6 +375,7 @@ export interface FileRouteTypes {
     | '/quotations'
     | '/reports'
     | '/settings'
+    | '/stale-leads'
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
@@ -371,6 +391,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
+    | '/api/public/hooks/stale-lead-scan'
     | '/api/public/hooks/task-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -391,6 +412,7 @@ export interface FileRouteTypes {
     | '/quotations'
     | '/reports'
     | '/settings'
+    | '/stale-leads'
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
@@ -406,6 +428,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
+    | '/api/public/hooks/stale-lead-scan'
     | '/api/public/hooks/task-reminders'
   id:
     | '__root__'
@@ -428,6 +451,7 @@ export interface FileRouteTypes {
     | '/_app/quotations'
     | '/_app/reports'
     | '/_app/settings'
+    | '/_app/stale-leads'
     | '/_app/tasks'
     | '/_app/transfers'
     | '/feedback/$bookingId'
@@ -443,6 +467,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
+    | '/api/public/hooks/stale-lead-scan'
     | '/api/public/hooks/task-reminders'
   fileRoutesById: FileRoutesById
 }
@@ -462,6 +487,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
   ApiPublicHooksQuotationExpiryRoute: typeof ApiPublicHooksQuotationExpiryRoute
+  ApiPublicHooksStaleLeadScanRoute: typeof ApiPublicHooksStaleLeadScanRoute
   ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
 }
 
@@ -549,6 +575,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AppTasksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stale-leads': {
+      id: '/_app/stale-leads'
+      path: '/stale-leads'
+      fullPath: '/stale-leads'
+      preLoaderRoute: typeof AppStaleLeadsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings': {
@@ -684,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTaskRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/stale-lead-scan': {
+      id: '/api/public/hooks/stale-lead-scan'
+      path: '/api/public/hooks/stale-lead-scan'
+      fullPath: '/api/public/hooks/stale-lead-scan'
+      preLoaderRoute: typeof ApiPublicHooksStaleLeadScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/quotation-expiry': {
       id: '/api/public/hooks/quotation-expiry'
       path: '/api/public/hooks/quotation-expiry'
@@ -755,6 +795,7 @@ interface AppRouteChildren {
   AppQuotationsRoute: typeof AppQuotationsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppStaleLeadsRoute: typeof AppStaleLeadsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppTransfersRoute: typeof AppTransfersRoute
   AppCompanySettingsCompanyIdRoute: typeof AppCompanySettingsCompanyIdRoute
@@ -774,6 +815,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppQuotationsRoute: AppQuotationsRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppStaleLeadsRoute: AppStaleLeadsRoute,
   AppTasksRoute: AppTasksRoute,
   AppTransfersRoute: AppTransfersRoute,
   AppCompanySettingsCompanyIdRoute: AppCompanySettingsCompanyIdRoute,
@@ -799,8 +841,19 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
   ApiPublicHooksQuotationExpiryRoute: ApiPublicHooksQuotationExpiryRoute,
+  ApiPublicHooksStaleLeadScanRoute: ApiPublicHooksStaleLeadScanRoute,
   ApiPublicHooksTaskRemindersRoute: ApiPublicHooksTaskRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
