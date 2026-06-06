@@ -139,6 +139,11 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
   const [tab, setTab] = useState<"overview" | "pending">("overview");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
+  const navigate = useNavigate();
+  const monthStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
 
   const refresh = useCallback(async () => {
     const [o, p] = await Promise.all([loadOverview(companyId), loadPending(companyId)]);
