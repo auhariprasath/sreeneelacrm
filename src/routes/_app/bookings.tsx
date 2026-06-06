@@ -73,6 +73,7 @@ function BookingsIndex() {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [companyFilter, status, range]);
+  useRealtimeRefresh(["bookings", "payments"], load);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
