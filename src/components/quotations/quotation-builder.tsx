@@ -320,6 +320,7 @@ export function QuotationBuilder({
       event: {
         type: evType, date: evDate || null, start_time: evStart || null, end_time: evEnd || null,
         venue: evVenue || null, guest_count: evGuests === "" ? null : Number(evGuests),
+        duration_hours: evDuration || null,
       },
       quotation: {
         number: null, version: baseVersion,
