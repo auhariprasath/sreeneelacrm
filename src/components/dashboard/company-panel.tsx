@@ -188,7 +188,13 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
                     <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={10} interval={3} />
                     <YAxis tickLine={false} axisLine={false} fontSize={10} width={36} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : v} />
                     <Tooltip formatter={(v: any) => formatINR(Number(v))} labelFormatter={(l) => `Day ${l}`} cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }} />
-                    <Bar dataKey="revenue" fill={brandColor} radius={[2, 2, 0, 0]} />
+                    <Bar
+                      dataKey="revenue"
+                      fill={brandColor}
+                      radius={[2, 2, 0, 0]}
+                      cursor="pointer"
+                      onClick={() => navigate({ to: "/bookings", search: { month: monthStr, company: companyId } as any })}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
