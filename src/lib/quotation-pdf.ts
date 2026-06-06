@@ -140,6 +140,7 @@ export async function generateQuotationPdf(input: QuotationPdfInput): Promise<Bl
       : formatTimeOfDay(input.event.start_time);
     pills.push(tt);
   }
+  if (input.event.duration_hours) pills.push(`${input.event.duration_hours} hr`);
   if (input.event.guest_count) pills.push(`${input.event.guest_count} guests`);
   if (input.event.type) pills.push(input.event.type);
 
