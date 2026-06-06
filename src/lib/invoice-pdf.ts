@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
-import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { formatINRPdf, formatDateIN, formatTimeOfDay } from "@/lib/format";
 
 export interface InvoicePdfInput {
   company: {
