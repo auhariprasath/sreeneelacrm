@@ -42,7 +42,7 @@ interface Props {
 const STEPS = ["Event", "Services", "Pricing", "Preview"] as const;
 
 export function QuotationBuilder({
-  open, onOpenChange, leadId, companyId, requirementId, quotationId, onSaved, onContinueToSend,
+  open, onOpenChange, leadId, companyId, requirementId, quotationId, reviseFromId, onSaved, onContinueToSend,
 }: Props) {
   const { role, profile } = useAuth();
   const [step, setStep] = useState(0);
