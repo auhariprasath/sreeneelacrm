@@ -1059,6 +1059,11 @@ export type Database = {
           instalment_number: number | null
           lead_id: string
           notes: string | null
+          proof_note: string | null
+          proof_payer_name: string | null
+          proof_uploaded_at: string | null
+          proof_url: string | null
+          public_token: string | null
           received_at: string | null
           status: Database["public"]["Enums"]["payment_status"]
           total_instalments: number | null
@@ -1081,6 +1086,11 @@ export type Database = {
           instalment_number?: number | null
           lead_id: string
           notes?: string | null
+          proof_note?: string | null
+          proof_payer_name?: string | null
+          proof_uploaded_at?: string | null
+          proof_url?: string | null
+          public_token?: string | null
           received_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           total_instalments?: number | null
@@ -1103,6 +1113,11 @@ export type Database = {
           instalment_number?: number | null
           lead_id?: string
           notes?: string | null
+          proof_note?: string | null
+          proof_payer_name?: string | null
+          proof_uploaded_at?: string | null
+          proof_url?: string | null
+          public_token?: string | null
           received_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           total_instalments?: number | null
