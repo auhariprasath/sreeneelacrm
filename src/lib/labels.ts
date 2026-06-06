@@ -45,6 +45,7 @@ export const QUOTATION_STATUS_LABEL: Record<QuotationStatus, string> = {
   agreed: "Quote accepted",
   revised: "Being revised",
   declined: "Client said no",
+  expired: "Expired",
 };
 
 export const SLOT_STATUS_LABEL: Record<SlotStatus, string> = {
