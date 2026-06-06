@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useRealtimeRefresh } from "@/lib/realtime";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { formatTimeOfDay, formatDateIN } from "@/lib/format";
