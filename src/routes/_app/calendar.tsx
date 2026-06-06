@@ -26,10 +26,8 @@ function CalendarPage() {
   const load = useCallback(async () => {
     if (!profile?.company_id) return;
     setLoading(true);
-    // Auto-free expired soft holds in range, then fetch
-    await supabase.from("slots").update({
-      status: "free", held_by_lead_id: null, held_by_requirement_id: null, held_until: null,
-    }).eq("company_id", profile.company_id!).eq("status", "soft_hold").lt("held_until", new Date().toISOString());
+
+
 
     const { data } = await supabase
       .from("slots").select("*")
@@ -127,7 +125,6 @@ function CalendarPage() {
               <div className="mt-1 flex flex-wrap gap-0.5">
                 {counts.confirmed > 0 && <Dot tone={conflict ? "bg-rose-600" : "bg-rose-500"} n={counts.confirmed} />}
                 {counts.enquiry > 0 && <Dot tone="bg-amber-500" n={counts.enquiry} />}
-                {counts.soft_hold > 0 && <Dot tone="bg-amber-300" n={counts.soft_hold} />}
               </div>
             </button>
           );
@@ -178,7 +175,7 @@ function Legend() {
     <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
       <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> Confirmed</span>
       <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" /> Enquiry</span>
-      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-300" /> Soft hold</span>
+      
       <span className="inline-flex items-center gap-1.5 text-rose-600"><span>⚠</span> Double booking</span>
     </div>
   );
@@ -196,7 +193,6 @@ function StatusDot({ status }: { status: string }) {
   const tone =
     status === "confirmed" ? "bg-rose-500"
     : status === "enquiry" ? "bg-amber-500"
-    : status === "soft_hold" ? "bg-amber-300"
     : "bg-muted-foreground";
   return <span className={`h-2 w-2 rounded-full ${tone}`} />;
 }
@@ -204,7 +200,7 @@ function StatusDot({ status }: { status: string }) {
 function countByStatus(ds: Slot[]) {
   return ds.reduce(
     (acc, s) => { (acc as any)[s.status] = ((acc as any)[s.status] ?? 0) + 1; return acc; },
-    { confirmed: 0, enquiry: 0, soft_hold: 0, free: 0 } as Record<string, number>,
+    { confirmed: 0, enquiry: 0, free: 0 } as Record<string, number>,
   );
 }
 

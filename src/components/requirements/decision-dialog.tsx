@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, ThumbsDown, Clock, FileCheck2 } from "lucide-react";
-import { releaseSoftHold } from "@/lib/slots";
+
 
 type Decision = "interested" | "not_interested" | "needs_time" | "confirm_booking";
 
@@ -77,18 +77,8 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
         await supabase.from("leads").update({ status: "positive" }).eq("id", leadId);
         await supabase.from("requirements").update({ status: "complete" }).eq("id", requirementId);
       } else if (decision === "confirm_booking") {
-        // Promote any soft-hold for this requirement to confirmed
-        const { data: held } = await supabase
-          .from("slots").select("id").eq("held_by_requirement_id", requirementId).eq("status", "soft_hold").maybeSingle();
-        if (held) {
-          await supabase.from("slots").update({
-            status: "confirmed", held_until: null,
-          }).eq("id", (held as any).id);
-        } else {
-          toast.error("No active soft hold — place one first");
-          setSaving(false);
-          return;
-        }
+        // Slot only locks when the booking is created/confirmed after payment.
+        // Here we just advance the requirement and lead status.
         await supabase.from("requirements").update({ status: "slot_confirmed" }).eq("id", requirementId);
         await supabase.from("leads").update({ status: "positive" }).eq("id", leadId);
         // Log WON
@@ -105,7 +95,6 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
         });
         await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
       } else if (decision === "not_interested") {
-        await releaseSoftHold(requirementId);
         await supabase.from("requirements").update({ status: "complete" }).eq("id", requirementId);
         await supabase.from("leads").update({
           status: "negative",

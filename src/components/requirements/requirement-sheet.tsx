@@ -8,14 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAutosaveDraft, loadDraft } from "@/hooks/use-autosave-draft";
-import { useCountdown } from "@/hooks/use-countdown";
-import { checkSlot, createSoftHold, releaseSoftHold, type SlotCheck } from "@/lib/slots";
 import { formatINR, formatTimeOfDay, addHoursToTime } from "@/lib/format";
-import { Loader2, Clock, CheckCircle2, AlertTriangle, XCircle, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, Info, Sparkles, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
@@ -79,13 +77,10 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
   const [selectedAddons, setSelectedAddons] = useState<{ addon_name: string; addon_price: number; is_custom: boolean }[]>([]);
   const [customAddon, setCustomAddon] = useState({ name: "", price: "" });
   const [loading, setLoading] = useState(true);
-  const [checking, setChecking] = useState(false);
-  const [slotCheck, setSlotCheck] = useState<SlotCheck | null>(null);
+  const [otherCount, setOtherCount] = useState<number | null>(null);
+  const [countingOthers, setCountingOthers] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentReqId, setCurrentReqId] = useState<string | null>(requirementId ?? null);
-  const [heldUntil, setHeldUntil] = useState<string | null>(null);
-
-  const countdown = useCountdown(heldUntil);
 
   useAutosaveDraft(draftKey, { form, isMandapam, selectedAddons }, open && !requirementId);
 
@@ -129,10 +124,6 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
           setSelectedAddons(((ads as AddOn[]) ?? []).map((a) => ({
             addon_name: a.addon_name, addon_price: Number(a.addon_price), is_custom: a.is_custom,
           })));
-          // Restore active hold for this requirement
-          const { data: slot } = await supabase
-            .from("slots").select("held_until").eq("held_by_requirement_id", requirementId).eq("status", "soft_hold").maybeSingle();
-          setHeldUntil((slot as any)?.held_until ?? null);
           setCurrentReqId(requirementId);
         }
       } else {
@@ -145,9 +136,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
           setSelectedAddons([]);
         }
         setCurrentReqId(null);
-        setHeldUntil(null);
       }
-      setSlotCheck(null);
+      setOtherCount(null);
       setLoading(false);
     })();
     // eslint-disable-next-line
@@ -164,43 +154,46 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       end_time: s.end_time,
       duration_hours: diffHours(s.start_time, s.end_time),
     }));
-    setSlotCheck(null);
   };
 
   // Duration → auto-fill end
   const onDurationChange = (h: number) => {
     setForm((f) => ({ ...f, duration_hours: h, end_time: f.start_time ? addHoursToTime(f.start_time, h) : f.end_time }));
-    setSlotCheck(null);
   };
   const onStartChange = (t: string) => {
     setForm((f) => ({ ...f, start_time: t, end_time: f.duration_hours ? addHoursToTime(t, f.duration_hours) : f.end_time }));
-    setSlotCheck(null);
   };
 
-  const canCheckSlot = !!form.event_date && !!form.start_time && !!form.end_time;
+  // Count other active enquiries on the same date (+ session for mandapam).
+  // "Active" = requirement not soft-deleted AND lead not lost/dropped.
+  useEffect(() => {
+    if (!open) return;
+    if (!form.event_date) { setOtherCount(null); return; }
+    if (isMandapam && !form.session_name) { setOtherCount(null); return; }
+    let cancelled = false;
+    setCountingOthers(true);
+    (async () => {
+      let q = supabase
+        .from("requirements")
+        .select("id, lead_id, leads!inner(status)", { count: "exact", head: false })
+        .eq("company_id", companyId)
+        .eq("event_date", form.event_date)
+        .is("deleted_at", null)
+        .neq("leads.status", "negative");
+      if (isMandapam && form.session_name) {
+        // For mandapam venues, session defines the slot
+        q = q.eq("start_time", form.start_time);
+      }
+      if (currentReqId) q = q.neq("id", currentReqId);
+      const { data, error } = await q;
+      if (cancelled) return;
+      setCountingOthers(false);
+      if (error) { setOtherCount(null); return; }
+      setOtherCount((data ?? []).length);
+    })();
+    return () => { cancelled = true; };
+  }, [open, companyId, form.event_date, form.session_name, form.start_time, isMandapam, currentReqId]);
 
-  const runSlotCheck = async () => {
-    if (!canCheckSlot) {
-      toast.error("Pick date, start & end time first");
-      return;
-    }
-    setChecking(true);
-    try {
-      const res = await checkSlot({
-        companyId,
-        eventDate: form.event_date,
-        startTime: form.start_time,
-        endTime: form.end_time,
-        muhurthamTime: form.muhurtham_time || null,
-        ignoreRequirementId: currentReqId,
-      });
-      setSlotCheck(res);
-    } catch (e: any) {
-      toast.error(e.message ?? "Couldn't check slot");
-    } finally {
-      setChecking(false);
-    }
-  };
 
   const ensureRequirementSaved = async (): Promise<string | null> => {
     if (currentReqId) {
@@ -269,49 +262,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
     }
   };
 
-  const onSoftHold = async () => {
-    if (!slotCheck || slotCheck.status !== "free") {
-      toast.error("Run a slot check first — only free slots can be held");
-      return;
-    }
-    setSaving(true);
-    const id = await ensureRequirementSaved();
-    if (!id) { setSaving(false); return; }
-    try {
-      const slot = await createSoftHold({
-        companyId, leadId, requirementId: id,
-        eventDate: form.event_date,
-        startTime: form.start_time,
-        endTime: form.end_time,
-        sessionName: isMandapam ? form.session_name : null,
-      });
-      await supabase.from("requirements").update({ status: "slot_checking" }).eq("id", id);
-      await supabase.from("activity_logs").insert({
-        lead_id: leadId, action: "Soft hold placed (30 min)",
-        action_type: "system", performed_by: profile?.id ?? null,
-        note: `${form.event_date} ${formatTimeOfDay(form.start_time)} - ${formatTimeOfDay(form.end_time)}`,
-      });
-      setHeldUntil(slot.held_until);
-      toast.success("Soft hold placed for 30 minutes");
-      onSaved?.();
-    } catch (e: any) {
-      toast.error(e.message ?? "Couldn't place hold");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const onReleaseHold = async () => {
-    if (!currentReqId) return;
-    await releaseSoftHold(currentReqId);
-    await supabase.from("requirements").update({ status: "collecting" }).eq("id", currentReqId);
-    setHeldUntil(null);
-    setSlotCheck(null);
-    toast.success("Hold released");
-    onSaved?.();
-  };
-
   const totalAddons = useMemo(() => selectedAddons.reduce((s, a) => s + Number(a.addon_price || 0), 0), [selectedAddons]);
+
 
   const toggleCatalogAddon = (a: AddonCat, on: boolean) => {
     setSelectedAddons((prev) => on
@@ -346,7 +298,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
             {/* Event date */}
             <div className="space-y-1.5">
               <Label>Event date *</Label>
-              <Input type="date" value={form.event_date} onChange={(e) => { setForm({ ...form, event_date: e.target.value }); setSlotCheck(null); }} />
+              <Input type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+              <DateInfoBanner count={otherCount} loading={countingOthers} hasDate={!!form.event_date} />
             </div>
 
             {/* Mandapam: session picker / non-mandapam: start + duration */}
@@ -377,31 +330,18 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label>End time</Label>
-                  <Input type="time" value={form.end_time} onChange={(e) => { setForm({ ...form, end_time: e.target.value }); setSlotCheck(null); }} />
+                  <Input type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
                 </div>
               </div>
             )}
 
-            {/* Slot check panel */}
-            <SlotPanel
-              check={slotCheck}
-              checking={checking}
-              canCheck={canCheckSlot}
-              onCheck={runSlotCheck}
-              heldUntilLabel={heldUntil ? countdown.label : null}
-              expired={heldUntil ? countdown.expired : false}
-              onSoftHold={onSoftHold}
-              onRelease={onReleaseHold}
-              saving={saving}
-              hasHold={!!heldUntil && !countdown.expired}
-            />
-
             {/* Muhurtham */}
             <div className="space-y-1.5">
               <Label>Muhurtham time (optional)</Label>
-              <Input type="time" value={form.muhurtham_time} onChange={(e) => { setForm({ ...form, muhurtham_time: e.target.value }); setSlotCheck(null); }} />
-              <p className="text-[11px] text-muted-foreground">If set, we check whether it clashes with another confirmed booking.</p>
+              <Input type="time" value={form.muhurtham_time} onChange={(e) => setForm({ ...form, muhurtham_time: e.target.value })} />
+              <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
             </div>
+
 
             {/* Event type */}
             <div className="space-y-1.5">
@@ -506,79 +446,27 @@ function diffHours(a: string, b: string) {
   return Math.max(0.5, mins / 60);
 }
 
-function SlotPanel({
-  check, checking, canCheck, onCheck, heldUntilLabel, expired, onSoftHold, onRelease, saving, hasHold,
-}: {
-  check: SlotCheck | null;
-  checking: boolean;
-  canCheck: boolean;
-  onCheck: () => void;
-  heldUntilLabel: string | null;
-  expired: boolean;
-  onSoftHold: () => void;
-  onRelease: () => void;
-  saving: boolean;
-  hasHold: boolean;
-}) {
-  const status = check?.status;
-  const tone =
-    status === "free" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200"
-    : status === "soft_hold" ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200"
-    : status === "enquiry" ? "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200"
-    : status === "confirmed" ? "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300"
-    : status === "muhurtham_conflict" ? "bg-purple-500/10 border-purple-500/30 text-purple-800 dark:text-purple-200"
-    : "bg-muted border-border text-muted-foreground";
-
-  const Icon =
-    status === "free" ? CheckCircle2
-    : status === "confirmed" ? XCircle
-    : status === "muhurtham_conflict" ? AlertTriangle
-    : status ? AlertTriangle
-    : Clock;
-
-  return (
-    <div className={`rounded-lg border p-3 ${tone}`}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Icon className="h-4 w-4" />
-          {!status && "Check slot availability"}
-          {status === "free" && "Slot available"}
-          {status === "soft_hold" && "Slot is on a soft hold by someone else"}
-          {status === "enquiry" && "Slot has an active enquiry"}
-          {status === "confirmed" && "Slot already booked"}
-          {status === "muhurtham_conflict" && "Muhurtham time clashes with another confirmed booking"}
-        </div>
-        <Button size="sm" variant="outline" onClick={onCheck} disabled={!canCheck || checking}>
-          {checking ? "Checking…" : status ? "Re-check" : "Check slot"}
-        </Button>
+function DateInfoBanner({ count, loading, hasDate }: { count: number | null; loading: boolean; hasDate: boolean }) {
+  if (!hasDate) return null;
+  if (loading || count === null) {
+    return (
+      <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground inline-flex items-center gap-2">
+        <Info className="h-3.5 w-3.5" /> Checking other enquiries for this date…
       </div>
-
-      {hasHold && (
-        <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-          <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Soft hold: {heldUntilLabel} remaining</span>
-          <Button size="sm" variant="ghost" onClick={onRelease} disabled={saving}>Release</Button>
-        </div>
-      )}
-      {!hasHold && expired && (
-        <div className="mt-2 text-xs">Soft hold expired — slot is free again.</div>
-      )}
-      {status === "free" && !hasHold && (
-        <div className="mt-2">
-          <Button size="sm" onClick={onSoftHold} disabled={saving}>
-            {saving ? "Placing hold…" : "Place 30-min soft hold"}
-          </Button>
-        </div>
-      )}
-      {check?.conflicts && check.conflicts.length > 0 && (
-        <div className="mt-2 text-xs space-y-0.5">
-          {check.conflicts.map((c) => (
-            <div key={c.id}>
-              <Badge variant="secondary" className="mr-1 capitalize">{c.status.replace("_", " ")}</Badge>
-              {formatTimeOfDay(c.start_time)} – {formatTimeOfDay(c.end_time)}
-            </div>
-          ))}
-        </div>
-      )}
+    );
+  }
+  if (count === 0) {
+    return (
+      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 px-3 py-2 text-xs inline-flex items-center gap-2">
+        <Info className="h-3.5 w-3.5" /> No other enquiries — this date is free.
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs inline-flex items-center gap-2">
+      <Info className="h-3.5 w-3.5" />
+      {count} other {count === 1 ? "enquiry" : "enquiries"} on this date. First to pay locks the slot.
     </div>
   );
 }
+

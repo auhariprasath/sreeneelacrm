@@ -18,7 +18,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
-type ReqMeta = { nextEvent: string | null; holdActive: boolean };
+type ReqMeta = { nextEvent: string | null };
 
 const PAGE = 25;
 const STATUS_TABS: { key: "all" | Status; label: string }[] = [
@@ -107,25 +107,16 @@ function LeadsInbox() {
   const loadReqMeta = async (ids: string[]) => {
     if (ids.length === 0) return;
     const today = new Date().toISOString().slice(0, 10);
-    const nowIso = new Date().toISOString();
-    const [reqRes, holdRes] = await Promise.all([
-      supabase.from("requirements")
-        .select("lead_id, event_date")
-        .in("lead_id", ids).is("deleted_at", null)
-        .not("event_date", "is", null).gte("event_date", today),
-      supabase.from("slots")
-        .select("held_by_lead_id")
-        .in("held_by_lead_id", ids).eq("status", "soft_hold").gt("held_until", nowIso),
-    ]);
+    const { data: reqRes } = await supabase.from("requirements")
+      .select("lead_id, event_date")
+      .in("lead_id", ids).is("deleted_at", null)
+      .not("event_date", "is", null).gte("event_date", today);
     const meta: Record<string, ReqMeta> = {};
-    for (const id of ids) meta[id] = { nextEvent: null, holdActive: false };
-    for (const r of (reqRes.data ?? []) as any[]) {
+    for (const id of ids) meta[id] = { nextEvent: null };
+    for (const r of (reqRes ?? []) as any[]) {
       const cur = meta[r.lead_id];
       if (!cur) continue;
       if (!cur.nextEvent || r.event_date < cur.nextEvent) cur.nextEvent = r.event_date;
-    }
-    for (const h of (holdRes.data ?? []) as any[]) {
-      if (meta[h.held_by_lead_id]) meta[h.held_by_lead_id].holdActive = true;
     }
     setReqMeta((prev) => ({ ...prev, ...meta }));
   };
@@ -287,11 +278,6 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
               {nextEvent && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                   Event {String(nextEvent.getDate()).padStart(2,"0")}/{String(nextEvent.getMonth()+1).padStart(2,"0")}
-                </span>
-              )}
-              {meta?.holdActive && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                  Hold active
                 </span>
               )}
               <span className="text-[11px] text-muted-foreground truncate">{relativeTime(lead.updated_at)}</span>
