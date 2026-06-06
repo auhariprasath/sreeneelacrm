@@ -77,13 +77,10 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
   const [selectedAddons, setSelectedAddons] = useState<{ addon_name: string; addon_price: number; is_custom: boolean }[]>([]);
   const [customAddon, setCustomAddon] = useState({ name: "", price: "" });
   const [loading, setLoading] = useState(true);
-  const [checking, setChecking] = useState(false);
-  const [slotCheck, setSlotCheck] = useState<SlotCheck | null>(null);
+  const [otherCount, setOtherCount] = useState<number | null>(null);
+  const [countingOthers, setCountingOthers] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentReqId, setCurrentReqId] = useState<string | null>(requirementId ?? null);
-  const [heldUntil, setHeldUntil] = useState<string | null>(null);
-
-  const countdown = useCountdown(heldUntil);
 
   useAutosaveDraft(draftKey, { form, isMandapam, selectedAddons }, open && !requirementId);
 
