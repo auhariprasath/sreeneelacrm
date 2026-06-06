@@ -255,6 +255,35 @@ export function QuotationBuilder({
       const { data, error } = await supabase.from("quotations").insert(payload).select("id").single();
       if (error || !data) { setSaving(false); if (!silent) toast.error(error?.message || "Couldn't save draft"); return null; }
       id = data.id; setDraftId(id);
+
+      // First save of a revision: archive the source quotation and notify admins on 3+ revisions
+      if (revisingFromId) {
+        const archivedFrom = revisingFromId;
+        setRevisingFromId(null);
+        await supabase.from("quotations").update({ status: "revised" }).eq("id", archivedFrom);
+        await supabase.from("activity_logs").insert({
+          lead_id: leadId,
+          action: `Quotation revised — new v${baseVersion} created from v${baseVersion - 1}`,
+          action_type: "system",
+          performed_by: profile?.id ?? null,
+          metadata: { quotation_id: id, revised_from: archivedFrom, version: baseVersion },
+        });
+        if (baseVersion >= 4) {
+          const { data: admins } = await supabase
+            .from("user_roles")
+            .select("user_id, profiles!inner(company_id)")
+            .in("role", ["admin", "super_admin"])
+            .eq("profiles.company_id", companyId);
+          const rows = (admins ?? []).map((a: any) => ({
+            user_id: a.user_id,
+            title: "Review quotation revisions",
+            body: `${baseVersion - 1} revisions done on ${lead?.full_name ?? "lead"} — please review.`,
+            type: "system" as const,
+            lead_id: leadId,
+          }));
+          if (rows.length) await supabase.from("notifications").insert(rows);
+        }
+      }
     }
     setSaving(false);
     setLastSaved(new Date());
