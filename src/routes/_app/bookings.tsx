@@ -11,11 +11,22 @@ import { EmptyState } from "@/components/empty-state";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 type Status = Database["public"]["Enums"]["booking_status"];
 
-export const Route = createFileRoute("/_app/bookings")({ component: BookingsIndex });
+const bookingsSearchSchema = z.object({
+  status: fallback(z.enum(["all", "confirmed", "cheque_pending", "rescheduled", "completed", "cancelled", "disputed"]), "all").default("all"),
+  month: fallback(z.string().regex(/^\d{4}-\d{2}$/).optional(), undefined),
+  company: fallback(z.string().uuid().optional(), undefined),
+});
+
+export const Route = createFileRoute("/_app/bookings")({
+  component: BookingsIndex,
+  validateSearch: zodValidator(bookingsSearchSchema),
+});
 
 const TABS: { key: "all" | Status; label: string }[] = [
   { key: "all", label: "All" },
