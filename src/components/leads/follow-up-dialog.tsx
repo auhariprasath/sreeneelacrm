@@ -72,6 +72,10 @@ export function FollowUpDialog({ open, onOpenChange, leadId, performedBy, defaul
     if (scheduled.getTime() < Date.now() - 60_000) { toast.error("Pick a time in the future"); return; }
 
     setSaving(true);
+    // Only one active follow-up at a time — cancel existing pending ones for this lead
+    await supabase.from("follow_ups")
+      .update({ is_cancelled: true })
+      .eq("lead_id", leadId).eq("is_sent", false).eq("is_cancelled", false);
     const { error } = await supabase.from("follow_ups").insert({
       lead_id: leadId, scheduled_at: scheduled.toISOString(),
       note: note.trim() || null, created_by: performedBy,
