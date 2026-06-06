@@ -18,7 +18,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
-type ReqMeta = { nextEvent: string | null; holdActive: boolean };
+type ReqMeta = { nextEvent: string | null };
 
 const PAGE = 25;
 const STATUS_TABS: { key: "all" | Status; label: string }[] = [
