@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { SkeletonList } from "@/components/skeleton-list";
 import { Plus, Megaphone, Send, Download, Trash2, MessageSquare } from "lucide-react";
+import { buildWaMeLink } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/campaigns")({ component: CampaignsPage });
 
@@ -413,9 +414,8 @@ function SendDialog({ campaign, companyId, onClose }: { campaign: CampaignRow; c
 
   const openWhatsApp = () => {
     if (!current) return;
-    const phone = current.phone.replace(/[^0-9]/g, "");
-    const text = encodeURIComponent(personalise(current));
-    const url = `https://wa.me/${phone}?text=${text}`;
+    const url = buildWaMeLink(current.phone, personalise(current));
+    if (!url) { toast.error("Invalid phone number"); return; }
     window.open(url, "_blank", "noopener,noreferrer");
   };
 

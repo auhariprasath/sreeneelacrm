@@ -431,11 +431,9 @@ function NotInterestedSection({ rows }: { rows: NotInterestedRow[] }) {
       toast.error("No phone number on this lead");
       return;
     }
-    const phone = row.phone.replace(/[^0-9]/g, "");
-    const text = encodeURIComponent(
-      `Hi ${row.full_name.split(" ")[0] || "there"}, this is from Neela Events. Just checking in — would love another chance to help you plan your event. We have some new options that might work better. Can we share?`
-    );
-    window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener,noreferrer");
+    const url = buildWaMeLink(row.phone, `Hi ${row.full_name.split(" ")[0] || "there"}, this is from Neela Events. Just checking in — would love another chance to help you plan your event. We have some new options that might work better. Can we share?`);
+    if (!url) { toast.error("Invalid phone number"); return; }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
