@@ -104,11 +104,12 @@ export function WaMessagePreviewDialog({ open, onOpenChange, companyId, template
   }, [body, values, leadName, portfolioUrl, videoUrl, mapsLink, address]);
 
   const selectedPhotos = photos.filter((p) => selected.includes(p.path));
-  const tel = (leadPhone ?? "").replace(/\D/g, "");
+  const tel = (leadPhone ?? "").replace(/\D/g, "").slice(-10);
 
   const send = () => {
     if (!tel) { toast.error("No phone number"); return; }
-    const url = `https://wa.me/${tel}?text=${encodeURIComponent(merged)}`;
+    const url = buildWaMeLink(leadPhone ?? undefined, merged);
+    if (!url) { toast.error("Invalid phone number"); return; }
     window.open(url, "_blank", "noreferrer");
     onOpenChange(false);
   };
