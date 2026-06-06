@@ -176,6 +176,19 @@ function LeadProfile() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [leadId]);
 
   useEffect(() => {
+    const reloadList = async (table: "quotations" | "bookings" | "payments" | "requirements") => {
+      const q = supabase.from(table).select("*").eq("lead_id", leadId).is("deleted_at", null);
+      const order = table === "quotations" ? q.order("version", { ascending: false })
+        : table === "bookings" ? q.order("created_at", { ascending: false })
+        : table === "payments" ? q.order("created_at", { ascending: true })
+        : q.order("requirement_number", { ascending: true });
+      const { data } = await order;
+      if (table === "quotations") setQuotations((data as Quotation[]) ?? []);
+      else if (table === "bookings") setBookings((data as Booking[]) ?? []);
+      else if (table === "payments") setPayments((data as Payment[]) ?? []);
+      else setRequirements((data as Requirement[]) ?? []);
+    };
+
     const ch = supabase.channel(`lead-${leadId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_logs", filter: `lead_id=eq.${leadId}` },
         (p) => setActivities((prev) => [p.new as Activity, ...prev]))
@@ -186,6 +199,10 @@ function LeadProfile() {
           const { data: fus } = await supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true });
           setFollowUps((fus as FollowUp[]) ?? []);
         })
+      .on("postgres_changes", { event: "*", schema: "public", table: "quotations", filter: `lead_id=eq.${leadId}` }, () => reloadList("quotations"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `lead_id=eq.${leadId}` }, () => reloadList("bookings"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments", filter: `lead_id=eq.${leadId}` }, () => reloadList("payments"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "requirements", filter: `lead_id=eq.${leadId}` }, () => reloadList("requirements"))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [leadId]);
