@@ -55,6 +55,7 @@ export function QuotationBuilder({
   const [evDate, setEvDate] = useState("");
   const [evStart, setEvStart] = useState("");
   const [evEnd, setEvEnd] = useState("");
+  const [evDuration, setEvDuration] = useState<number>(4);
   const [evGuests, setEvGuests] = useState<number | "">("");
   const [evVenue, setEvVenue] = useState("");
   const [evNotes, setEvNotes] = useState("");
