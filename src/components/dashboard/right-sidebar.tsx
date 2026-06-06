@@ -104,10 +104,19 @@ export function RightSidebar() {
   useEffect(() => { refresh(); }, []);
   useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
-  const data = d ?? { callBacks: [], tasks: [], quotations: [], overdue: [] };
+  const data = d ?? { callBacks: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
 
   return (
     <div className="space-y-4">
+      <Link to="/stale-leads" className="block">
+        <Card className="p-3 flex items-center justify-between hover:bg-accent/40 transition">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <div className="text-sm font-medium">Stale leads</div>
+          </div>
+          <div className="text-lg font-semibold">{data.staleCount}</div>
+        </Card>
+      </Link>
       <Section icon={Phone} title="Call backs today" count={data.callBacks.length}>
         {data.callBacks.length === 0 ? (
           <div className="text-xs text-muted-foreground p-3">None scheduled</div>
