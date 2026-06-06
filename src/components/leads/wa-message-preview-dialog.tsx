@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send } from "lucide-react";
 import { WA_TEMPLATES, renderPreview, type WaTemplatesMap } from "@/lib/wa-templates";
+import { buildWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Props {
