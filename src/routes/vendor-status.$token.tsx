@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Package, Car, MapPin, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
-import type { Database } from "@/integrations/supabase/types";
+import { getVendorStatusByToken, addVendorStatusUpdate } from "@/lib/api/vendor-status-public.functions";
 
 export const Route = createFileRoute("/vendor-status/$token")({ component: VendorStatusPage });
 
