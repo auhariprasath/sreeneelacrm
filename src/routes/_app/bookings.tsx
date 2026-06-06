@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, CheckCircle2, AlertTriangle, Calendar as CalIcon } from "lucide-react";
@@ -72,6 +73,7 @@ function BookingsIndex() {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [companyFilter, status, range]);
+  useDashboardRealtime(["bookings", "payments"], load);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();

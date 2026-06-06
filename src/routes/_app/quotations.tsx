@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,9 @@ function QuotationsPage() {
     })();
     return () => { cancelled = true; };
   }, [effectiveCompanyId, status, from, to, reloadKey]);
+
+  // Live updates whenever a quotation in scope is created / sent / approved / expired.
+  useDashboardRealtime(["quotations"], refresh);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();

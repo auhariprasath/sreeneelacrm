@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,6 +109,7 @@ function TasksPage() {
 
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeCompanyId, companyFilter, role]);
+  useDashboardRealtime(["tasks", "bookings", "leads"], load);
 
   const filtered = useMemo(() => {
     if (!items) return null;
