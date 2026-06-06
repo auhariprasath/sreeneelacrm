@@ -129,7 +129,7 @@ export const getCompanyDetails = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("companies")
       .select(
-        "id,name,type,wa_number,company_phone,email,address,full_address,google_maps_link,gstin,bank_account,ifsc,upi_id,logo_url,brand_color,max_capacity,venue_photos,cancellation_policy",
+        "id,name,type,wa_number,company_phone,email,address,full_address,google_maps_link,gstin,bank_account,ifsc,upi_id,logo_url,brand_color,max_capacity,venue_photos,cancellation_policy,portfolio_url,video_url,include_photos_in_requirements,include_portfolio_in_day5",
       )
       .eq("id", data.id)
       .maybeSingle();
