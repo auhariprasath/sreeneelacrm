@@ -326,13 +326,14 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
                   <TimeClockField value={form.start_time} onChange={onStartChange} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Duration (hours)</Label>
-                  <Input type="number" min={1} max={24} step={0.5} value={form.duration_hours}
-                    onChange={(e) => onDurationChange(Number(e.target.value) || 0)} />
+                  <Label>Duration</Label>
+                  <DurationSelect value={form.duration_hours} onChange={onDurationChange} />
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <Label>End time</Label>
-                  <TimeClockField value={form.end_time} onChange={(v) => setForm({ ...form, end_time: v })} />
+                  <Label>Ends at</Label>
+                  <div className="h-10 px-3 flex items-center text-sm border rounded-md bg-muted/30">
+                    {form.end_time ? formatTimeOfDay(form.end_time) : "—"}
+                  </div>
                 </div>
               </div>
             )}
