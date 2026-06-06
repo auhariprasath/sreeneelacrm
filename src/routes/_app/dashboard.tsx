@@ -264,37 +264,7 @@ function CompanyDashboard() {
 
 
 
-      {stats.expiringSoon.length > 0 && (
-        <Card className="border-amber-500/40">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base text-amber-700 dark:text-amber-400">Holds expiring soon</CardTitle>
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-          </CardHeader>
-          <CardContent className="p-0">
-            <ul className="divide-y">
-              {stats.expiringSoon.map((h) => {
-                const mins = Math.max(0, Math.round((new Date(h.held_until).getTime() - Date.now()) / 60000));
-                return (
-                  <li key={h.id} className="px-5 py-3 flex items-center justify-between text-sm">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{h.full_name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatDateIN(h.event_date)} · {formatTimeOfDay(h.start_time)}–{formatTimeOfDay(h.end_time)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs font-medium text-amber-700 dark:text-amber-400">{mins}m left</span>
-                      {h.lead_id && (
-                        <Link to="/leads/$leadId" params={{ leadId: h.lead_id }} className="text-xs text-primary underline">Open</Link>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
+
