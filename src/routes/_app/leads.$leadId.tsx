@@ -325,6 +325,12 @@ function LeadProfile() {
                   Follow-up: {formatDateTimeIN(upcomingFu.scheduled_at)}
                 </span>
               )}
+              {customerId && (
+                <Link to="/customers/$customerId" params={{ customerId }}
+                  className="text-[11px] bg-primary/10 text-primary border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/20 inline-flex items-center gap-1">
+                  <Star className="h-3 w-3" /> Customer profile
+                </Link>
+              )}
             </div>
 
             <div className="mt-4 flex gap-2 flex-wrap">
