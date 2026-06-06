@@ -162,6 +162,19 @@ function SettingsPage() {
             </CardContent>
           </Card>
         );
+      case "reminders":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Reminder timing</CardTitle>
+              <CardDescription>Stale lead alert thresholds per stage. Admins are notified when a lead sits in a stage too long; Super Admin is also notified on No-reply escalations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompanyPicker />
+              <ReminderTimingSection companyId={activeCompanyId} />
+            </CardContent>
+          </Card>
+        );
       case "peak":
         return (
           <Card>
