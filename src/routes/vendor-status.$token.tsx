@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Package, Car, MapPin, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
-import type { Database } from "@/integrations/supabase/types";
+import { getVendorStatusByToken, addVendorStatusUpdate } from "@/lib/api/vendor-status-public.functions";
 
 export const Route = createFileRoute("/vendor-status/$token")({ component: VendorStatusPage });
 
@@ -37,27 +36,13 @@ function VendorStatusPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data: bvRow } = await supabase.from("booking_vendors")
-      .select("id,vendor_id,service_description,booking_id")
-      .eq("status_token" as any, token)
-      .maybeSingle();
-    if (!bvRow) { setLoading(false); return; }
-    setBv(bvRow as any);
-    const [{ data: bk }, { data: v }, { data: ups }] = await Promise.all([
-      supabase.from("bookings").select("id,event_date,start_time,venue,company_id").eq("id", (bvRow as any).booking_id).maybeSingle(),
-      supabase.from("vendors").select("name,service_type").eq("id", (bvRow as any).vendor_id).maybeSingle(),
-      supabase.from("vendor_status_updates" as any).select("status,updated_at,updated_via")
-        .eq("booking_vendor_id", (bvRow as any).id).order("updated_at", { ascending: true }),
-    ]);
-    setBooking(bk as any);
-    setVendor(v as any);
-    setUpdates((ups as any) ?? []);
-    if (bk) {
-      const { data: c } = await supabase.from("companies")
-        .select("name,meeting_contact_name,meeting_contact_phone")
-        .eq("id", (bk as any).company_id).maybeSingle();
-      setCompany(c as any);
-    }
+    const res = await getVendorStatusByToken({ data: { token } });
+    if (!res.bv) { setLoading(false); return; }
+    setBv(res.bv as any);
+    setBooking(res.booking as any);
+    setVendor(res.vendor as any);
+    setUpdates((res.updates as any) ?? []);
+    setCompany((res.company as any) ?? null);
     setLoading(false);
   };
 
@@ -74,16 +59,9 @@ function VendorStatusPage() {
       return;
     }
     setSaving(stage);
-    const { error } = await supabase.from("vendor_status_updates" as any).insert({
-      booking_vendor_id: bv.id,
-      booking_id: bv.booking_id,
-      vendor_id: bv.vendor_id,
-      company_id: booking.company_id,
-      status: stage,
-      updated_via: "tap_link",
-    } as any);
+    const res = await addVendorStatusUpdate({ data: { token, status: stage } });
     setSaving(null);
-    if (error) { toast.error(error.message); return; }
+    if (!res.ok) { toast.error(res.error || "Failed to update"); return; }
     toast.success(`Status updated: ${META[stage].label}`);
     load();
   };
