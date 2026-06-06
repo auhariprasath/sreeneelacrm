@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { formatINR, formatINRPdf, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { formatINRPdf, formatDateIN, formatTimeOfDay } from "@/lib/format";
 
 interface LineItem { name: string; price: number; quantity: number; description?: string | null }
 interface AddonItem { name: string; price: number; quantity?: number; unit?: string | null; description?: string | null }
