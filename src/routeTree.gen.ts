@@ -41,6 +41,7 @@ import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
 import { Route as AppCustomersCustomerIdRouteImport } from './routes/_app/customers.$customerId'
 import { Route as AppCompanySettingsCompanyIdRouteImport } from './routes/_app/company-settings.$companyId'
+import { Route as AppCompanyDashboardCompanyIdRouteImport } from './routes/_app/company-dashboard.$companyId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 import { Route as ApiPublicHooksStaleLeadScanRouteImport } from './routes/api/public/hooks/stale-lead-scan'
 import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
@@ -209,6 +210,12 @@ const AppCompanySettingsCompanyIdRoute =
     path: '/company-settings/$companyId',
     getParentRoute: () => AppRoute,
   } as any)
+const AppCompanyDashboardCompanyIdRoute =
+  AppCompanyDashboardCompanyIdRouteImport.update({
+    id: '/company-dashboard/$companyId',
+    path: '/company-dashboard/$companyId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const ApiPublicHooksTaskRemindersRoute =
   ApiPublicHooksTaskRemindersRouteImport.update({
     id: '/api/public/hooks/task-reminders',
@@ -279,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/payment/$token': typeof PaymentTokenRoute
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
+  '/company-dashboard/$companyId': typeof AppCompanyDashboardCompanyIdRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
@@ -318,6 +326,7 @@ export interface FileRoutesByTo {
   '/payment/$token': typeof PaymentTokenRoute
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
+  '/company-dashboard/$companyId': typeof AppCompanyDashboardCompanyIdRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
@@ -360,6 +369,7 @@ export interface FileRoutesById {
   '/payment/$token': typeof PaymentTokenRoute
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
+  '/_app/company-dashboard/$companyId': typeof AppCompanyDashboardCompanyIdRoute
   '/_app/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/_app/customers/$customerId': typeof AppCustomersCustomerIdRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/payment/$token'
     | '/quotation/$token'
     | '/vendor-status/$token'
+    | '/company-dashboard/$companyId'
     | '/company-settings/$companyId'
     | '/customers/$customerId'
     | '/leads/$leadId'
@@ -441,6 +452,7 @@ export interface FileRouteTypes {
     | '/payment/$token'
     | '/quotation/$token'
     | '/vendor-status/$token'
+    | '/company-dashboard/$companyId'
     | '/company-settings/$companyId'
     | '/customers/$customerId'
     | '/leads/$leadId'
@@ -482,6 +494,7 @@ export interface FileRouteTypes {
     | '/payment/$token'
     | '/quotation/$token'
     | '/vendor-status/$token'
+    | '/_app/company-dashboard/$companyId'
     | '/_app/company-settings/$companyId'
     | '/_app/customers/$customerId'
     | '/_app/leads/$leadId'
@@ -743,6 +756,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCompanySettingsCompanyIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/company-dashboard/$companyId': {
+      id: '/_app/company-dashboard/$companyId'
+      path: '/company-dashboard/$companyId'
+      fullPath: '/company-dashboard/$companyId'
+      preLoaderRoute: typeof AppCompanyDashboardCompanyIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/public/hooks/task-reminders': {
       id: '/api/public/hooks/task-reminders'
       path: '/api/public/hooks/task-reminders'
@@ -839,6 +859,7 @@ interface AppRouteChildren {
   AppStaleLeadsRoute: typeof AppStaleLeadsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppTransfersRoute: typeof AppTransfersRoute
+  AppCompanyDashboardCompanyIdRoute: typeof AppCompanyDashboardCompanyIdRoute
   AppCompanySettingsCompanyIdRoute: typeof AppCompanySettingsCompanyIdRoute
 }
 
@@ -860,6 +881,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppStaleLeadsRoute: AppStaleLeadsRoute,
   AppTasksRoute: AppTasksRoute,
   AppTransfersRoute: AppTransfersRoute,
+  AppCompanyDashboardCompanyIdRoute: AppCompanyDashboardCompanyIdRoute,
   AppCompanySettingsCompanyIdRoute: AppCompanySettingsCompanyIdRoute,
 }
 

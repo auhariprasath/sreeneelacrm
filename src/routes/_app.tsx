@@ -74,17 +74,22 @@ function AppLayout() {
   const initials = initialsOf(profile?.full_name || profile?.email || "U");
 
   return (
-    <div className="flex min-h-screen w-full bg-background flex-col lg:flex-row">
-      {/* Sidebar — desktop only (≥1024px). Tablets use the bottom nav so the main area isn't cramped. */}
-      <aside className="hidden lg:flex w-60 shrink-0 bg-sidebar text-sidebar-foreground flex-col">
-        <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border">
-          <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
-          <div className="leading-tight">
+    <div className="flex min-h-screen w-full bg-background flex-col md:flex-row">
+      {/* Sidebar — always visible from md+. Icon-only between md and lg, full at lg+.
+          Below md (phones) we keep the bottom nav. */}
+      <aside
+        className="hidden md:flex shrink-0 bg-sidebar text-sidebar-foreground flex-col
+                   w-16 lg:w-60 transition-[width] duration-200"
+        title="Navigation"
+      >
+        <div className="h-16 flex items-center gap-2 px-3 lg:px-5 border-b border-sidebar-border">
+          <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
+          <div className="leading-tight hidden lg:block">
             <div className="text-sm font-semibold">Neela Events</div>
             <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
           </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-2 lg:p-3 space-y-1">
           {sidebarItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
@@ -92,19 +97,20 @@ function AppLayout() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                title={item.label}
+                className={`flex items-center gap-3 rounded-md px-2 lg:px-3 py-2 text-sm transition-colors justify-center lg:justify-start ${
                   active
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {item.label}
+                <Icon className="h-5 w-5 lg:h-4 lg:w-4 shrink-0" />
+                <span className="hidden lg:inline">{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border">
+        <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border hidden lg:block">
           v0.4 · Phase 4
         </div>
       </aside>
@@ -116,19 +122,19 @@ function AppLayout() {
         {/* Top header */}
         <header className="h-14 lg:h-16 border-b bg-card flex items-center gap-2 lg:gap-3 px-3 lg:px-6 sticky top-0 z-30">
           {/* Brand shown until sidebar takes over */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">N</div>
             <span className="text-sm font-semibold">Neela CRM</span>
           </div>
 
           {role === "super_admin" && companies.length > 0 && (
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <Select
                 value={activeCompanyId ?? "__all"}
                 onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
               >
-                <SelectTrigger className="w-[200px] h-9"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[160px] lg:w-[200px] h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all">All companies</SelectItem>
                   {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -137,9 +143,9 @@ function AppLayout() {
             </div>
           )}
           {role !== "super_admin" && companies[0] && (
-            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
               <Building2 className="h-4 w-4" />
-              {companies[0].name}
+              <span className="truncate max-w-[180px]">{companies[0].name}</span>
             </div>
           )}
 
@@ -186,9 +192,9 @@ function AppLayout() {
           </div>
         </header>
 
-        {/* SA company switch on phones + tablets (anything narrower than lg) */}
+        {/* SA company switch on phones only (md+ has it in the header) */}
         {role === "super_admin" && companies.length > 0 && (
-          <div className="lg:hidden border-b bg-card px-3 py-2">
+          <div className="md:hidden border-b bg-card px-3 py-2">
             <Select
               value={activeCompanyId ?? "__all"}
               onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
@@ -202,12 +208,12 @@ function AppLayout() {
           </div>
         )}
 
-        <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 lg:pb-6">
+        <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 md:pb-6">
           <Outlet />
         </main>
 
-        {/* Bottom nav — phones + tablets (anything narrower than lg) */}
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
+        {/* Bottom nav — phones only (sidebar takes over at md+) */}
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
           {bottomItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
