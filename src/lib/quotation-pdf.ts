@@ -186,8 +186,8 @@ export async function generateQuotationPdf(input: QuotationPdfInput): Promise<Bl
     }
     doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...TEXT);
     doc.text(String(item.quantity), colQty, y + 10, { align: "right" });
-    doc.text(formatINR(item.price), colPrice, y + 10, { align: "right" });
-    doc.text(formatINR(item.price * item.quantity), colAmt - 10, y + 10, { align: "right" });
+    doc.text(formatINRPdf(item.price), colPrice, y + 10, { align: "right" });
+    doc.text(formatINRPdf(item.price * item.quantity), colAmt - 10, y + 10, { align: "right" });
     y += rowH;
     doc.setDrawColor(235, 235, 240); doc.line(M, y, pageW - M, y);
     y += 4;
@@ -216,17 +216,17 @@ export async function generateQuotationPdf(input: QuotationPdfInput): Promise<Bl
     doc.text(value, colAmt - 10, y + 10, { align: "right" });
     y += (opts.size ?? 10) + 8;
   };
-  totRow("Subtotal", formatINR(input.quotation.subtotal));
+  totRow("Subtotal", formatINRPdf(input.quotation.subtotal));
   if (input.quotation.discount_amount > 0) {
-    totRow(`Discount (${input.quotation.discount_percent.toFixed(1)}%)`, `− ${formatINR(input.quotation.discount_amount)}`, { color: GREEN });
+    totRow(`Discount (${input.quotation.discount_percent.toFixed(1)}%)`, `− ${formatINRPdf(input.quotation.discount_amount)}`, { color: GREEN });
   }
   if (input.quotation.gst_applied) {
-    totRow(`GST (${input.quotation.gst_percent}%)`, formatINR(input.quotation.gst_amount));
+    totRow(`GST (${input.quotation.gst_percent}%)`, formatINRPdf(input.quotation.gst_amount));
   }
   // Total bar
   y += 4;
   doc.setFillColor(245, 244, 252); doc.rect(colQty - 10, y, pageW - M - (colQty - 10), 28, "F");
-  totRow("Total", formatINR(input.quotation.total), { color: PURPLE, bold: true, size: 14 });
+  totRow("Total", formatINRPdf(input.quotation.total), { color: PURPLE, bold: true, size: 14 });
   y += 6;
 
   // 8. Green acceptance box (NO bank details)
