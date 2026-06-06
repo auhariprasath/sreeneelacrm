@@ -41,7 +41,6 @@ async function load(): Promise<Data> {
     supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null),
   ]);
 
-  // Compute stale leads across companies (lightweight: counts only)
   const statusToKey: Record<string, string> = {
     new: "new", in_progress: "in_progress",
     neutral: "no_reply", positive: "quote_accepted", negative: "no_reply",
@@ -85,7 +84,7 @@ async function load(): Promise<Data> {
 
 function Section({ icon: Icon, title, count, children }: { icon: any; title: string; count: number; children: React.ReactNode }) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Icon className="h-4 w-4 text-muted-foreground" />
@@ -98,7 +97,7 @@ function Section({ icon: Icon, title, count, children }: { icon: any; title: str
   );
 }
 
-export function RightSidebar() {
+export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" } = {}) {
   const [d, setD] = useState<Data | null>(null);
   const refresh = () => load().then(setD);
   useEffect(() => { refresh(); }, []);
@@ -106,92 +105,149 @@ export function RightSidebar() {
 
   const data = d ?? { callBacks: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
 
-  return (
-    <div className="space-y-4">
-      <Link to="/stale-leads" className="block">
-        <Card className="p-3 flex items-center justify-between hover:bg-accent/40 transition">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <div className="text-sm font-medium">Stale leads</div>
-          </div>
-          <div className="text-lg font-semibold">{data.staleCount}</div>
-        </Card>
-      </Link>
-      <Section icon={Phone} title="Call backs today" count={data.callBacks.length}>
-        {data.callBacks.length === 0 ? (
-          <div className="text-xs text-muted-foreground p-3">None scheduled</div>
-        ) : (
-          <ul className="divide-y">
-            {data.callBacks.map((c) => (
-              <li key={c.id} className="px-3 py-2 text-sm flex items-center justify-between">
+  const rowCls = "px-3 py-2 text-sm flex items-center justify-between gap-2 hover:bg-accent/40 transition cursor-pointer";
+
+  const stale = (
+    <Link to="/stale-leads" className="block">
+      <Card className="p-3 flex items-center justify-between hover:bg-accent/40 transition">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <div className="text-sm font-medium">Stale leads</div>
+        </div>
+        <div className="text-lg font-semibold">{data.staleCount}</div>
+      </Card>
+    </Link>
+  );
+
+  const callBacks = (
+    <Section icon={Phone} title="Call backs today" count={data.callBacks.length}>
+      {data.callBacks.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None scheduled</div>
+      ) : (
+        <ul className="divide-y">
+          {data.callBacks.map((c) => (
+            <li key={c.id}>
+              <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className={rowCls}>
                 <div className="min-w-0">
                   <div className="font-medium truncate">{c.full_name}</div>
                   <div className="text-[11px] text-muted-foreground">{formatTimeOfDay(new Date(c.scheduled_at).toTimeString().slice(0, 8))}</div>
                 </div>
-                <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className="text-xs text-primary underline shrink-0">Open</Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+                <span className="text-xs text-primary underline shrink-0">Open</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
 
-      <Section icon={AlertCircle} title="Overdue tasks" count={data.overdue.length}>
-        {data.overdue.length === 0 ? (
-          <div className="text-xs text-muted-foreground p-3">None</div>
-        ) : (
-          <ul className="divide-y">
-            {data.overdue.map((t) => (
-              <li key={t.id} className="px-3 py-2 text-sm flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{t.title}</div>
-                  <div className="text-[11px] text-destructive">Due {formatDateIN(t.due_at)}</div>
+  const overdue = (
+    <Section icon={AlertCircle} title="Overdue tasks" count={data.overdue.length}>
+      {data.overdue.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None</div>
+      ) : (
+        <ul className="divide-y">
+          {data.overdue.map((t) => (
+            <li key={t.id}>
+              {t.lead_id ? (
+                <Link to="/leads/$leadId" params={{ leadId: t.lead_id }} className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-[11px] text-destructive">Due {formatDateIN(t.due_at)}</div>
+                  </div>
+                  <span className="text-xs text-primary underline shrink-0">Open</span>
+                </Link>
+              ) : (
+                <div className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-[11px] text-destructive">Due {formatDateIN(t.due_at)}</div>
+                  </div>
                 </div>
-                {t.lead_id && (
-                  <Link to="/leads/$leadId" params={{ leadId: t.lead_id }} className="text-xs text-primary underline shrink-0">Open</Link>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
 
-      <Section icon={ListTodo} title="Upcoming tasks (3d)" count={data.tasks.length}>
-        {data.tasks.length === 0 ? (
-          <div className="text-xs text-muted-foreground p-3">None</div>
-        ) : (
-          <ul className="divide-y">
-            {data.tasks.map((t) => (
-              <li key={t.id} className="px-3 py-2 text-sm flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{t.title}</div>
-                  <div className="text-[11px] text-muted-foreground">{t.due_at ? formatDateIN(t.due_at) : ""}</div>
+  const upcoming = (
+    <Section icon={ListTodo} title="Upcoming tasks (3d)" count={data.tasks.length}>
+      {data.tasks.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None</div>
+      ) : (
+        <ul className="divide-y">
+          {data.tasks.map((t) => (
+            <li key={t.id}>
+              {t.lead_id ? (
+                <Link to="/leads/$leadId" params={{ leadId: t.lead_id }} className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-[11px] text-muted-foreground">{t.due_at ? formatDateIN(t.due_at) : ""}</div>
+                  </div>
+                  <span className="text-xs text-primary underline shrink-0">Open</span>
+                </Link>
+              ) : (
+                <div className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-[11px] text-muted-foreground">{t.due_at ? formatDateIN(t.due_at) : ""}</div>
+                  </div>
                 </div>
-                {t.lead_id && (
-                  <Link to="/leads/$leadId" params={{ leadId: t.lead_id }} className="text-xs text-primary underline shrink-0">Open</Link>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
 
-      <Section icon={FileText} title="Pending quotations" count={data.quotations.length}>
-        {data.quotations.length === 0 ? (
-          <div className="text-xs text-muted-foreground p-3">None</div>
-        ) : (
-          <ul className="divide-y">
-            {data.quotations.map((q) => (
-              <li key={q.id} className="px-3 py-2 text-sm flex items-center justify-between">
+  const pending = (
+    <Section icon={FileText} title="Pending quotations" count={data.quotations.length}>
+      {data.quotations.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None</div>
+      ) : (
+        <ul className="divide-y">
+          {data.quotations.map((q) => (
+            <li key={q.id}>
+              <Link to="/leads/$leadId" params={{ leadId: q.lead_id }} className={rowCls}>
                 <div className="min-w-0">
                   <div className="font-medium truncate">{q.quotation_number}</div>
                   <div className="text-[11px] text-muted-foreground">{formatINR(Number(q.total))}</div>
                 </div>
-                <Link to="/leads/$leadId" params={{ leadId: q.lead_id }} className="text-xs text-primary underline shrink-0">Open</Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+                <span className="text-xs text-primary underline shrink-0">Open</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
+
+  if (layout === "grid") {
+    return (
+      <div className="mx-auto w-full max-w-[1200px] space-y-4">
+        <div className="flex justify-center">
+          <div className="w-full sm:max-w-sm">{stale}</div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {callBacks}
+          {overdue}
+          {upcoming}
+          {pending}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {stale}
+      {callBacks}
+      {overdue}
+      {upcoming}
+      {pending}
     </div>
   );
 }
