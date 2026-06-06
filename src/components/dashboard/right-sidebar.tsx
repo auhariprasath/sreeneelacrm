@@ -9,6 +9,7 @@ import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface Data {
   callBacks: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
+  overdueFollowUps: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
   tasks: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string | null }>;
   quotations: Array<{ id: string; lead_id: string; quotation_number: string; total: number }>;
   overdue: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string }>;
@@ -24,7 +25,7 @@ async function load(): Promise<Data> {
     supabase.from("follow_ups")
       .select("id, lead_id, scheduled_at, leads!inner(full_name)")
       .eq("is_sent", false).eq("is_cancelled", false)
-      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(30),
+      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(60),
     supabase.from("tasks")
       .select("id, booking_id, title, due_at, bookings(lead_id)")
       .is("deleted_at", null).neq("status", "done")
@@ -67,10 +68,13 @@ async function load(): Promise<Data> {
     });
   }
 
+  const allFollowUps = ((followUps.data ?? []) as any[]).map((f) => ({
+    id: f.id, lead_id: f.lead_id, full_name: f.leads?.full_name ?? "—", scheduled_at: f.scheduled_at,
+  }));
+  const nowMsLocal = Date.now();
   return {
-    callBacks: ((followUps.data ?? []) as any[]).map((f) => ({
-      id: f.id, lead_id: f.lead_id, full_name: f.leads?.full_name ?? "—", scheduled_at: f.scheduled_at,
-    })),
+    callBacks: allFollowUps.filter((f) => new Date(f.scheduled_at).getTime() >= nowMsLocal),
+    overdueFollowUps: allFollowUps.filter((f) => new Date(f.scheduled_at).getTime() < nowMsLocal),
     tasks: ((tasksRes.data ?? []) as any[]).map((t) => ({
       id: t.id, booking_id: t.booking_id, lead_id: t.bookings?.lead_id ?? null, title: t.title, due_at: t.due_at,
     })),
@@ -103,7 +107,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   useEffect(() => { refresh(); }, []);
   useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
-  const data = d ?? { callBacks: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
+  const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
 
   const rowCls = "px-3 py-2 text-sm flex items-center justify-between gap-2 hover:bg-accent/40 transition cursor-pointer";
 
@@ -141,6 +145,42 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
         </ScrollArea>
       )}
     </Section>
+  );
+
+  const overdueFollowUps = (
+    <Card className={data.overdueFollowUps.length > 0 ? "h-full border-destructive/60 ring-2 ring-destructive/40 animate-pulse" : "h-full"}>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <AlertCircle className={`h-4 w-4 ${data.overdueFollowUps.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+          Overdue Follow-ups
+          {data.overdueFollowUps.length > 0 && (
+            <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">Needs action</span>
+          )}
+        </CardTitle>
+        <span className="text-xs text-muted-foreground">{data.overdueFollowUps.length}</span>
+      </CardHeader>
+      <CardContent className="p-0">
+        {data.overdueFollowUps.length === 0 ? (
+          <div className="text-xs text-muted-foreground p-3">None</div>
+        ) : (
+          <ScrollArea className="max-h-[312px]">
+            <ul className="divide-y">
+              {data.overdueFollowUps.map((c) => (
+                <li key={c.id}>
+                  <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className={rowCls}>
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{c.full_name}</div>
+                      <div className="text-[11px] text-destructive font-medium">Overdue {formatDateTimeIN(c.scheduled_at)}</div>
+                    </div>
+                    <span className="text-xs text-destructive underline shrink-0">Action</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
   );
 
   const overdue = (
@@ -240,6 +280,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
           <div className="w-full sm:max-w-sm">{stale}</div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {overdueFollowUps}
           {callBacks}
           {overdue}
           {upcoming}
@@ -252,6 +293,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   return (
     <div className="space-y-4">
       {stale}
+      {overdueFollowUps}
       {callBacks}
       {overdue}
       {upcoming}
