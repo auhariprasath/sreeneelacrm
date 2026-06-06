@@ -140,22 +140,16 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const refresh = async () => {
-      const [o, p] = await Promise.all([loadOverview(companyId), loadPending(companyId)]);
-      if (!cancelled) { setOverview(o); setPending(p); }
-    };
-    refresh();
-    const ch = supabase.channel(`cp-${companyId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "leads", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "quotations", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "win_loss_log" }, refresh)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
+  const refresh = useCallback(async () => {
+    const [o, p] = await Promise.all([loadOverview(companyId), loadPending(companyId)]);
+    setOverview(o); setPending(p);
   }, [companyId]);
+
+  useEffect(() => { refresh(); }, [refresh]);
+  useDashboardRealtime(
+    ["leads", "bookings", "quotations", "payments", "win_loss_log"],
+    refresh,
+  );
 
   return (
     <Card>
