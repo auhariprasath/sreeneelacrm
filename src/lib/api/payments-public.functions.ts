@@ -1,6 +1,36 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+const uploadSchema = z.object({
+  token: z.string().min(8).max(128).regex(/^[a-f0-9]+$/i),
+  filename: z.string().min(1).max(200),
+  content_type: z.string().min(1).max(100).regex(/^[a-zA-Z0-9.+\-/]+$/),
+  // base64-encoded file content; cap at ~7MB raw (~9.5MB base64)
+  file_base64: z.string().min(1).max(10_000_000),
+});
+
+export const uploadPaymentProof = createServerFn({ method: "POST" })
+  .inputValidator(uploadSchema)
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: p } = await supabaseAdmin
+      .from("payments").select("id").eq("public_token", data.token).maybeSingle();
+    if (!p) return { ok: false as const, error: "Invalid token" };
+
+    const allowed = ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"];
+    if (!allowed.includes(data.content_type)) return { ok: false as const, error: "Unsupported file type" };
+
+    const ext = (data.filename.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || "bin";
+    const path = `${data.token}/${Date.now()}.${ext}`;
+    const bytes = Buffer.from(data.file_base64, "base64");
+    if (bytes.length > 7 * 1024 * 1024) return { ok: false as const, error: "File too large" };
+
+    const { error } = await supabaseAdmin.storage.from("payment-proofs")
+      .upload(path, bytes, { upsert: false, contentType: data.content_type });
+    if (error) return { ok: false as const, error: error.message };
+    return { ok: true as const, path };
+  });
+
 const tokenSchema = z.object({ token: z.string().min(8).max(128).regex(/^[a-f0-9]+$/i) });
 
 export const getPaymentByToken = createServerFn({ method: "POST" })
