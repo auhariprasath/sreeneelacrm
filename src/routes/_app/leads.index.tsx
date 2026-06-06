@@ -135,7 +135,7 @@ function LeadsInbox() {
     setPage(0);
     fetchPage(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyFilter, status]);
+  }, [companyFilter, status, followupDue, followupDueIds]);
 
   // debounced search
   useEffect(() => {
