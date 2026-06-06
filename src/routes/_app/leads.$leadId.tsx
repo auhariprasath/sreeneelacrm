@@ -79,6 +79,7 @@ function LeadProfile() {
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
+  const [reviseQuoteId, setReviseQuoteId] = useState<string | null>(null);
   const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
   const [bookQuoteId, setBookQuoteId] = useState<string | null>(null);
   const [chequeBooking, setChequeBooking] = useState<Booking | null>(null);
