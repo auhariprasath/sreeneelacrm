@@ -190,7 +190,7 @@ export function QuotationBuilder({
   // Totals
   const subtotal = useMemo(
     () => services.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0)
-        + addons.reduce((sum, it) => sum + (Number(it.price) || 0), 0),
+        + addons.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0),
     [services, addons],
   );
   const effDiscountAmount = useMemo(() => {
