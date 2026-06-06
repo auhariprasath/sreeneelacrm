@@ -168,10 +168,11 @@ function NotInterestedPage() {
       .eq("id", r.lead_id);
     if (lErr) { toast.error(lErr.message); return; }
     await supabase.from("follow_ups").insert({
-      lead_id: r.lead_id, company_id: r.company_id,
-      scheduled_at: callbackAt, type: "callback", status: "pending",
+      lead_id: r.lead_id,
+      scheduled_at: callbackAt,
+      type: "custom",
       note: "Re-engaged from Not interested folder",
-    } as any);
+    });
     await supabase.from("activity_logs").insert({
       lead_id: r.lead_id, action: "Re-engaged by SA.", action_type: "system",
     });
