@@ -13,6 +13,8 @@ import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
@@ -28,7 +30,15 @@ const STATUS_TABS: { key: "all" | Status; label: string }[] = [
   { key: "closed", label: "Closed" },
 ];
 
-export const Route = createFileRoute("/_app/leads/")({ component: LeadsInbox });
+const leadsSearchSchema = z.object({
+  filter: fallback(z.enum(["new", "followup_due"]).optional(), undefined),
+  company: fallback(z.string().uuid().optional(), undefined),
+});
+
+export const Route = createFileRoute("/_app/leads/")({
+  component: LeadsInbox,
+  validateSearch: zodValidator(leadsSearchSchema),
+});
 
 function LeadsInbox() {
   const { profile, role, activeCompanyId } = useAuth();
