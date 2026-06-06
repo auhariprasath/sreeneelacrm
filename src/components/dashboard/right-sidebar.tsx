@@ -20,7 +20,7 @@ async function load(): Promise<Data> {
   const eotIso = endOfToday.toISOString();
   const in3d = new Date(Date.now() + 3 * 86400_000).toISOString();
 
-  const [followUps, tasksRes, quots, overdueRes] = await Promise.all([
+  const [followUps, tasksRes, quots, overdueRes, companiesRes] = await Promise.all([
     supabase.from("follow_ups")
       .select("id, lead_id, scheduled_at, leads!inner(full_name)")
       .eq("is_sent", false).eq("is_cancelled", false)
@@ -38,7 +38,35 @@ async function load(): Promise<Data> {
       .select("id, booking_id, title, due_at, bookings(lead_id)")
       .is("deleted_at", null).neq("status", "done")
       .lt("due_at", nowIso).order("due_at", { ascending: true }).limit(15),
+    supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null),
   ]);
+
+  // Compute stale leads across companies (lightweight: counts only)
+  const statusToKey: Record<string, string> = {
+    new: "new", in_progress: "in_progress",
+    neutral: "no_reply", positive: "quote_accepted", negative: "no_reply",
+  };
+  let staleCount = 0;
+  const nowMs = Date.now();
+  for (const co of (companiesRes.data ?? []) as any[]) {
+    if (!co.stale_alerts_enabled) continue;
+    const t = co.stale_thresholds ?? {};
+    const thr: Record<string, number> = {
+      new: Number(t.new ?? 2), in_progress: Number(t.in_progress ?? 3),
+      quote_sent: Number(t.quote_sent ?? 7), quote_accepted: Number(t.quote_accepted ?? 3),
+      no_reply: Number(t.no_reply ?? 5),
+    };
+    const { data: leads } = await supabase.from("leads")
+      .select("status, updated_at")
+      .eq("company_id", co.id).is("deleted_at", null)
+      .in("status", ["new", "in_progress", "neutral", "positive", "negative"]);
+    (leads ?? []).forEach((ld: any) => {
+      const key = statusToKey[ld.status] ?? "no_reply";
+      const limit = thr[key] ?? 5;
+      const days = Math.floor((nowMs - new Date(ld.updated_at).getTime()) / 86400_000);
+      if (days >= limit) staleCount++;
+    });
+  }
 
   return {
     callBacks: ((followUps.data ?? []) as any[]).map((f) => ({
@@ -51,6 +79,7 @@ async function load(): Promise<Data> {
     overdue: ((overdueRes.data ?? []) as any[]).map((t) => ({
       id: t.id, booking_id: t.booking_id, lead_id: t.bookings?.lead_id ?? null, title: t.title, due_at: t.due_at,
     })),
+    staleCount,
   };
 }
 
