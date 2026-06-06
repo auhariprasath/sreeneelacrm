@@ -94,7 +94,7 @@ function StaleLeadsPage() {
             <Link to="/leads/$leadId" params={{ leadId: r.id }} className="min-w-0 flex-1">
               <div className="font-medium text-sm truncate text-primary hover:underline">{r.full_name}</div>
               <div className="text-xs text-muted-foreground truncate">
-                {r.company_name} · {LEAD_STATUS_LABEL[r.status] ?? r.status} ·{" "}
+                {r.company_name} · {(LEAD_STATUS_LABEL as Record<string, string>)[r.status] ?? r.status} ·{" "}
                 <span className="text-amber-600 font-medium">+{r.days_overdue}d over {r.threshold}d limit</span>
               </div>
             </Link>
