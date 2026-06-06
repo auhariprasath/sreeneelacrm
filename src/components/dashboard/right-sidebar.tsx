@@ -147,6 +147,42 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
     </Section>
   );
 
+  const overdueFollowUps = (
+    <Card className={data.overdueFollowUps.length > 0 ? "h-full border-destructive/60 ring-2 ring-destructive/40 animate-pulse" : "h-full"}>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <AlertCircle className={`h-4 w-4 ${data.overdueFollowUps.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+          Overdue Follow-ups
+          {data.overdueFollowUps.length > 0 && (
+            <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">Needs action</span>
+          )}
+        </CardTitle>
+        <span className="text-xs text-muted-foreground">{data.overdueFollowUps.length}</span>
+      </CardHeader>
+      <CardContent className="p-0">
+        {data.overdueFollowUps.length === 0 ? (
+          <div className="text-xs text-muted-foreground p-3">None</div>
+        ) : (
+          <ScrollArea className="max-h-[312px]">
+            <ul className="divide-y">
+              {data.overdueFollowUps.map((c) => (
+                <li key={c.id}>
+                  <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className={rowCls}>
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{c.full_name}</div>
+                      <div className="text-[11px] text-destructive font-medium">Overdue {formatDateTimeIN(c.scheduled_at)}</div>
+                    </div>
+                    <span className="text-xs text-destructive underline shrink-0">Action</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const overdue = (
     <Section icon={AlertCircle} title="Overdue tasks" count={data.overdue.length}>
       {data.overdue.length === 0 ? (
