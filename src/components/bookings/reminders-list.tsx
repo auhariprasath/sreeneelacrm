@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, MessageSquare, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Reminder = Database["public"]["Tables"]["payment_reminders"]["Row"];
