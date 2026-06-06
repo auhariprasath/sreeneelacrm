@@ -11,6 +11,7 @@ interface Data {
   tasks: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string | null }>;
   quotations: Array<{ id: string; lead_id: string; quotation_number: string; total: number }>;
   overdue: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string }>;
+  staleCount: number;
 }
 
 async function load(): Promise<Data> {
