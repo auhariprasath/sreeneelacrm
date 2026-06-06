@@ -249,7 +249,9 @@ export function QuotationBuilder({
     };
     let id = draftId;
     if (id) {
-      const { error } = await supabase.from("quotations").update(payload).eq("id", id);
+      // Preserve existing status when editing — don't downgrade sent/agreed quotes back to draft
+      const { status: _ignored, ...updatePayload } = payload;
+      const { error } = await supabase.from("quotations").update(updatePayload).eq("id", id);
       if (error) { setSaving(false); if (!silent) toast.error(error.message); return null; }
     } else {
       const { data, error } = await supabase.from("quotations").insert(payload).select("id").single();
