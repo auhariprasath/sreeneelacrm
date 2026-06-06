@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface CalBooking {
   id: string;
@@ -38,32 +39,26 @@ export function CombinedCalendar() {
   const startStr = startOfMonth(cursor).toISOString().slice(0, 10);
   const endStr = endOfMonth(cursor).toISOString().slice(0, 10);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const { data } = await supabase
-        .from("bookings")
-        .select("id, lead_id, event_date, start_time, end_time, venue, company_id, companies(name, brand_color), leads(full_name)")
-        .is("deleted_at", null)
-        .in("status", ["confirmed", "completed", "rescheduled"])
-        .gte("event_date", startStr)
-        .lte("event_date", endStr);
-      if (cancelled) return;
-      setBookings((data ?? []).map((b: any) => ({
-        id: b.id, lead_id: b.lead_id, event_date: b.event_date,
-        start_time: b.start_time, end_time: b.end_time, venue: b.venue,
-        company_id: b.company_id,
-        company_name: b.companies?.name ?? "—",
-        brand_color: b.companies?.brand_color ?? "#6366f1",
-        full_name: b.leads?.full_name ?? "—",
-      })));
-    };
-    load();
-    const ch = supabase.channel(`cal-${mKey}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, load)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
-  }, [mKey, startStr, endStr]);
+  const load = useCallback(async () => {
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, lead_id, event_date, start_time, end_time, venue, company_id, companies(name, brand_color), leads(full_name)")
+      .is("deleted_at", null)
+      .in("status", ["confirmed", "completed", "rescheduled"])
+      .gte("event_date", startStr)
+      .lte("event_date", endStr);
+    setBookings((data ?? []).map((b: any) => ({
+      id: b.id, lead_id: b.lead_id, event_date: b.event_date,
+      start_time: b.start_time, end_time: b.end_time, venue: b.venue,
+      company_id: b.company_id,
+      company_name: b.companies?.name ?? "—",
+      brand_color: b.companies?.brand_color ?? "#6366f1",
+      full_name: b.leads?.full_name ?? "—",
+    })));
+  }, [startStr, endStr]);
+
+  useEffect(() => { load(); }, [load]);
+  useDashboardRealtime(["bookings"], load);
 
   const byDay = useMemo(() => {
     const m = new Map<string, CalBooking[]>();

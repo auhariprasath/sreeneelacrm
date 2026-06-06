@@ -4,6 +4,7 @@ import { Phone, ListTodo, FileText, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateIN, formatTimeOfDay, formatINR } from "@/lib/format";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface Data {
   callBacks: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
@@ -69,17 +70,9 @@ function Section({ icon: Icon, title, count, children }: { icon: any; title: str
 
 export function RightSidebar() {
   const [d, setD] = useState<Data | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    const refresh = () => load().then((r) => { if (!cancelled) setD(r); });
-    refresh();
-    const ch = supabase.channel("dash-side")
-      .on("postgres_changes", { event: "*", schema: "public", table: "follow_ups" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "quotations" }, refresh)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
-  }, []);
+  const refresh = () => load().then(setD);
+  useEffect(() => { refresh(); }, []);
+  useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
   const data = d ?? { callBacks: [], tasks: [], quotations: [], overdue: [] };
 

@@ -8,6 +8,7 @@ import { CompanyPanel } from "./company-panel";
 import { PostEventPanel } from "./post-event-panel";
 import { RightSidebar } from "./right-sidebar";
 import { Calendar, BarChart3, Building2, Star, ListTodo } from "lucide-react";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface CompanyRow { id: string; name: string; brand_color: string | null }
 
@@ -28,19 +29,13 @@ export function SuperAdminDashboard() {
   const { profile } = useAuth();
   const [companies, setCompanies] = useState<CompanyRow[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const { data } = await supabase.from("companies")
-        .select("id, name, brand_color").is("deleted_at", null).order("name");
-      if (!cancelled) setCompanies((data ?? []) as CompanyRow[]);
-    };
-    load();
-    const ch = supabase.channel("sa-companies")
-      .on("postgres_changes", { event: "*", schema: "public", table: "companies" }, load)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
-  }, []);
+  const load = async () => {
+    const { data } = await supabase.from("companies")
+      .select("id, name, brand_color").is("deleted_at", null).order("name");
+    setCompanies((data ?? []) as CompanyRow[]);
+  };
+  useEffect(() => { load(); }, []);
+  useDashboardRealtime(["companies"], load);
 
   return (
     <>
