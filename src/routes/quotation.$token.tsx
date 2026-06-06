@@ -3,12 +3,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, FileText, Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { CheckCircle2, FileText, Loader2, MessageSquare } from "lucide-react";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import {
   getQuotationByToken,
   markQuotationViewed,
   approveQuotationByToken,
+  requestQuotationChanges,
 } from "@/lib/api/quotations-public.functions";
 
 export const Route = createFileRoute("/quotation/$token")({
@@ -36,7 +38,12 @@ function PublicQuotationPage() {
   const fetchQ = useServerFn(getQuotationByToken);
   const markViewed = useServerFn(markQuotationViewed);
   const approve = useServerFn(approveQuotationByToken);
+  const requestChanges = useServerFn(requestQuotationChanges);
+
   const [approved, setApproved] = useState(false);
+  const [requested, setRequested] = useState(false);
+  const [showChangesForm, setShowChangesForm] = useState(false);
+  const [note, setNote] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["public-quote", token],
@@ -50,6 +57,11 @@ function PublicQuotationPage() {
   const approveMut = useMutation({
     mutationFn: () => approve({ data: { token } }),
     onSuccess: () => setApproved(true),
+  });
+
+  const requestMut = useMutation({
+    mutationFn: () => requestChanges({ data: { token, note: note.trim() } }),
+    onSuccess: () => setRequested(true),
   });
 
   if (isLoading) {
@@ -66,6 +78,7 @@ function PublicQuotationPage() {
   const services = (quote.services as Array<{ name: string; amount: number }>) ?? [];
   const addons = (quote.addons as Array<{ name: string; amount: number }>) ?? [];
   const isAgreed = approved || quote.status === "agreed";
+  const isDeclined = requested || quote.status === "declined";
 
   return (
     <div className="min-h-dvh bg-muted/30 py-6 px-4">
@@ -133,18 +146,53 @@ function PublicQuotationPage() {
             <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-medium">
               <CheckCircle2 className="h-5 w-5" /> Approved — thank you! The team will be in touch shortly.
             </div>
-          ) : (
+          ) : isDeclined ? (
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 text-sm font-medium">
+              <MessageSquare className="h-5 w-5" /> We've shared your requested changes with the team — they'll respond shortly.
+            </div>
+          ) : showChangesForm ? (
             <div className="space-y-2">
+              <div className="text-sm font-medium">Tell us what you'd like changed</div>
+              <Textarea
+                rows={4}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. Please increase guest count to 250, reduce floral budget…"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 min-h-11"
+                  onClick={() => { setShowChangesForm(false); setNote(""); }}
+                  disabled={requestMut.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 min-h-11"
+                  onClick={() => requestMut.mutate()}
+                  disabled={requestMut.isPending || !note.trim()}
+                >
+                  {requestMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send request"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
                 onClick={() => approveMut.mutate()}
                 disabled={approveMut.isPending}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white min-h-11"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white min-h-12 text-base font-medium"
               >
-                {approveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Approve quotation</>}
+                {approveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-5 w-5 mr-1.5" /> Approve</>}
               </Button>
-              <div className="text-[11px] text-muted-foreground text-center">
-                Have changes? Reply on WhatsApp to {company?.wa_number ?? company?.email ?? "the team"}.
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowChangesForm(true)}
+                className="min-h-12 text-base font-medium"
+              >
+                <MessageSquare className="h-5 w-5 mr-1.5" /> Request changes
+              </Button>
             </div>
           )}
         </footer>

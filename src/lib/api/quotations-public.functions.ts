@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const tokenSchema = z.object({ token: z.string().min(8).max(128).regex(/^[a-f0-9]+$/i) });
+const requestChangesSchema = z.object({
+  token: z.string().min(8).max(128).regex(/^[a-f0-9]+$/i),
+  note: z.string().trim().min(1).max(2000),
+});
 
 export const getQuotationByToken = createServerFn({ method: "POST" })
   .inputValidator(tokenSchema)
@@ -75,6 +79,36 @@ export const approveQuotationByToken = createServerFn({ method: "POST" })
         user_id: q.created_by,
         title: "Quotation approved",
         body: `Client approved quotation v${q.version} — ready to book`,
+        type: "system",
+        lead_id: q.lead_id,
+      });
+    }
+    return { ok: true };
+  });
+
+export const requestQuotationChanges = createServerFn({ method: "POST" })
+  .inputValidator(requestChangesSchema)
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: q } = await supabaseAdmin
+      .from("quotations")
+      .select("id,lead_id,version,status,created_by")
+      .eq("public_token", data.token)
+      .maybeSingle();
+    if (!q) return { ok: false };
+    if (q.status === "agreed") return { ok: false, reason: "already_approved" };
+    await supabaseAdmin.from("quotations").update({ status: "declined" }).eq("id", q.id);
+    await supabaseAdmin.from("activity_logs").insert({
+      lead_id: q.lead_id,
+      action: `Client requested CHANGES on quotation v${q.version}`,
+      action_type: "status_change",
+      metadata: { quotation_id: q.id, note: data.note },
+    });
+    if (q.created_by) {
+      await supabaseAdmin.from("notifications").insert({
+        user_id: q.created_by,
+        title: "Client requested changes",
+        body: `On quotation v${q.version}: "${data.note.slice(0, 140)}"`,
         type: "system",
         lead_id: q.lead_id,
       });

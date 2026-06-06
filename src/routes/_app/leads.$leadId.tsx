@@ -34,6 +34,7 @@ import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dia
 import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
 import { BookingAssignedTo } from "@/components/bookings/booking-assigned-to";
 import { SourcesTab } from "@/components/leads/sources-tab";
+import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -475,79 +476,88 @@ function LeadProfile() {
             <div className="mt-4">
               <div className="text-xs font-semibold text-muted-foreground mb-2">Quotations</div>
               <div className="space-y-2">
-                {quotations.map((q) => (
-                  <div key={q.id} className="bg-card border rounded-md p-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium flex items-center gap-2">
-                        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                        v{q.version} · {formatINR(Number(q.total))}
-                        <span className="text-[10px] uppercase tracking-wide bg-muted text-muted-foreground rounded-full px-2 py-0.5">{q.status}</span>
+                {quotations.map((q) => {
+                  const needsInvoice = q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id);
+                  const openBuilder = () => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); };
+                  return (
+                    <div
+                      key={q.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={openBuilder}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBuilder(); } }}
+                      className="bg-card border rounded-md p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium flex items-center gap-2">
+                          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                          v{q.version} · {formatINR(Number(q.total))}
+                          <QuotationStatusBadge quotation={q} />
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
+                          Updated {relativeTime(q.updated_at)}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {(q as any).viewed_at && (
+                            <span className="text-[10px] text-muted-foreground">
+                              Viewed {relativeTime((q as any).viewed_at)}{(q as any).view_count > 1 ? ` · ${(q as any).view_count}×` : ""}
+                            </span>
+                          )}
+                          {((q as any).approved_at || q.agreed_at) && (
+                            <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                              · Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
+                            </span>
+                          )}
+                          {(q as any).public_token && (
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const url = `${window.location.origin}/quotation/${(q as any).public_token}`;
+                                await navigator.clipboard.writeText(url);
+                                toast.success("Public link copied");
+                              }}
+                              className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                            >
+                              Copy link
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">
-                        {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
-                        Updated {relativeTime(q.updated_at)}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        {(q as any).viewed_at && (
-                          <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-blue-500/15 text-blue-700 dark:text-blue-300">
-                            Viewed {relativeTime((q as any).viewed_at)}{(q as any).view_count > 1 ? ` · ${(q as any).view_count}×` : ""}
-                          </span>
-                        )}
-                        {((q as any).approved_at || q.agreed_at) && (
-                          <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-                            Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
-                          </span>
-                        )}
-                        {(q as any).public_token && (
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const url = `${window.location.origin}/quotation/${(q as any).public_token}`;
-                              await navigator.clipboard.writeText(url);
-                              toast.success("Public link copied");
-                            }}
-                            className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {["sent", "agreed", "declined"].includes(q.status) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
+                            className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
                           >
-                            Copy link
-                          </button>
+                            Revise
+                          </Button>
                         )}
+                        {needsInvoice ? (
+                          <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Generate invoice
+                          </Button>
+                        ) : (
+                          <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
+                            <Send className="h-3.5 w-3.5 mr-1" /> Send
+                          </Button>
+                        )}
+                        <InvoiceRowMenu
+                          quotationId={q.id}
+                          leadId={leadId}
+                          pdfUrl={q.pdf_url}
+                          versionLabel={`v${q.version}`}
+                          onView={openBuilder}
+                          onResend={() => setSendQuoteId(q.id)}
+                          onDeleted={loadQuotations}
+                        />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); }}>
-                        Open
-                      </Button>
-                      {["sent", "agreed", "declined"].includes(q.status) && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
-                          className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
-                        >
-                          Revise
-                        </Button>
-                      )}
-                      {q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id) ? (
-                        <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Book
-                        </Button>
-                      ) : (
-                        <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
-                          <Send className="h-3.5 w-3.5 mr-1" /> Send
-                        </Button>
-                      )}
-                      <InvoiceRowMenu
-                        quotationId={q.id}
-                        leadId={leadId}
-                        pdfUrl={q.pdf_url}
-                        versionLabel={`v${q.version}`}
-                        onView={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); }}
-                        onResend={() => setSendQuoteId(q.id)}
-                        onDeleted={loadQuotations}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
