@@ -298,7 +298,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
             {/* Event date */}
             <div className="space-y-1.5">
               <Label>Event date *</Label>
-              <Input type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+              <DateConfirmField value={form.event_date} onChange={(v) => setForm({ ...form, event_date: v })} disabled={(d) => d < new Date(new Date().toDateString())} />
               <DateInfoBanner count={otherCount} loading={countingOthers} hasDate={!!form.event_date} />
             </div>
 
@@ -321,7 +321,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Start time *</Label>
-                  <Input type="time" value={form.start_time} onChange={(e) => onStartChange(e.target.value)} />
+                  <TimeClockField value={form.start_time} onChange={onStartChange} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Duration (hours)</Label>
@@ -330,7 +330,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label>End time</Label>
-                  <Input type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
+                  <TimeClockField value={form.end_time} onChange={(v) => setForm({ ...form, end_time: v })} />
                 </div>
               </div>
             )}
@@ -338,7 +338,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
             {/* Muhurtham */}
             <div className="space-y-1.5">
               <Label>Muhurtham time (optional)</Label>
-              <Input type="time" value={form.muhurtham_time} onChange={(e) => setForm({ ...form, muhurtham_time: e.target.value })} />
+              <TimeClockField value={form.muhurtham_time} onChange={(v) => setForm({ ...form, muhurtham_time: v })} />
               <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
             </div>
 
