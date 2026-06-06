@@ -382,6 +382,36 @@ export function CompanyDetailsDialog({
             </section>
 
             <section className="space-y-3">
+              <h4 className="text-sm font-semibold">Portfolio &amp; video</h4>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Portfolio link</Label>
+                  <Input value={form.portfolio_url} onChange={(e) => set("portfolio_url", e.target.value)}
+                    placeholder="https://yourbrand.com/portfolio" className="h-10" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Video link</Label>
+                  <Input value={form.video_url} onChange={(e) => set("video_url", e.target.value)}
+                    placeholder="https://youtu.be/…" className="h-10" />
+                </div>
+              </div>
+              <div className="space-y-2 pt-1">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" className="h-4 w-4"
+                    checked={form.include_photos_in_requirements}
+                    onChange={(e) => set("include_photos_in_requirements", e.target.checked)} />
+                  Include photos in requirements confirmation message
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" className="h-4 w-4"
+                    checked={form.include_portfolio_in_day5}
+                    onChange={(e) => set("include_portfolio_in_day5", e.target.checked)} />
+                  Include portfolio link + photos in day 5 follow-up
+                </label>
+              </div>
+            </section>
+
+            <section className="space-y-3">
               <h4 className="text-sm font-semibold">Cancellation policy</h4>
               <Textarea rows={3} value={form.cancellation_policy}
                 onChange={(e) => set("cancellation_policy", e.target.value)}
