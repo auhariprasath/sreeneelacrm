@@ -171,6 +171,10 @@ function LeadProfile() {
     } else {
       setReferrer(null);
     }
+
+    const { data: cust } = await supabase.from("customers").select("id").eq("lead_id", leadId).maybeSingle();
+    setCustomerId((cust as any)?.id ?? null);
+
     setLoading(false);
   };
 
