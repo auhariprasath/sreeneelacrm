@@ -243,7 +243,7 @@ export function CompanyOverviewView({ companyId }: Props) {
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-              <Link to="/leads/new" search={{ company: companyId }}>
+              <Link to="/leads" search={{ company: companyId }}>
                 <Button className="w-full justify-start gap-2"><Plus className="h-4 w-4" /> Add New Lead</Button>
               </Link>
               <Button variant="outline" className="w-full justify-start gap-2"><BellPlus className="h-4 w-4" /> Add Reminder</Button>
