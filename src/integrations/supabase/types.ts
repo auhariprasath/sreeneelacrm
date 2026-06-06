@@ -1986,7 +1986,13 @@ export type Database = {
         | "cash"
         | "cheque"
         | "b2b_credit"
-      quotation_status: "draft" | "sent" | "agreed" | "revised" | "declined"
+      quotation_status:
+        | "draft"
+        | "sent"
+        | "agreed"
+        | "revised"
+        | "declined"
+        | "expired"
       requirement_status:
         | "collecting"
         | "slot_checking"
@@ -2217,7 +2223,14 @@ export const Constants = {
         "cheque",
         "b2b_credit",
       ],
-      quotation_status: ["draft", "sent", "agreed", "revised", "declined"],
+      quotation_status: [
+        "draft",
+        "sent",
+        "agreed",
+        "revised",
+        "declined",
+        "expired",
+      ],
       requirement_status: [
         "collecting",
         "slot_checking",

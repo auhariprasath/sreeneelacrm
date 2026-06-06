@@ -37,6 +37,7 @@ import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
 import { Route as AppCompanySettingsCompanyIdRouteImport } from './routes/_app/company-settings.$companyId'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
+import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
 import { Route as ApiPublicHooksCustomTaskRemindersRouteImport } from './routes/api/public/hooks/custom-task-reminders'
@@ -182,6 +183,12 @@ const ApiPublicHooksTaskRemindersRoute =
     path: '/api/public/hooks/task-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksQuotationExpiryRoute =
+  ApiPublicHooksQuotationExpiryRouteImport.update({
+    id: '/api/public/hooks/quotation-expiry',
+    path: '/api/public/hooks/quotation-expiry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksPreEventRemindersRoute =
   ApiPublicHooksPreEventRemindersRouteImport.update({
     id: '/api/public/hooks/pre-event-reminders',
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
+  '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRoutesByTo {
@@ -262,6 +270,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
+  '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRoutesById {
@@ -296,6 +305,7 @@ export interface FileRoutesById {
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
+  '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
 }
 export interface FileRouteTypes {
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/custom-task-reminders'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
+    | '/api/public/hooks/quotation-expiry'
     | '/api/public/hooks/task-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/custom-task-reminders'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
+    | '/api/public/hooks/quotation-expiry'
     | '/api/public/hooks/task-reminders'
   id:
     | '__root__'
@@ -394,6 +406,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/custom-task-reminders'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
+    | '/api/public/hooks/quotation-expiry'
     | '/api/public/hooks/task-reminders'
   fileRoutesById: FileRoutesById
 }
@@ -412,6 +425,7 @@ export interface RootRouteChildren {
   ApiPublicHooksCustomTaskRemindersRoute: typeof ApiPublicHooksCustomTaskRemindersRoute
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
+  ApiPublicHooksQuotationExpiryRoute: typeof ApiPublicHooksQuotationExpiryRoute
   ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
 }
 
@@ -613,6 +627,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTaskRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/quotation-expiry': {
+      id: '/api/public/hooks/quotation-expiry'
+      path: '/api/public/hooks/quotation-expiry'
+      fullPath: '/api/public/hooks/quotation-expiry'
+      preLoaderRoute: typeof ApiPublicHooksQuotationExpiryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/pre-event-reminders': {
       id: '/api/public/hooks/pre-event-reminders'
       path: '/api/public/hooks/pre-event-reminders'
@@ -704,6 +725,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPostEventAutomationRoute:
     ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
+  ApiPublicHooksQuotationExpiryRoute: ApiPublicHooksQuotationExpiryRoute,
   ApiPublicHooksTaskRemindersRoute: ApiPublicHooksTaskRemindersRoute,
 }
 export const routeTree = rootRouteImport
