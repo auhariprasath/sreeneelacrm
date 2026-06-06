@@ -125,7 +125,6 @@ function CalendarPage() {
               <div className="mt-1 flex flex-wrap gap-0.5">
                 {counts.confirmed > 0 && <Dot tone={conflict ? "bg-rose-600" : "bg-rose-500"} n={counts.confirmed} />}
                 {counts.enquiry > 0 && <Dot tone="bg-amber-500" n={counts.enquiry} />}
-                {counts.soft_hold > 0 && <Dot tone="bg-amber-300" n={counts.soft_hold} />}
               </div>
             </button>
           );
