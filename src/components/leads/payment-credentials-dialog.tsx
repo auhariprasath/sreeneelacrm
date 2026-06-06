@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Send, IndianRupee, Link as LinkIcon, Loader2 } from "lucide-react";
+import { Send, IndianRupee, Link as LinkIcon, Loader2, Copy } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 interface Props {
@@ -114,7 +114,31 @@ Thank you!`;
             )}
           </div>
         )}
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          {bookingId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const { data } = await supabase
+                  .from("payments")
+                  .select("public_token")
+                  .eq("booking_id", bookingId)
+                  .is("deleted_at", null)
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                const token = (data as { public_token?: string } | null)?.public_token;
+                if (!token) { toast.error("No payment record yet — create one first"); return; }
+                const url = `${window.location.origin}/payment/${token}`;
+                await navigator.clipboard.writeText(url);
+                toast.success("Payment link copied");
+              }}
+            >
+              <Copy className="h-4 w-4 mr-1" /> Copy payment link
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={send} disabled={loading}>
             <Send className="h-4 w-4 mr-1" /> Send via WhatsApp

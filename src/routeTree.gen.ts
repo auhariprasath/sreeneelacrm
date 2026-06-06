@@ -17,6 +17,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorStatusTokenRouteImport } from './routes/vendor-status.$token'
 import { Route as QuotationTokenRouteImport } from './routes/quotation.$token'
+import { Route as PaymentTokenRouteImport } from './routes/payment.$token'
 import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
@@ -77,6 +78,11 @@ const VendorStatusTokenRoute = VendorStatusTokenRouteImport.update({
 const QuotationTokenRoute = QuotationTokenRouteImport.update({
   id: '/quotation/$token',
   path: '/quotation/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentTokenRoute = PaymentTokenRouteImport.update({
+  id: '/payment/$token',
+  path: '/payment/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackBookingIdRoute = FeedbackBookingIdRouteImport.update({
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/payment/$token': typeof PaymentTokenRoute
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/payment/$token': typeof PaymentTokenRoute
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/payment/$token': typeof PaymentTokenRoute
   '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/_app/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
+    | '/payment/$token'
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
+    | '/payment/$token'
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/_app/tasks'
     | '/_app/transfers'
     | '/feedback/$bookingId'
+    | '/payment/$token'
     | '/quotation/$token'
     | '/vendor-status/$token'
     | '/_app/company-settings/$companyId'
@@ -393,6 +405,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
+  PaymentTokenRoute: typeof PaymentTokenRoute
   QuotationTokenRoute: typeof QuotationTokenRoute
   VendorStatusTokenRoute: typeof VendorStatusTokenRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
@@ -458,6 +471,13 @@ declare module '@tanstack/react-router' {
       path: '/quotation/$token'
       fullPath: '/quotation/$token'
       preLoaderRoute: typeof QuotationTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment/$token': {
+      id: '/payment/$token'
+      path: '/payment/$token'
+      fullPath: '/payment/$token'
+      preLoaderRoute: typeof PaymentTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback/$bookingId': {
@@ -675,6 +695,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   FeedbackBookingIdRoute: FeedbackBookingIdRoute,
+  PaymentTokenRoute: PaymentTokenRoute,
   QuotationTokenRoute: QuotationTokenRoute,
   VendorStatusTokenRoute: VendorStatusTokenRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
