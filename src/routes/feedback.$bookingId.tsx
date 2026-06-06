@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Star, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateIN } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getFeedbackBooking, submitFeedback } from "@/lib/api/feedback-public.functions";
 
 export const Route = createFileRoute("/feedback/$bookingId")({ component: FeedbackPage });
 
@@ -23,6 +24,8 @@ interface BookingInfo {
 
 function FeedbackPage() {
   const { bookingId } = Route.useParams();
+  const fetchInfo = useServerFn(getFeedbackBooking);
+  const sendFeedback = useServerFn(submitFeedback);
   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<BookingInfo | null>(null);
   const [rating, setRating] = useState(0);
@@ -34,67 +37,30 @@ function FeedbackPage() {
 
   useEffect(() => {
     (async () => {
-      // Public read — bookings RLS must allow anon read by id, otherwise this is empty.
-      // Falls back to a minimal view via the feedback insert flow.
-      const { data: booking } = await supabase
-        .from("bookings")
-        .select("id, lead_id, company_id, event_date, venue")
-        .eq("id", bookingId)
-        .maybeSingle();
-      if (booking) {
-        const [{ data: company }, { data: lead }] = await Promise.all([
-          supabase.from("companies").select("name").eq("id", booking.company_id).maybeSingle(),
-          supabase.from("leads").select("full_name").eq("id", booking.lead_id).maybeSingle(),
-        ]);
-        setInfo({ ...booking, company_name: company?.name ?? null, client_name: lead?.full_name ?? null });
+      try {
+        const res = await fetchInfo({ data: { booking_id: bookingId } });
+        if (res.booking) {
+          setInfo({ ...res.booking, company_name: res.company_name, client_name: res.client_name });
+        }
+      } catch {
+        // ignore — UI will show invalid link
       }
       setLoading(false);
     })();
-  }, [bookingId]);
+  }, [bookingId, fetchInfo]);
 
   const submit = async () => {
     if (!info || rating < 1) { toast.error("Please pick a rating"); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("feedback").insert({
-        booking_id: info.id,
-        lead_id: info.lead_id,
-        company_id: info.company_id,
-        rating,
-        comment: comment.trim() || null,
-      });
-      if (error) {
-        if ((error as any).code === "23505") { setAlreadyDone(true); return; }
-        throw error;
+      const res = await sendFeedback({ data: { booking_id: info.id, rating, comment: comment.trim() || undefined } });
+      if (!res.ok) {
+        if (res.error === "already_submitted") { setAlreadyDone(true); return; }
+        throw new Error(res.error === "invalid_booking" ? "Feedback link invalid" : "Could not submit feedback");
       }
-
-      // Low-rating SA alert
-      if (rating <= 3) {
-        const { data: admins } = await supabase
-          .from("user_roles").select("user_id").in("role", ["super_admin", "admin"]);
-        const rows = (admins ?? []).map((a: any) => ({
-          user_id: a.user_id,
-          type: "low_rating" as const,
-          title: `Low rating: ${rating}★`,
-          body: `${info.client_name ?? "Client"} rated ${rating}/5${comment ? ` — "${comment.slice(0, 80)}"` : ""}`,
-          lead_id: info.lead_id,
-        }));
-        if (rows.length > 0) await supabase.from("notifications").insert(rows);
-
-        await supabase.from("activity_logs").insert({
-          lead_id: info.lead_id, action: "Low rating received", action_type: "system",
-          note: `Client rated ${rating}/5${comment ? `: "${comment}"` : ""}`, performed_by: null,
-        });
-      } else {
-        await supabase.from("activity_logs").insert({
-          lead_id: info.lead_id, action: "Feedback received", action_type: "system",
-          note: `Client rated ${rating}/5${comment ? `: "${comment}"` : ""}`, performed_by: null,
-        });
-      }
-
       setSubmitted(true);
-    } catch (e: any) {
-      toast.error(e?.message || "Could not submit feedback");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not submit feedback");
     } finally {
       setSubmitting(false);
     }
