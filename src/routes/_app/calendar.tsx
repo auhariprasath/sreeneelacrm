@@ -55,7 +55,7 @@ function CalendarPage() {
   useEffect(() => { load(); }, [load]);
 
   // Live updates — slots drive the grid; bookings affect held_by/confirmed state.
-  useRealtimeRefresh(["slots", "bookings"], load);
+  useDashboardRealtime(["slots", "bookings"], load);
 
 
   const byDate = useMemo(() => {
