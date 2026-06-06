@@ -38,6 +38,10 @@ interface Form {
   brand_color: string;
   max_capacity: string;
   cancellation_policy: string;
+  portfolio_url: string;
+  video_url: string;
+  include_photos_in_requirements: boolean;
+  include_portfolio_in_day5: boolean;
 }
 
 const empty: Form = {
@@ -47,6 +51,9 @@ const empty: Form = {
   gstin: "", bank_account: "", ifsc: "", upi_id: "",
   brand_color: "#6366f1", max_capacity: "",
   cancellation_policy: "",
+  portfolio_url: "", video_url: "",
+  include_photos_in_requirements: true,
+  include_portfolio_in_day5: true,
 };
 
 async function fileToBase64(file: File): Promise<string> {
@@ -106,6 +113,10 @@ export function CompanyDetailsDialog({
           brand_color: d.brand_color ?? "#6366f1",
           max_capacity: d.max_capacity != null ? String(d.max_capacity) : "",
           cancellation_policy: d.cancellation_policy ?? "",
+          portfolio_url: (d as any).portfolio_url ?? "",
+          video_url: (d as any).video_url ?? "",
+          include_photos_in_requirements: (d as any).include_photos_in_requirements ?? true,
+          include_portfolio_in_day5: (d as any).include_portfolio_in_day5 ?? true,
         });
         setLogoPath(d.logo_url ?? null);
         setLogoUrl(d.logoSignedUrl ?? null);
@@ -144,6 +155,10 @@ export function CompanyDetailsDialog({
           brand_color: form.brand_color || null,
           max_capacity: form.max_capacity ? Number(form.max_capacity) : null,
           cancellation_policy: form.cancellation_policy.trim() || null,
+          portfolio_url: form.portfolio_url.trim() || null,
+          video_url: form.video_url.trim() || null,
+          include_photos_in_requirements: form.include_photos_in_requirements,
+          include_portfolio_in_day5: form.include_portfolio_in_day5,
         },
       });
       toast.success("Saved");
@@ -362,6 +377,36 @@ export function CompanyDetailsDialog({
                       e.target.value = "";
                     }} />
                   <Upload className="h-5 w-5 mb-1" /> Add
+                </label>
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h4 className="text-sm font-semibold">Portfolio &amp; video</h4>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Portfolio link</Label>
+                  <Input value={form.portfolio_url} onChange={(e) => set("portfolio_url", e.target.value)}
+                    placeholder="https://yourbrand.com/portfolio" className="h-10" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Video link</Label>
+                  <Input value={form.video_url} onChange={(e) => set("video_url", e.target.value)}
+                    placeholder="https://youtu.be/…" className="h-10" />
+                </div>
+              </div>
+              <div className="space-y-2 pt-1">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" className="h-4 w-4"
+                    checked={form.include_photos_in_requirements}
+                    onChange={(e) => set("include_photos_in_requirements", e.target.checked)} />
+                  Include photos in requirements confirmation message
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" className="h-4 w-4"
+                    checked={form.include_portfolio_in_day5}
+                    onChange={(e) => set("include_portfolio_in_day5", e.target.checked)} />
+                  Include portfolio link + photos in day 5 follow-up
                 </label>
               </div>
             </section>

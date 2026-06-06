@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, CalendarCheck, Plus, Percent, MessageSquare, CreditCard,
-  ListChecks, XCircle, Lock,
+  ListChecks, XCircle, Lock, Clock,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
@@ -19,6 +19,7 @@ import { TaskTemplatesSection } from "@/components/settings/task-templates-secti
 import { WhatsappTemplatesSection } from "@/components/settings/whatsapp-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { CompaniesSection } from "@/components/settings/companies-section";
+import { ReminderTimingSection } from "@/components/settings/reminder-timing-section";
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
@@ -26,6 +27,7 @@ const SECTIONS = [
   { id: "companies", label: "Companies", icon: Building2, superOnly: true },
   { id: "staff", label: "Staff and roles", icon: Users, superOnly: false },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: false },
+  { id: "reminders", label: "Reminder timing", icon: Clock, superOnly: false },
   { id: "peak", label: "Peak season dates", icon: CalendarCheck, superOnly: false },
   { id: "vendors", label: "Vendor list", icon: Users, superOnly: false },
   { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
@@ -157,6 +159,19 @@ function SettingsPage() {
               ) : (
                 <div className="text-sm text-muted-foreground">Pick a company to manage templates.</div>
               )}
+            </CardContent>
+          </Card>
+        );
+      case "reminders":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Reminder timing</CardTitle>
+              <CardDescription>Stale lead alert thresholds per stage. Admins are notified when a lead sits in a stage too long; Super Admin is also notified on No-reply escalations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompanyPicker />
+              <ReminderTimingSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );

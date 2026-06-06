@@ -129,7 +129,7 @@ export const getCompanyDetails = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("companies")
       .select(
-        "id,name,type,wa_number,company_phone,email,address,full_address,google_maps_link,gstin,bank_account,ifsc,upi_id,logo_url,brand_color,max_capacity,venue_photos,cancellation_policy",
+        "id,name,type,wa_number,company_phone,email,address,full_address,google_maps_link,gstin,bank_account,ifsc,upi_id,logo_url,brand_color,max_capacity,venue_photos,cancellation_policy,portfolio_url,video_url,include_photos_in_requirements,include_portfolio_in_day5",
       )
       .eq("id", data.id)
       .maybeSingle();
@@ -166,6 +166,10 @@ const updateSchema = z.object({
   brand_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
   max_capacity: z.number().int().min(0).max(100000).nullable().optional(),
   cancellation_policy: z.string().max(2000).nullable().optional(),
+  portfolio_url: z.string().max(500).nullable().optional(),
+  video_url: z.string().max(500).nullable().optional(),
+  include_photos_in_requirements: z.boolean().optional(),
+  include_portfolio_in_day5: z.boolean().optional(),
 });
 
 export const updateCompanyDetails = createServerFn({ method: "POST" })

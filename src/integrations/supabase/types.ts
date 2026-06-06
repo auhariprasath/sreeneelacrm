@@ -466,6 +466,8 @@ export type Database = {
           gstin: string | null
           id: string
           ifsc: string | null
+          include_photos_in_requirements: boolean
+          include_portfolio_in_day5: boolean
           is_mandapam: boolean
           logo_url: string | null
           max_capacity: number | null
@@ -475,6 +477,7 @@ export type Database = {
           name: string
           payment_method: Database["public"]["Enums"]["payment_method_type"]
           peak_season_dates: Json
+          portfolio_url: string | null
           quotation_counter: number
           quotation_prefix: string
           razorpay_test_mode: boolean
@@ -491,6 +494,8 @@ export type Database = {
           services_catalog: Json
           sessions: Json
           staff_max_discount_percent: number
+          stale_alerts_enabled: boolean
+          stale_thresholds: Json
           task_overdue_escalation_hours: number
           task_reminder_2d: boolean
           task_reminder_at_due: boolean
@@ -500,6 +505,7 @@ export type Database = {
           upi_id: string | null
           vendor_status_reminder_hours: number
           venue_photos: Json
+          video_url: string | null
           wa_number: string | null
           wa_template_booking_confirmed: string | null
           wa_template_competing_leads: string | null
@@ -548,6 +554,8 @@ export type Database = {
           gstin?: string | null
           id?: string
           ifsc?: string | null
+          include_photos_in_requirements?: boolean
+          include_portfolio_in_day5?: boolean
           is_mandapam?: boolean
           logo_url?: string | null
           max_capacity?: number | null
@@ -557,6 +565,7 @@ export type Database = {
           name: string
           payment_method?: Database["public"]["Enums"]["payment_method_type"]
           peak_season_dates?: Json
+          portfolio_url?: string | null
           quotation_counter?: number
           quotation_prefix?: string
           razorpay_test_mode?: boolean
@@ -573,6 +582,8 @@ export type Database = {
           services_catalog?: Json
           sessions?: Json
           staff_max_discount_percent?: number
+          stale_alerts_enabled?: boolean
+          stale_thresholds?: Json
           task_overdue_escalation_hours?: number
           task_reminder_2d?: boolean
           task_reminder_at_due?: boolean
@@ -582,6 +593,7 @@ export type Database = {
           upi_id?: string | null
           vendor_status_reminder_hours?: number
           venue_photos?: Json
+          video_url?: string | null
           wa_number?: string | null
           wa_template_booking_confirmed?: string | null
           wa_template_competing_leads?: string | null
@@ -630,6 +642,8 @@ export type Database = {
           gstin?: string | null
           id?: string
           ifsc?: string | null
+          include_photos_in_requirements?: boolean
+          include_portfolio_in_day5?: boolean
           is_mandapam?: boolean
           logo_url?: string | null
           max_capacity?: number | null
@@ -639,6 +653,7 @@ export type Database = {
           name?: string
           payment_method?: Database["public"]["Enums"]["payment_method_type"]
           peak_season_dates?: Json
+          portfolio_url?: string | null
           quotation_counter?: number
           quotation_prefix?: string
           razorpay_test_mode?: boolean
@@ -655,6 +670,8 @@ export type Database = {
           services_catalog?: Json
           sessions?: Json
           staff_max_discount_percent?: number
+          stale_alerts_enabled?: boolean
+          stale_thresholds?: Json
           task_overdue_escalation_hours?: number
           task_reminder_2d?: boolean
           task_reminder_at_due?: boolean
@@ -664,6 +681,7 @@ export type Database = {
           upi_id?: string | null
           vendor_status_reminder_hours?: number
           venue_photos?: Json
+          video_url?: string | null
           wa_number?: string | null
           wa_template_booking_confirmed?: string | null
           wa_template_competing_leads?: string | null
