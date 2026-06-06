@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay, addHoursToTime } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 import { generateQuotationPdf, downloadBlob, type QuotationPdfInput } from "@/lib/quotation-pdf";
 import type { Database } from "@/integrations/supabase/types";
