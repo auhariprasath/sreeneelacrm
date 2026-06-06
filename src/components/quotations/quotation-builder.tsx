@@ -376,8 +376,9 @@ export function QuotationBuilder({
     try {
       const id = await saveDraft(true); if (!id) return;
       const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
-      const num = lead.phone.replace(/[^\d]/g, ""); const intl = num.length === 10 ? `91${num}` : num;
-      window.open(`https://wa.me/${intl}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+      const url = buildWaMeLink(lead.phone, message);
+      if (!url) { toast.error("Invalid phone number"); return; }
+      window.open(url, "_blank", "noopener");
       await markSent("whatsapp", "WhatsApp", id);
       onContinueToSend?.(id); onSaved?.();
       toast.success("WhatsApp opened · PDF downloaded — attach it in the chat");

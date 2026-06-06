@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Calendar, Send, MapPin, Loader2 } from "lucide-react";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -150,11 +151,8 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
     }
 
     if (send) {
-      const num = leadPhone.replace(/\D/g, "").replace(/^91/, "");
-      const text = encodeURIComponent(
-        finalMsg + (selectedPhotoUrls.length ? `\n\n${selectedPhotoUrls.map((p) => p.url).join("\n")}` : "")
-      );
-      window.open(`https://wa.me/91${num}?text=${text}`, "_blank", "noopener");
+      const url = buildWaMeLink(leadPhone, finalMsg + (selectedPhotoUrls.length ? `\n\n${selectedPhotoUrls.map((p) => p.url).join("\n")}` : ""));
+      if (url) window.open(url, "_blank", "noopener");
     }
 
     toast.success(send ? "Meeting scheduled & WhatsApp opened ✓" : "Meeting scheduled ✓");
