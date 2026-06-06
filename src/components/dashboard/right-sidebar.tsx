@@ -4,6 +4,7 @@ import { Phone, ListTodo, FileText, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateIN, formatTimeOfDay, formatINR } from "@/lib/format";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface Data {
   callBacks: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;

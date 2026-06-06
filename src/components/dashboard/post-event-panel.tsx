@@ -19,30 +19,24 @@ interface Completed {
 export function PostEventPanel() {
   const [rows, setRows] = useState<Completed[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const since = new Date(Date.now() - 60 * 86400_000).toISOString().slice(0, 10);
-      const { data } = await supabase
-        .from("bookings")
-        .select("id, lead_id, event_date, feedback_wa_sent_at, leads(full_name), feedback(rating)")
-        .is("deleted_at", null).eq("status", "completed")
-        .gte("event_date", since).order("event_date", { ascending: false }).limit(40);
-      if (cancelled) return;
-      setRows(((data ?? []) as any[]).map((b) => ({
-        id: b.id, lead_id: b.lead_id, event_date: b.event_date,
-        full_name: b.leads?.full_name ?? "—",
-        feedback_sent_at: b.feedback_wa_sent_at,
-        feedback_rating: b.feedback?.[0]?.rating ?? null,
-      })));
-    };
-    load();
-    const ch = supabase.channel("post-event")
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "feedback" }, load)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
+  const load = useCallback(async () => {
+    const since = new Date(Date.now() - 60 * 86400_000).toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, lead_id, event_date, feedback_wa_sent_at, leads(full_name), feedback(rating)")
+      .is("deleted_at", null).eq("status", "completed")
+      .gte("event_date", since).order("event_date", { ascending: false }).limit(40);
+    setRows(((data ?? []) as any[]).map((b) => ({
+      id: b.id, lead_id: b.lead_id, event_date: b.event_date,
+      full_name: b.leads?.full_name ?? "—",
+      feedback_sent_at: b.feedback_wa_sent_at,
+      feedback_rating: b.feedback?.[0]?.rating ?? null,
+    })));
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  useDashboardRealtime(["bookings", "feedback"], load);
+
 
   const received = rows.filter((r) => r.feedback_rating !== null);
   const pending = rows.filter((r) => r.feedback_rating === null);
