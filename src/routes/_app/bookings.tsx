@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useRealtimeRefresh } from "@/lib/realtime";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, CheckCircle2, AlertTriangle, Calendar as CalIcon } from "lucide-react";
