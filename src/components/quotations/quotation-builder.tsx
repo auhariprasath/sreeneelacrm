@@ -112,6 +112,7 @@ export function QuotationBuilder({
       setEvDate(r.event_date || "");
       setEvStart(r.start_time || "");
       setEvEnd(r.end_time || "");
+      setEvDuration(Number((r as any).duration_hours ?? 4));
       setEvGuests(r.guest_count ?? "");
       setEvVenue("");
       setEvNotes(r.notes || "");
