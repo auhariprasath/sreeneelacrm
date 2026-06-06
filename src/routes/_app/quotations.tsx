@@ -106,6 +106,9 @@ function QuotationsPage() {
     return () => { cancelled = true; };
   }, [effectiveCompanyId, status, from, to, reloadKey]);
 
+  // Live updates whenever a quotation in scope is created / sent / approved / expired.
+  useDashboardRealtime(["quotations"], refresh);
+
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
     if (!s) return rows;
