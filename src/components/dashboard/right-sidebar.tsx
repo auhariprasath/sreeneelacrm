@@ -68,10 +68,13 @@ async function load(): Promise<Data> {
     });
   }
 
+  const allFollowUps = ((followUps.data ?? []) as any[]).map((f) => ({
+    id: f.id, lead_id: f.lead_id, full_name: f.leads?.full_name ?? "—", scheduled_at: f.scheduled_at,
+  }));
+  const nowMsLocal = Date.now();
   return {
-    callBacks: ((followUps.data ?? []) as any[]).map((f) => ({
-      id: f.id, lead_id: f.lead_id, full_name: f.leads?.full_name ?? "—", scheduled_at: f.scheduled_at,
-    })),
+    callBacks: allFollowUps.filter((f) => new Date(f.scheduled_at).getTime() >= nowMsLocal),
+    overdueFollowUps: allFollowUps.filter((f) => new Date(f.scheduled_at).getTime() < nowMsLocal),
     tasks: ((tasksRes.data ?? []) as any[]).map((t) => ({
       id: t.id, booking_id: t.booking_id, lead_id: t.bookings?.lead_id ?? null, title: t.title, due_at: t.due_at,
     })),
