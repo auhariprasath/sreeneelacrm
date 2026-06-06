@@ -239,6 +239,20 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
                 </Button>
               </div>
 
+              {(quote as any).public_token && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={async () => {
+                    const url = `${window.location.origin}/quotation/${(quote as any).public_token}`;
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Public quotation link copied");
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-1" /> Copy public quotation link
+                </Button>
+              )}
+
               {quote.sent_at && (
                 <div className="text-xs text-muted-foreground border-t pt-2">
                   Last sent via <span className="capitalize">{quote.sent_via}</span> · {new Date(quote.sent_at).toLocaleString("en-IN")}
