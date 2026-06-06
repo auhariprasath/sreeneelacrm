@@ -10,6 +10,12 @@ export function formatINR(n: number | null | undefined, opts?: { short?: boolean
   return "₹" + n.toLocaleString("en-IN");
 }
 
+// PDF-safe Indian currency (jsPDF's default helvetica lacks the ₹ glyph — use "Rs.")
+export function formatINRPdf(n: number | null | undefined): string {
+  if (n == null || isNaN(n)) return "Rs. 0";
+  return "Rs. " + Math.round(n).toLocaleString("en-IN");
+}
+
 export function formatDateIN(d: string | Date | null | undefined): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
