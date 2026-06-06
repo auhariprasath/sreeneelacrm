@@ -742,11 +742,11 @@ function LeadProfile() {
         onScheduleFollowUp={() => setFuOpen(true)}
         onScheduleMeeting={() => setMeetingOpen(true)}
         onInterested={() => {
-          // open intake if no requirements; else open quotation builder on latest requirement
+          // No requirement yet → prompt to complete event details first
           const latest = requirements[requirements.length - 1];
-          if (!latest) { setEditReqId(null); setReqOpen(true); }
-          else if (latest.status === "slot_confirmed") { setQuoteReqId(latest.id); setEditQuoteId(null); setQuoteOpen(true); }
-          else { setEditReqId(latest.id); setReqOpen(true); }
+          if (!latest) { setEditReqId(null); setReqOpen(true); toast.info("Complete event details first, then build the quotation."); return; }
+          // Otherwise open the builder immediately, pre-filled from the latest requirement
+          setQuoteReqId(latest.id); setEditQuoteId(null); setReviseQuoteId(null); setQuoteOpen(true);
         }}
         onChanged={() => { load(); }}
       />
