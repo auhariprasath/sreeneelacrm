@@ -74,17 +74,22 @@ function AppLayout() {
   const initials = initialsOf(profile?.full_name || profile?.email || "U");
 
   return (
-    <div className="flex min-h-screen w-full bg-background flex-col lg:flex-row">
-      {/* Sidebar — desktop only (≥1024px). Tablets use the bottom nav so the main area isn't cramped. */}
-      <aside className="hidden lg:flex w-60 shrink-0 bg-sidebar text-sidebar-foreground flex-col">
-        <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border">
-          <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
-          <div className="leading-tight">
+    <div className="flex min-h-screen w-full bg-background flex-col md:flex-row">
+      {/* Sidebar — always visible from md+. Icon-only between md and lg, full at lg+.
+          Below md (phones) we keep the bottom nav. */}
+      <aside
+        className="hidden md:flex shrink-0 bg-sidebar text-sidebar-foreground flex-col
+                   w-16 lg:w-60 transition-[width] duration-200"
+        title="Navigation"
+      >
+        <div className="h-16 flex items-center gap-2 px-3 lg:px-5 border-b border-sidebar-border">
+          <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
+          <div className="leading-tight hidden lg:block">
             <div className="text-sm font-semibold">Neela Events</div>
             <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
           </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-2 lg:p-3 space-y-1">
           {sidebarItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
@@ -92,19 +97,20 @@ function AppLayout() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                title={item.label}
+                className={`flex items-center gap-3 rounded-md px-2 lg:px-3 py-2 text-sm transition-colors justify-center lg:justify-start ${
                   active
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {item.label}
+                <Icon className="h-5 w-5 lg:h-4 lg:w-4 shrink-0" />
+                <span className="hidden lg:inline">{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border">
+        <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border hidden lg:block">
           v0.4 · Phase 4
         </div>
       </aside>
