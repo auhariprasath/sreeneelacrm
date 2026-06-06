@@ -292,7 +292,7 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
                 <Phone className="h-4 w-4 text-primary" />
               </a>
               <a
-                href={`https://wa.me/91${tel.slice(-10)}`}
+                href={buildWaMeLink(lead.phone) ?? undefined}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
