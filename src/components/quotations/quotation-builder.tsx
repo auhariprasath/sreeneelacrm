@@ -327,7 +327,7 @@ export function QuotationBuilder({
   }, [requirement, company, lead, evType, evDate, evStart, evEnd, evVenue, evGuests, baseVersion, services, addons, subtotal, effDiscountPercent, effDiscountAmount, gstApplied, gstPercent, gstAmount, total]);
 
   const pdfFilename = `Quotation-${(lead?.full_name || "client").replace(/\s+/g, "_")}-v${baseVersion}.pdf`;
-  const buildPdf = () => pdfInput ? generateQuotationPdf(pdfInput) : null;
+  const buildPdf = async (): Promise<Blob | null> => pdfInput ? await generateQuotationPdf({ ...pdfInput, authorisedBy: profile?.full_name ?? null }) : null;
 
   // Build preview message when entering step 4
   useEffect(() => {
