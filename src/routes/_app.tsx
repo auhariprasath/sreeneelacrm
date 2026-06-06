@@ -92,12 +92,16 @@ function AppLayout() {
         </div>
         <nav className="flex-1 p-2 lg:p-3 space-y-1">
           {sidebarItems.map((item) => {
-            const active = pathname === item.to || pathname.startsWith(item.to + "/");
+            const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
+            const active = dashboardCompanyId
+              ? pathname === `/company-dashboard/${dashboardCompanyId}`
+              : pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
             return (
               <Link
                 key={item.to}
-                to={item.to}
+                to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
+                params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
                 title={item.label}
                 className={`flex items-center gap-3 rounded-md px-2 lg:px-3 py-2 text-sm transition-colors justify-center lg:justify-start ${
                   active
@@ -233,12 +237,16 @@ function AppLayout() {
         {/* Bottom nav — phones only (sidebar takes over at md+) */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
           {bottomItems.map((item) => {
-            const active = pathname === item.to || pathname.startsWith(item.to + "/");
+            const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
+            const active = dashboardCompanyId
+              ? pathname === `/company-dashboard/${dashboardCompanyId}`
+              : pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
             return (
               <Link
                 key={item.to}
-                to={item.to}
+                to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
+                params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] min-h-[44px] ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}

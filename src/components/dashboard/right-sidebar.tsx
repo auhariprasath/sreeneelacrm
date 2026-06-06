@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Phone, ListTodo, FileText, AlertCircle, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDateIN, formatTimeOfDay, formatINR } from "@/lib/format";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
@@ -124,6 +125,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
       {data.callBacks.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None scheduled</div>
       ) : (
+        <ScrollArea className="max-h-[312px]">
         <ul className="divide-y">
           {data.callBacks.map((c) => (
             <li key={c.id}>
@@ -137,6 +139,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
             </li>
           ))}
         </ul>
+        </ScrollArea>
       )}
     </Section>
   );
@@ -146,6 +149,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
       {data.overdue.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None</div>
       ) : (
+        <ScrollArea className="max-h-[312px]">
         <ul className="divide-y">
           {data.overdue.map((t) => (
             <li key={t.id}>
@@ -168,6 +172,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
             </li>
           ))}
         </ul>
+        </ScrollArea>
       )}
     </Section>
   );
@@ -177,6 +182,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
       {data.tasks.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None</div>
       ) : (
+        <ScrollArea className="max-h-[312px]">
         <ul className="divide-y">
           {data.tasks.map((t) => (
             <li key={t.id}>
@@ -199,6 +205,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
             </li>
           ))}
         </ul>
+        </ScrollArea>
       )}
     </Section>
   );
@@ -208,6 +215,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
       {data.quotations.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None</div>
       ) : (
+        <ScrollArea className="max-h-[312px]">
         <ul className="divide-y">
           {data.quotations.map((q) => (
             <li key={q.id}>
@@ -221,6 +229,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
             </li>
           ))}
         </ul>
+        </ScrollArea>
       )}
     </Section>
   );
