@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
@@ -123,8 +124,5 @@ export async function markConfirmationSent({ ctx, message, performedBy }: SendCo
 }
 
 export function buildWaLink(phone: string, message: string): string {
-  const digits = phone.replace(/\D/g, "");
-  // Default to India +91 if 10 digits
-  const intl = digits.length === 10 ? `91${digits}` : digits;
-  return `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
+  return buildWaMeLink(phone, message) ?? "";
 }

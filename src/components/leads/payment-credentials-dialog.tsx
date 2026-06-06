@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Send, IndianRupee, Link as LinkIcon, Loader2, Copy } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { buildWaMeLink } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -53,8 +54,8 @@ Thank you!`;
   }, [open, companyId, leadName]);
 
   const send = async () => {
-    const num = leadPhone.replace(/\D/g, "").replace(/^91/, "");
-    const url = `https://wa.me/91${num}?text=${encodeURIComponent(rzpLink ? `${message}\n\nPay online: ${rzpLink}` : message)}`;
+    const url = buildWaMeLink(leadPhone, rzpLink ? `${message}\n\nPay online: ${rzpLink}` : message);
+    if (!url) { toast.error("Invalid phone number"); return; }
     window.open(url, "_blank", "noopener");
     await supabase.from("activity_logs").insert({
       lead_id: leadId,

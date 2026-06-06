@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import { generateQuotationPdf, downloadBlob, type QuotationPdfInput } from "@/lib/quotation-pdf";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -121,9 +122,8 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
     setSending("whatsapp");
     try {
       const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
-      const num = lead.phone.replace(/[^\d]/g, "");
-      const intl = num.length === 10 ? `91${num}` : num;
-      const url = `https://wa.me/${intl}?text=${encodeURIComponent(message)}`;
+      const url = buildWaMeLink(lead.phone, message);
+      if (!url) { toast.error("Invalid phone number"); return; }
       window.open(url, "_blank", "noopener");
       await markSent("whatsapp", "WhatsApp");
       toast.success("Opened WhatsApp · PDF downloaded — attach it in the chat");

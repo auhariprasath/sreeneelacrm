@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateIN, formatINR } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
@@ -99,7 +100,7 @@ export function EventCompleteDialog({ open, onOpenChange, booking, leadId, leadP
             </div>
             {leadPhone && (
               <a
-                href={`https://wa.me/${leadPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Thanks for choosing us! We'd love your feedback: ${feedbackUrl}`)}`}
+                href={buildWaMeLink(leadPhone, `Thanks for choosing us! We'd love your feedback: ${feedbackUrl}`) ?? undefined}
                 target="_blank" rel="noreferrer"
                 className="inline-flex h-9 items-center justify-center rounded-md bg-emerald-600 px-3 text-sm text-white hover:bg-emerald-700 w-full"
               >

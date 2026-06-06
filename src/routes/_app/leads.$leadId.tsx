@@ -11,6 +11,7 @@ import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, Shie
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
 
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
@@ -350,7 +351,7 @@ function LeadProfile() {
               >
                 <Phone className="h-4 w-4" /> Call
               </a>
-              <a href={`https://wa.me/91${tel}`} target="_blank" rel="noreferrer"
+              <a href={buildWaMeLink(lead.phone) ?? undefined} target="_blank" rel="noreferrer"
                  onClick={() => {
                    supabase.from("activity_logs").insert({
                      lead_id: lead.id,

@@ -17,6 +17,7 @@ import {
   Briefcase, Plus, CheckCircle2, AlertTriangle, Star, MessageSquare, Trash2, UserPlus, Lock, Link as LinkIcon, Package, Car, MapPin,
 } from "lucide-react";
 import { formatINR, formatDateIN, formatTimeOfDay, formatDateTimeIN } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Vendor = Database["public"]["Tables"]["vendors"]["Row"];
@@ -33,8 +34,9 @@ interface Props {
 
 function waSend(num: string | null | undefined, msg: string) {
   if (!num) { toast.error("Vendor has no WhatsApp number on file."); return; }
-  const digits = num.replace(/\D/g, "").replace(/^91/, "");
-  window.open(`https://wa.me/91${digits}?text=${encodeURIComponent(msg)}`, "_blank");
+  const url = buildWaMeLink(num, msg);
+  if (!url) { toast.error("Invalid phone number."); return; }
+  window.open(url, "_blank");
 }
 
 export function VendorAssignment(props: Props) {
