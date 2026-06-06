@@ -15,9 +15,13 @@ interface Company { id: string; name: string; brand_color: string | null }
 
 function CompanyDashboardPage() {
   const { companyId } = Route.useParams();
-  const { role } = useAuth();
+  const { role, setActiveCompanyId } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (role === "super_admin") setActiveCompanyId(companyId);
+  }, [companyId, role, setActiveCompanyId]);
 
   useEffect(() => {
     let active = true;
@@ -44,7 +48,7 @@ function CompanyDashboardPage() {
     <div className="space-y-6 max-w-[1400px] mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link to="/dashboard">
+          <Link to="/dashboard" onClick={() => setActiveCompanyId(null)}>
             <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> All companies</Button>
           </Link>
           <h1 className="text-xl sm:text-2xl font-semibold truncate">{company.name}</h1>
