@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, IndianRupee, Loader2, Upload } from "lucide-react";
 import { formatINR } from "@/lib/format";
-import { supabase } from "@/integrations/supabase/client";
-import { getPaymentByToken, submitPaymentProof } from "@/lib/api/payments-public.functions";
+import { getPaymentByToken, submitPaymentProof, uploadPaymentProof } from "@/lib/api/payments-public.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/payment/$token")({
@@ -36,6 +35,7 @@ function PublicPaymentPage() {
   const { token } = Route.useParams();
   const fetchP = useServerFn(getPaymentByToken);
   const submit = useServerFn(submitPaymentProof);
+  const upload = useServerFn(uploadPaymentProof);
   const [file, setFile] = useState<File | null>(null);
   const [payer, setPayer] = useState("");
   const [txn, setTxn] = useState("");
@@ -50,12 +50,18 @@ function PublicPaymentPage() {
   const mut = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error("Please attach a payment screenshot");
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${token}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("payment-proofs").upload(path, file, { upsert: false, contentType: file.type });
-      if (upErr) throw upErr;
-      return submit({ data: { token, file_path: path, payer_name: payer || undefined, note: note || undefined, transaction_reference: txn || undefined } });
+      if (file.size > 7 * 1024 * 1024) throw new Error("File too large (max 7 MB)");
+      const buf = await file.arrayBuffer();
+      let binary = "";
+      const bytes = new Uint8Array(buf);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const file_base64 = btoa(binary);
+      const up = await upload({ data: { token, filename: file.name, content_type: file.type || "application/octet-stream", file_base64 } });
+      if (!up.ok) throw new Error(up.error || "Upload failed");
+      return submit({ data: { token, file_path: up.path, payer_name: payer || undefined, note: note || undefined, transaction_reference: txn || undefined } });
     },
     onSuccess: () => { setDone(true); toast.success("Sent — team will confirm shortly"); },
     onError: (e: Error) => toast.error(e.message),
