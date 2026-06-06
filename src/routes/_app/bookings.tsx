@@ -51,16 +51,20 @@ function statusStyle(s: Status) {
 
 function BookingsIndex() {
   const { profile, role, activeCompanyId } = useAuth();
+  const initialSearch = Route.useSearch();
   const [items, setItems] = useState<(Booking & { lead?: { full_name: string; phone: string } | null })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<"all" | Status>("all");
+  const [status, setStatus] = useState<"all" | Status>(initialSearch.status as any);
   const [search, setSearch] = useState("");
-  const [range, setRange] = useState<"upcoming" | "month" | "past" | "all">("upcoming");
+  const [range, setRange] = useState<"upcoming" | "month" | "past" | "all">(initialSearch.month ? "all" : "upcoming");
+  const monthFilter = initialSearch.month;
+  const companyOverride = initialSearch.company;
 
   const companyFilter = useMemo(() => {
+    if (companyOverride) return companyOverride;
     if (role === "super_admin") return activeCompanyId;
     return profile?.company_id ?? null;
-  }, [role, activeCompanyId, profile]);
+  }, [role, activeCompanyId, profile, companyOverride]);
 
   const load = async () => {
     setLoading(true);
@@ -72,7 +76,12 @@ function BookingsIndex() {
     if (companyFilter) q = q.eq("company_id", companyFilter);
     if (status !== "all") q = q.eq("status", status);
     const today = new Date().toISOString().slice(0, 10);
-    if (range === "upcoming") q = q.gte("event_date", today);
+    if (monthFilter) {
+      const [y, m] = monthFilter.split("-").map(Number);
+      const start = `${monthFilter}-01`;
+      const endDate = new Date(y, m, 0).toISOString().slice(0, 10);
+      q = q.gte("event_date", start).lte("event_date", endDate);
+    } else if (range === "upcoming") q = q.gte("event_date", today);
     else if (range === "past") q = q.lt("event_date", today);
     else if (range === "month") {
       const d = new Date(); d.setMonth(d.getMonth() + 1);
@@ -83,7 +92,7 @@ function BookingsIndex() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [companyFilter, status, range]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [companyFilter, status, range, monthFilter]);
   useDashboardRealtime(["bookings", "payments"], load);
 
   const filtered = useMemo(() => {
