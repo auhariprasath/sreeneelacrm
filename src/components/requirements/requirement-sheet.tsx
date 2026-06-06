@@ -15,6 +15,8 @@ import { useAutosaveDraft, loadDraft } from "@/hooks/use-autosave-draft";
 import { formatINR, formatTimeOfDay, addHoursToTime } from "@/lib/format";
 import { Loader2, Info, Sparkles, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type AddOn = Database["public"]["Tables"]["add_ons_selected"]["Row"];
