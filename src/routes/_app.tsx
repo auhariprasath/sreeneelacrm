@@ -192,9 +192,9 @@ function AppLayout() {
           </div>
         </header>
 
-        {/* SA company switch on phones + tablets (anything narrower than lg) */}
+        {/* SA company switch on phones only (md+ has it in the header) */}
         {role === "super_admin" && companies.length > 0 && (
-          <div className="lg:hidden border-b bg-card px-3 py-2">
+          <div className="md:hidden border-b bg-card px-3 py-2">
             <Select
               value={activeCompanyId ?? "__all"}
               onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
@@ -208,12 +208,12 @@ function AppLayout() {
           </div>
         )}
 
-        <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 lg:pb-6">
+        <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 md:pb-6">
           <Outlet />
         </main>
 
-        {/* Bottom nav — phones + tablets (anything narrower than lg) */}
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
+        {/* Bottom nav — phones only (sidebar takes over at md+) */}
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
           {bottomItems.map((item) => {
             const active = pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
