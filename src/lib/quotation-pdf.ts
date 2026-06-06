@@ -25,6 +25,7 @@ export interface QuotationPdfInput {
     end_time?: string | null;
     venue?: string | null;
     guest_count?: number | null;
+    duration_hours?: number | null;
   };
   quotation: {
     number?: string | null;
