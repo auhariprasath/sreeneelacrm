@@ -41,18 +41,12 @@ function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc
   );
 }
 
-interface ExpiringHold {
-  id: string; lead_id: string | null; event_date: string;
-  start_time: string; end_time: string; held_until: string; full_name: string;
-}
 interface CompanyStats {
   newToday: number;
   active: number;
   bookings: number;
   followUps: number;
-  activeHolds: number;
   upcoming: Array<{ id: string; lead_id: string; event_date: string; start_time: string; full_name: string }>;
-  expiringSoon: ExpiringHold[];
   taskCompletionPct: number;
   tasksTotal: number;
   tasksDone: number;
