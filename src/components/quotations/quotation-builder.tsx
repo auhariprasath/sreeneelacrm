@@ -526,7 +526,7 @@ export function QuotationBuilder({
                           <Checkbox
                             checked={checked}
                             onCheckedChange={(v) => {
-                              if (v) setAddons([...addons, { name: c.name, price: c.price ?? 0 }]);
+                              if (v) setAddons([...addons, { name: c.name, price: c.price ?? 0, quantity: 1, unit: "pcs" }]);
                               else setAddons(addons.filter((a) => a.name !== c.name));
                             }}
                           />
@@ -538,14 +538,20 @@ export function QuotationBuilder({
                   </div>
                   {addons.length > 0 && (
                     <div className="space-y-2 mt-2">
+                      <div className="grid grid-cols-[1fr_70px_80px_110px_110px_auto] gap-2 px-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <div>Add-on</div><div className="text-right">Qty</div><div>Unit</div><div className="text-right">Rate ₹</div><div className="text-right">Line total</div><div />
+                      </div>
                       {addons.map((it, idx) => (
                         <AddonInline key={idx} item={it}
                           onChange={(next) => setAddons(addons.map((x, i) => i === idx ? next : x))}
                           onRemove={() => setAddons(addons.filter((_, i) => i !== idx))} />
                       ))}
+                      <div className="flex justify-end pr-1 pt-1 text-xs text-muted-foreground border-t">
+                        Add-ons subtotal: <span className="ml-2 font-semibold text-foreground">{formatINR(addons.reduce((s, a) => s + (Number(a.price) || 0) * (Number(a.quantity) || 1), 0))}</span>
+                      </div>
                     </div>
                   )}
-                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setAddons([...addons, { name: "", price: 0 }])}>
+                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setAddons([...addons, { name: "", price: 0, quantity: 1, unit: "pcs" }])}>
                     <Plus className="h-3.5 w-3.5 mr-1" /> Add custom add-on
                   </Button>
                 </div>
