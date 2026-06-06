@@ -298,7 +298,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
             {/* Event date */}
             <div className="space-y-1.5">
               <Label>Event date *</Label>
-              <Input type="date" value={form.event_date} onChange={(e) => { setForm({ ...form, event_date: e.target.value }); setSlotCheck(null); }} />
+              <Input type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+              <DateInfoBanner count={otherCount} loading={countingOthers} hasDate={!!form.event_date} />
             </div>
 
             {/* Mandapam: session picker / non-mandapam: start + duration */}
@@ -329,31 +330,18 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label>End time</Label>
-                  <Input type="time" value={form.end_time} onChange={(e) => { setForm({ ...form, end_time: e.target.value }); setSlotCheck(null); }} />
+                  <Input type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
                 </div>
               </div>
             )}
 
-            {/* Slot check panel */}
-            <SlotPanel
-              check={slotCheck}
-              checking={checking}
-              canCheck={canCheckSlot}
-              onCheck={runSlotCheck}
-              heldUntilLabel={heldUntil ? countdown.label : null}
-              expired={heldUntil ? countdown.expired : false}
-              onSoftHold={onSoftHold}
-              onRelease={onReleaseHold}
-              saving={saving}
-              hasHold={!!heldUntil && !countdown.expired}
-            />
-
             {/* Muhurtham */}
             <div className="space-y-1.5">
               <Label>Muhurtham time (optional)</Label>
-              <Input type="time" value={form.muhurtham_time} onChange={(e) => { setForm({ ...form, muhurtham_time: e.target.value }); setSlotCheck(null); }} />
-              <p className="text-[11px] text-muted-foreground">If set, we check whether it clashes with another confirmed booking.</p>
+              <Input type="time" value={form.muhurtham_time} onChange={(e) => setForm({ ...form, muhurtham_time: e.target.value })} />
+              <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
             </div>
+
 
             {/* Event type */}
             <div className="space-y-1.5">
