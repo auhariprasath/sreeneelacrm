@@ -38,6 +38,10 @@ interface Form {
   brand_color: string;
   max_capacity: string;
   cancellation_policy: string;
+  portfolio_url: string;
+  video_url: string;
+  include_photos_in_requirements: boolean;
+  include_portfolio_in_day5: boolean;
 }
 
 const empty: Form = {
@@ -47,6 +51,9 @@ const empty: Form = {
   gstin: "", bank_account: "", ifsc: "", upi_id: "",
   brand_color: "#6366f1", max_capacity: "",
   cancellation_policy: "",
+  portfolio_url: "", video_url: "",
+  include_photos_in_requirements: true,
+  include_portfolio_in_day5: true,
 };
 
 async function fileToBase64(file: File): Promise<string> {
