@@ -451,9 +451,23 @@ export function QuotationBuilder({
                   <Field label="Event date *"><Input type="date" value={evDate} onChange={(e) => setEvDate(e.target.value)} /></Field>
                   <Field label="Guest count"><Input type="number" min={0} value={evGuests} onChange={(e) => setEvGuests(e.target.value === "" ? "" : Number(e.target.value))} /></Field>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Start time"><Input type="time" value={evStart} onChange={(e) => setEvStart(e.target.value)} /></Field>
-                  <Field label="End time"><Input type="time" value={evEnd} onChange={(e) => setEvEnd(e.target.value)} /></Field>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Start time">
+                    <Input type="time" value={evStart} onChange={(e) => {
+                      const t = e.target.value;
+                      setEvStart(t);
+                      if (t && evDuration) setEvEnd(addHoursToTime(t, evDuration));
+                    }} />
+                  </Field>
+                  <Field label="Duration">
+                    <DurationPicker value={evDuration} onChange={(h) => {
+                      setEvDuration(h);
+                      if (evStart && h) setEvEnd(addHoursToTime(evStart, h));
+                    }} />
+                  </Field>
+                  <Field label="Ends at">
+                    <div className="h-9 px-3 flex items-center text-sm border rounded-md bg-muted/30">{evEnd ? formatTimeOfDay(evEnd) : "—"}</div>
+                  </Field>
                 </div>
                 <Field label="Venue (optional)"><Input value={evVenue} onChange={(e) => setEvVenue(e.target.value)} /></Field>
                 <Field label="Notes (optional)"><Textarea rows={3} value={evNotes} onChange={(e) => setEvNotes(e.target.value)} /></Field>
