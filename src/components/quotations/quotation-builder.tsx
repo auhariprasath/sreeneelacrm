@@ -415,6 +415,7 @@ export function QuotationBuilder({
         <SheetHeader className="p-4 border-b">
           <SheetTitle>
             Quotation Builder {baseVersion > 1 && <span className="text-xs font-normal text-muted-foreground">· v{baseVersion}</span>}
+            {revisingFromId && <span className="ml-2 text-[10px] font-medium rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2 py-0.5">Revising</span>}
           </SheetTitle>
           <StepProgress current={step} />
         </SheetHeader>
