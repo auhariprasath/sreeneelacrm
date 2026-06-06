@@ -179,7 +179,7 @@ export function QuotationBuilder({
   // Reset on close
   useEffect(() => {
     if (!open) {
-      setDraftId(null); setRequirement(null);
+      setDraftId(null); setRequirement(null); setRevisingFromId(null);
       setServices([]); setAddons([]); setDiscountPercent(0); setDiscountAmount(0); setDiscountReason("");
       setGstApplied(true); setLastSaved(null); setStep(0);
     }
