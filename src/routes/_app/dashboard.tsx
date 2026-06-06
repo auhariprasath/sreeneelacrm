@@ -60,17 +60,8 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
   todayStart.setHours(0, 0, 0, 0);
   const today = new Date().toISOString().slice(0, 10);
   const in14 = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
-  const nowIso = new Date().toISOString();
-  const tenMin = new Date(Date.now() + 10 * 60_000).toISOString();
 
-  // Get upcoming booking ids in next 14 days for task/vendor stats
-  const upcomingBookingsRes = await supabase.from("bookings")
-    .select("id")
-    .eq("company_id", companyId).is("deleted_at", null).eq("status", "confirmed")
-    .gte("event_date", today).lte("event_date", in14);
-  const upcomingBookingIds = (upcomingBookingsRes.data ?? []).map((b: any) => b.id);
-
-  const [leadsToday, activeLeads, bookings, followUps, holds, upcoming, expiring, tasksAgg, vendorsAgg] = await Promise.all([
+  const [leadsToday, activeLeads, bookings, followUps, upcoming, tasksAgg, vendorsAgg] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true })
       .eq("company_id", companyId).is("deleted_at", null)
       .gte("created_at", todayStart.toISOString()),
@@ -81,17 +72,10 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
       .eq("company_id", companyId).is("deleted_at", null).eq("status", "complete"),
     supabase.from("follow_ups").select("id, lead_id, leads!inner(company_id)", { count: "exact", head: true })
       .eq("leads.company_id", companyId).eq("is_sent", false).eq("is_cancelled", false),
-    supabase.from("slots").select("id", { count: "exact", head: true })
-      .eq("company_id", companyId).eq("status", "soft_hold").gt("held_until", nowIso),
     supabase.from("requirements")
       .select("id, lead_id, event_date, start_time, leads!inner(full_name, company_id)")
       .eq("company_id", companyId).is("deleted_at", null)
       .gte("event_date", today).order("event_date", { ascending: true }).limit(5),
-    supabase.from("slots")
-      .select("id, held_by_lead_id, event_date, start_time, end_time, held_until, leads:held_by_lead_id(full_name)")
-      .eq("company_id", companyId).eq("status", "soft_hold")
-      .gt("held_until", nowIso).lt("held_until", tenMin)
-      .order("held_until", { ascending: true }).limit(10),
     upcomingBookingIds.length
       ? supabase.from("tasks").select("status").eq("company_id", companyId).is("deleted_at", null).in("booking_id", upcomingBookingIds)
       : Promise.resolve({ data: [] as any[] }),
@@ -112,15 +96,9 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
     active: activeLeads.count ?? 0,
     bookings: bookings.count ?? 0,
     followUps: followUps.count ?? 0,
-    activeHolds: holds.count ?? 0,
     upcoming: (upcoming.data ?? []).map((r: any) => ({
       id: r.id, lead_id: r.lead_id, event_date: r.event_date, start_time: r.start_time,
       full_name: r.leads?.full_name ?? "—",
-    })),
-    expiringSoon: (expiring.data ?? []).map((s: any) => ({
-      id: s.id, lead_id: s.held_by_lead_id, event_date: s.event_date,
-      start_time: s.start_time, end_time: s.end_time, held_until: s.held_until,
-      full_name: s.leads?.full_name ?? "—",
     })),
     tasksTotal,
     tasksDone,
