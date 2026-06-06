@@ -162,6 +162,7 @@ function AppLayout() {
 
           <div className="ml-auto flex items-center gap-1 lg:gap-2">
             <NotificationBell />
+            <ThemeColorPicker />
 
             <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggle} aria-label="Toggle theme">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
