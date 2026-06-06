@@ -8,6 +8,7 @@ import { CompanyPanel } from "./company-panel";
 import { PostEventPanel } from "./post-event-panel";
 import { RightSidebar } from "./right-sidebar";
 import { Calendar, BarChart3, Building2, Star, ListTodo } from "lucide-react";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface CompanyRow { id: string; name: string; brand_color: string | null }
 
