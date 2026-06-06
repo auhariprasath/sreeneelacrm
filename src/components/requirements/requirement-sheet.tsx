@@ -469,6 +469,7 @@ function DateInfoBanner({ count, loading, hasDate }: { count: number | null; loa
     <div className="rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs inline-flex items-center gap-2">
       <Info className="h-3.5 w-3.5" />
       {count} other {count === 1 ? "enquiry" : "enquiries"} on this date. First to pay locks the slot.
+    </div>
   );
 }
 
