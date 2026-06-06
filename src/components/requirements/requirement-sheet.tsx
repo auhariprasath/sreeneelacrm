@@ -262,49 +262,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
     }
   };
 
-  const onSoftHold = async () => {
-    if (!slotCheck || slotCheck.status !== "free") {
-      toast.error("Run a slot check first — only free slots can be held");
-      return;
-    }
-    setSaving(true);
-    const id = await ensureRequirementSaved();
-    if (!id) { setSaving(false); return; }
-    try {
-      const slot = await createSoftHold({
-        companyId, leadId, requirementId: id,
-        eventDate: form.event_date,
-        startTime: form.start_time,
-        endTime: form.end_time,
-        sessionName: isMandapam ? form.session_name : null,
-      });
-      await supabase.from("requirements").update({ status: "slot_checking" }).eq("id", id);
-      await supabase.from("activity_logs").insert({
-        lead_id: leadId, action: "Soft hold placed (30 min)",
-        action_type: "system", performed_by: profile?.id ?? null,
-        note: `${form.event_date} ${formatTimeOfDay(form.start_time)} - ${formatTimeOfDay(form.end_time)}`,
-      });
-      setHeldUntil(slot.held_until);
-      toast.success("Soft hold placed for 30 minutes");
-      onSaved?.();
-    } catch (e: any) {
-      toast.error(e.message ?? "Couldn't place hold");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const onReleaseHold = async () => {
-    if (!currentReqId) return;
-    await releaseSoftHold(currentReqId);
-    await supabase.from("requirements").update({ status: "collecting" }).eq("id", currentReqId);
-    setHeldUntil(null);
-    setSlotCheck(null);
-    toast.success("Hold released");
-    onSaved?.();
-  };
-
   const totalAddons = useMemo(() => selectedAddons.reduce((s, a) => s + Number(a.addon_price || 0), 0), [selectedAddons]);
+
 
   const toggleCatalogAddon = (a: AddonCat, on: boolean) => {
     setSelectedAddons((prev) => on
