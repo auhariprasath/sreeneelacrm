@@ -124,10 +124,6 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
           setSelectedAddons(((ads as AddOn[]) ?? []).map((a) => ({
             addon_name: a.addon_name, addon_price: Number(a.addon_price), is_custom: a.is_custom,
           })));
-          // Restore active hold for this requirement
-          const { data: slot } = await supabase
-            .from("slots").select("held_until").eq("held_by_requirement_id", requirementId).eq("status", "soft_hold").maybeSingle();
-          setHeldUntil((slot as any)?.held_until ?? null);
           setCurrentReqId(requirementId);
         }
       } else {
@@ -140,9 +136,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
           setSelectedAddons([]);
         }
         setCurrentReqId(null);
-        setHeldUntil(null);
       }
-      setSlotCheck(null);
+      setOtherCount(null);
       setLoading(false);
     })();
     // eslint-disable-next-line
@@ -159,43 +154,46 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       end_time: s.end_time,
       duration_hours: diffHours(s.start_time, s.end_time),
     }));
-    setSlotCheck(null);
   };
 
   // Duration → auto-fill end
   const onDurationChange = (h: number) => {
     setForm((f) => ({ ...f, duration_hours: h, end_time: f.start_time ? addHoursToTime(f.start_time, h) : f.end_time }));
-    setSlotCheck(null);
   };
   const onStartChange = (t: string) => {
     setForm((f) => ({ ...f, start_time: t, end_time: f.duration_hours ? addHoursToTime(t, f.duration_hours) : f.end_time }));
-    setSlotCheck(null);
   };
 
-  const canCheckSlot = !!form.event_date && !!form.start_time && !!form.end_time;
+  // Count other active enquiries on the same date (+ session for mandapam).
+  // "Active" = requirement not soft-deleted AND lead not lost/dropped.
+  useEffect(() => {
+    if (!open) return;
+    if (!form.event_date) { setOtherCount(null); return; }
+    if (isMandapam && !form.session_name) { setOtherCount(null); return; }
+    let cancelled = false;
+    setCountingOthers(true);
+    (async () => {
+      let q = supabase
+        .from("requirements")
+        .select("id, lead_id, leads!inner(status)", { count: "exact", head: false })
+        .eq("company_id", companyId)
+        .eq("event_date", form.event_date)
+        .is("deleted_at", null)
+        .neq("leads.status", "negative");
+      if (isMandapam && form.session_name) {
+        // For mandapam venues, session defines the slot
+        q = q.eq("start_time", form.start_time);
+      }
+      if (currentReqId) q = q.neq("id", currentReqId);
+      const { data, error } = await q;
+      if (cancelled) return;
+      setCountingOthers(false);
+      if (error) { setOtherCount(null); return; }
+      setOtherCount((data ?? []).length);
+    })();
+    return () => { cancelled = true; };
+  }, [open, companyId, form.event_date, form.session_name, form.start_time, isMandapam, currentReqId]);
 
-  const runSlotCheck = async () => {
-    if (!canCheckSlot) {
-      toast.error("Pick date, start & end time first");
-      return;
-    }
-    setChecking(true);
-    try {
-      const res = await checkSlot({
-        companyId,
-        eventDate: form.event_date,
-        startTime: form.start_time,
-        endTime: form.end_time,
-        muhurthamTime: form.muhurtham_time || null,
-        ignoreRequirementId: currentReqId,
-      });
-      setSlotCheck(res);
-    } catch (e: any) {
-      toast.error(e.message ?? "Couldn't check slot");
-    } finally {
-      setChecking(false);
-    }
-  };
 
   const ensureRequirementSaved = async (): Promise<string | null> => {
     if (currentReqId) {
