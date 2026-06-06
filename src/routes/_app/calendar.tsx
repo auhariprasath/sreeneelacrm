@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useRealtimeRefresh } from "@/lib/realtime";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { formatTimeOfDay, formatDateIN } from "@/lib/format";
@@ -22,36 +23,40 @@ function CalendarPage() {
   const monthStart = cursor;
   const monthEnd = endOfMonth(cursor);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!profile?.company_id) return;
     setLoading(true);
-    (async () => {
-      // Auto-free expired soft holds in range, then fetch
-      await supabase.from("slots").update({
-        status: "free", held_by_lead_id: null, held_by_requirement_id: null, held_until: null,
-      }).eq("company_id", profile.company_id!).eq("status", "soft_hold").lt("held_until", new Date().toISOString());
+    // Auto-free expired soft holds in range, then fetch
+    await supabase.from("slots").update({
+      status: "free", held_by_lead_id: null, held_by_requirement_id: null, held_until: null,
+    }).eq("company_id", profile.company_id!).eq("status", "soft_hold").lt("held_until", new Date().toISOString());
 
-      const { data } = await supabase
-        .from("slots").select("*")
-        .eq("company_id", profile.company_id!)
-        .gte("event_date", toISO(monthStart))
-        .lte("event_date", toISO(monthEnd))
-        .order("event_date").order("start_time");
-      const list = (data as Slot[]) ?? [];
-      setSlots(list);
+    const { data } = await supabase
+      .from("slots").select("*")
+      .eq("company_id", profile.company_id!)
+      .gte("event_date", toISO(monthStart))
+      .lte("event_date", toISO(monthEnd))
+      .order("event_date").order("start_time");
+    const list = (data as Slot[]) ?? [];
+    setSlots(list);
 
-      const leadIds = Array.from(new Set(list.map((s) => s.held_by_lead_id).filter(Boolean) as string[]));
-      if (leadIds.length) {
-        const { data: leads } = await supabase.from("leads").select("id, full_name").in("id", leadIds);
-        const map: Record<string, string> = {};
-        (leads ?? []).forEach((l: any) => { map[l.id] = l.full_name; });
-        setLeadsById(map);
-      } else {
-        setLeadsById({});
-      }
-      setLoading(false);
-    })();
-  }, [profile?.company_id, cursor]);
+    const leadIds = Array.from(new Set(list.map((s) => s.held_by_lead_id).filter(Boolean) as string[]));
+    if (leadIds.length) {
+      const { data: leads } = await supabase.from("leads").select("id, full_name").in("id", leadIds);
+      const map: Record<string, string> = {};
+      (leads ?? []).forEach((l: any) => { map[l.id] = l.full_name; });
+      setLeadsById(map);
+    } else {
+      setLeadsById({});
+    }
+    setLoading(false);
+  }, [profile?.company_id, monthStart, monthEnd]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Live updates — slots drive the grid; bookings affect held_by/confirmed state.
+  useRealtimeRefresh(["slots", "bookings"], load);
+
 
   const byDate = useMemo(() => {
     const m = new Map<string, Slot[]>();
