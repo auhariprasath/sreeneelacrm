@@ -351,7 +351,7 @@ function LeadProfile() {
               >
                 <Phone className="h-4 w-4" /> Call
               </a>
-              <a href={`https://wa.me/91${tel}`} target="_blank" rel="noreferrer"
+              <a href={buildWaMeLink(lead.phone) ?? undefined} target="_blank" rel="noreferrer"
                  onClick={() => {
                    supabase.from("activity_logs").insert({
                      lead_id: lead.id,
