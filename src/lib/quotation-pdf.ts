@@ -196,15 +196,52 @@ export async function generateQuotationPdf(input: QuotationPdfInput): Promise<Bl
   };
   input.quotation.services.forEach(drawRow);
 
-  // 6. Add-ons table (separate, only if present)
+  // 6. Add-ons table (5 columns: Add-on | Qty | Unit | Rate | Amount)
   if (input.quotation.addons.length) {
-    y += 10; ensure(40);
-    doc.setFillColor(...GREY_BG); doc.rect(M, y, pageW - M * 2, 22, "F");
-    doc.setTextColor(...PURPLE_DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-    doc.text("Add-ons", colName + 10, y + 14);
-    doc.text("Amount", colAmt - 10, y + 14, { align: "right" });
-    y += 30;
-    input.quotation.addons.forEach((a) => drawRow({ name: a.name, price: Number(a.price) || 0, quantity: 1, description: a.description }));
+    y += 12; ensure(50);
+    const aName = M;
+    const aQty = pageW - M - 280;
+    const aUnit = pageW - M - 200;
+    const aRate = pageW - M - 110;
+    const aAmt = pageW - M;
+    doc.setFillColor(...PURPLE); doc.rect(M, y, pageW - M * 2, 22, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+    doc.text("Add-on", aName + 10, y + 14);
+    doc.text("Qty", aQty, y + 14, { align: "right" });
+    doc.text("Unit", aUnit, y + 14, { align: "left" });
+    doc.text("Rate", aRate, y + 14, { align: "right" });
+    doc.text("Amount", aAmt - 10, y + 14, { align: "right" });
+    y += 26;
+    let addonsTotal = 0;
+    input.quotation.addons.forEach((a) => {
+      const qty = Number(a.quantity ?? 1) || 1;
+      const price = Number(a.price) || 0;
+      const line = qty * price;
+      addonsTotal += line;
+      const nameLines = doc.splitTextToSize(a.name || "—", aQty - aName - 20);
+      const rowH = nameLines.length * 13 + 8;
+      ensure(rowH + 4);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); doc.setTextColor(...TEXT);
+      doc.text(nameLines, aName + 10, y + 10);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+      doc.text(String(qty), aQty, y + 10, { align: "right" });
+      doc.setTextColor(...MUTED);
+      doc.text(a.unit || "—", aUnit, y + 10, { align: "left" });
+      doc.setTextColor(...TEXT);
+      doc.text(formatINRPdf(price), aRate, y + 10, { align: "right" });
+      doc.text(formatINRPdf(line), aAmt - 10, y + 10, { align: "right" });
+      y += rowH;
+      doc.setDrawColor(235, 235, 240); doc.line(M, y, pageW - M, y);
+      y += 4;
+    });
+    // Add-ons subtotal row
+    ensure(20);
+    doc.setFillColor(...GREY_BG); doc.rect(M, y, pageW - M * 2, 20, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...PURPLE_DARK);
+    doc.text("Add-ons subtotal", aRate, y + 13, { align: "right" });
+    doc.setTextColor(...TEXT);
+    doc.text(formatINRPdf(addonsTotal), aAmt - 10, y + 13, { align: "right" });
+    y += 24;
   }
 
   // 7. Totals right-aligned
