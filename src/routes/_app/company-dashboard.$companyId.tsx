@@ -2,8 +2,7 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { CompanyPanel } from "@/components/dashboard/company-panel";
-import { RightSidebar } from "@/components/dashboard/right-sidebar";
+import { CompanyOverviewView } from "@/components/dashboard/company-overview-view";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
 
@@ -41,28 +40,20 @@ function CompanyDashboardPage() {
   if (!company) return <div className="text-sm text-muted-foreground">Company not found.</div>;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 max-w-[1400px]">
-      <div className="space-y-4 min-w-0">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> All companies</Button>
-            </Link>
-            <h1 className="text-xl sm:text-2xl font-semibold truncate">{company.name}</h1>
-          </div>
-          <Link to="/company-settings/$companyId" params={{ companyId: company.id }}>
-            <Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" /> Company settings</Button>
+    <div className="space-y-5 max-w-[1500px]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> All companies</Button>
           </Link>
+          <span className="h-3 w-3 rounded-full shrink-0" style={{ background: company.brand_color || "hsl(var(--primary))" }} />
+          <h1 className="text-xl sm:text-2xl font-semibold truncate">{company.name}</h1>
         </div>
-        <CompanyPanel
-          companyId={company.id}
-          companyName={company.name}
-          brandColor={company.brand_color || "#6366f1"}
-        />
+        <Link to="/company-settings/$companyId" params={{ companyId: company.id }}>
+          <Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" /> Company settings</Button>
+        </Link>
       </div>
-      <aside className="hidden xl:block">
-        <div className="sticky top-4"><RightSidebar /></div>
-      </aside>
+      <CompanyOverviewView companyId={company.id} />
     </div>
   );
 }
