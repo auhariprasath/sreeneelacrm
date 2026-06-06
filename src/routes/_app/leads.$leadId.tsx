@@ -33,6 +33,7 @@ import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
 import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
 import { BookingAssignedTo } from "@/components/bookings/booking-assigned-to";
+import { SourcesTab } from "@/components/leads/sources-tab";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -344,13 +345,18 @@ function LeadProfile() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6 text-[11px]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="requirements">Requirements</TabsTrigger>
+          <TabsTrigger value="sources">Sources</TabsTrigger>
+          <TabsTrigger value="requirements">Reqs</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="followups">Follow-ups</TabsTrigger>
           <TabsTrigger value="notes">Note</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="sources">
+          <SourcesTab leadId={lead.id} source={lead.source} createdAt={lead.created_at} createdBy={lead.created_by} />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-3 pt-3">
           <InfoRow label="Language" value={lead.language} />
