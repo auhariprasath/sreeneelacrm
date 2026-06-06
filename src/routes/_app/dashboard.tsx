@@ -152,26 +152,23 @@ function CompanyDashboard() {
 
 
 
+  const refresh = useCallback(() => {
+    if (!companyId) return;
+    loadCompanyStats(companyId).then((s) => { setStats(s); setStatsLoading(false); });
+  }, [companyId]);
+
   useEffect(() => {
     if (!companyId) return;
     setStatsLoading(true);
-    let cancelled = false;
-    const refresh = () => loadCompanyStats(companyId).then((s) => { if (!cancelled) { setStats(s); setStatsLoading(false); } });
     refresh();
     const interval = setInterval(refresh, 60_000);
-    const ch = supabase.channel(`dash-${companyId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "leads", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "slots", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "requirements", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "follow_ups" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "booking_vendors", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments", filter: `company_id=eq.${companyId}` }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "quotations", filter: `company_id=eq.${companyId}` }, refresh)
-      .subscribe();
-    return () => { cancelled = true; clearInterval(interval); supabase.removeChannel(ch); };
-  }, [companyId, role, activeCompanyId]);
+    return () => clearInterval(interval);
+  }, [companyId, refresh]);
+
+  useDashboardRealtime(
+    ["leads", "slots", "requirements", "follow_ups", "tasks", "booking_vendors", "bookings", "payments", "quotations"],
+    refresh,
+  );
 
   const greeting = `Welcome, ${profile?.full_name || "there"}`;
 
@@ -188,11 +185,32 @@ function CompanyDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="New enquiries today" value={stats.newToday} icon={Users} to="/leads" />
-        <StatCard label="Open leads" value={stats.active} icon={Users} hint="being worked on" to="/leads" />
-        <StatCard label="Confirmed bookings" value={stats.bookings} icon={ClipboardList} to="/bookings" />
-        <StatCard label="Calls to make today" value={stats.followUps} icon={ListTodo} to="/tasks" />
+        <Link
+          to="/leads"
+          search={{ filter: "new" as const, company: companyId ?? undefined }}
+          className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg"
+        >
+          <StatCard label="New enquiries today" value={stats.newToday} icon={Users} clickable />
+        </Link>
+        <Link to="/leads" search={{ company: companyId ?? undefined }} className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg">
+          <StatCard label="Open leads" value={stats.active} icon={Users} hint="being worked on" clickable />
+        </Link>
+        <Link
+          to="/bookings"
+          search={{ status: "confirmed" as const, company: companyId ?? undefined }}
+          className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg"
+        >
+          <StatCard label="Confirmed bookings" value={stats.bookings} icon={ClipboardList} clickable />
+        </Link>
+        <Link
+          to="/leads"
+          search={{ filter: "followup_due" as const, company: companyId ?? undefined }}
+          className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg"
+        >
+          <StatCard label="Calls to make today" value={stats.followUps} icon={ListTodo} clickable />
+        </Link>
       </div>
+
 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
