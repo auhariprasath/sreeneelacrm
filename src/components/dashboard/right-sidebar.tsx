@@ -107,7 +107,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   useEffect(() => { refresh(); }, []);
   useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
-  const data = d ?? { callBacks: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
+  const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
 
   const rowCls = "px-3 py-2 text-sm flex items-center justify-between gap-2 hover:bg-accent/40 transition cursor-pointer";
 
