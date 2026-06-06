@@ -61,6 +61,13 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
   const today = new Date().toISOString().slice(0, 10);
   const in14 = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
 
+  const upcomingBookingsRes = await supabase.from("bookings")
+    .select("id")
+    .eq("company_id", companyId).is("deleted_at", null).eq("status", "confirmed")
+    .gte("event_date", today).lte("event_date", in14);
+  const upcomingBookingIds = (upcomingBookingsRes.data ?? []).map((b: any) => b.id);
+
+
   const [leadsToday, activeLeads, bookings, followUps, upcoming, tasksAgg, vendorsAgg] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true })
       .eq("company_id", companyId).is("deleted_at", null)
