@@ -20,6 +20,7 @@ import { InstallPrompt } from "@/components/install-prompt";
 import { WelcomeTour } from "@/components/welcome-tour";
 import { GlobalSearch } from "@/components/global-search";
 import { NotificationBell } from "@/components/notification-bell";
+import { ThemeColorPicker } from "@/components/theme-color-picker";
 
 
 export const Route = createFileRoute("/_app")({ component: AppLayout });
