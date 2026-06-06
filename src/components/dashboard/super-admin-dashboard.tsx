@@ -52,7 +52,19 @@ export function SuperAdminDashboard() {
           </div>
           <div id="sa-companies" className="scroll-mt-20 space-y-4">
             {companies.map((c) => (
-              <CompanyPanel key={c.id} companyId={c.id} companyName={c.name} brandColor={c.brand_color || "#6366f1"} />
+              <div key={c.id} className="space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{c.name}</div>
+                  <Link
+                    to="/company-dashboard/$companyId"
+                    params={{ companyId: c.id }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Open full dashboard →
+                  </Link>
+                </div>
+                <CompanyPanel companyId={c.id} companyName={c.name} brandColor={c.brand_color || "#6366f1"} />
+              </div>
             ))}
           </div>
           <div id="sa-feedback" className="scroll-mt-20"><PostEventPanel /></div>
