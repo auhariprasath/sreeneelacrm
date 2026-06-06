@@ -122,7 +122,7 @@ function AppLayout() {
         {/* Top header */}
         <header className="h-14 lg:h-16 border-b bg-card flex items-center gap-2 lg:gap-3 px-3 lg:px-6 sticky top-0 z-30">
           {/* Brand shown until sidebar takes over */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">N</div>
             <span className="text-sm font-semibold">Neela CRM</span>
           </div>
