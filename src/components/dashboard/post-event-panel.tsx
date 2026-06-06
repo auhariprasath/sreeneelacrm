@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ interface Completed {
 
 export function PostEventPanel() {
   const [rows, setRows] = useState<Completed[]>([]);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     const since = new Date(Date.now() - 60 * 86400_000).toISOString().slice(0, 10);
@@ -68,7 +69,16 @@ export function PostEventPanel() {
               <XAxis dataKey="star" tickLine={false} axisLine={false} fontSize={11} />
               <YAxis tickLine={false} axisLine={false} fontSize={10} width={28} allowDecimals={false} />
               <Tooltip cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }} />
-              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+              <Bar
+                dataKey="count"
+                fill="hsl(var(--primary))"
+                radius={[2, 2, 0, 0]}
+                cursor="pointer"
+                onClick={(d: any) => {
+                  const star = parseInt(String(d?.star ?? "").replace("★", ""), 10);
+                  if (Number.isFinite(star)) navigate({ to: "/feedback", search: { rating: star } as any });
+                }}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

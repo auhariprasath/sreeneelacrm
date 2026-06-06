@@ -13,6 +13,8 @@ import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Status = Database["public"]["Enums"]["lead_status"];
@@ -28,33 +30,67 @@ const STATUS_TABS: { key: "all" | Status; label: string }[] = [
   { key: "closed", label: "Closed" },
 ];
 
-export const Route = createFileRoute("/_app/leads/")({ component: LeadsInbox });
+const leadsSearchSchema = z.object({
+  filter: fallback(z.enum(["new", "followup_due"]).optional(), undefined),
+  company: fallback(z.string().uuid().optional(), undefined),
+});
+
+export const Route = createFileRoute("/_app/leads/")({
+  component: LeadsInbox,
+  validateSearch: zodValidator(leadsSearchSchema),
+});
 
 function LeadsInbox() {
   const { profile, role, activeCompanyId } = useAuth();
+  const searchParams = Route.useSearch();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<"all" | Status>("all");
+  const [status, setStatus] = useState<"all" | Status>(searchParams.filter === "new" ? "new" : "all");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [open, setOpen] = useState(false);
   const [reqMeta, setReqMeta] = useState<Record<string, ReqMeta>>({});
+  const [followupDueIds, setFollowupDueIds] = useState<string[] | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const followupDue = searchParams.filter === "followup_due";
 
   const companyFilter = useMemo(() => {
-    if (role === "super_admin") return activeCompanyId; // null = all
+    if (searchParams.company) return searchParams.company;
+    if (role === "super_admin") return activeCompanyId;
     return profile?.company_id ?? null;
-  }, [role, activeCompanyId, profile]);
+  }, [role, activeCompanyId, profile, searchParams.company]);
+
+  // Fetch lead IDs with follow-ups due today (pending, scheduled for today or earlier)
+  useEffect(() => {
+    if (!followupDue) { setFollowupDueIds(null); return; }
+    const endOfDay = new Date(); endOfDay.setHours(23, 59, 59, 999);
+    let q = supabase.from("follow_ups")
+      .select("lead_id, leads!inner(company_id)")
+      .eq("is_sent", false).eq("is_cancelled", false)
+      .lte("scheduled_at", endOfDay.toISOString());
+    if (companyFilter) q = q.eq("leads.company_id", companyFilter);
+    q.then(({ data }) => {
+      const ids = Array.from(new Set(((data ?? []) as any[]).map((r) => r.lead_id).filter(Boolean)));
+      setFollowupDueIds(ids);
+    });
+  }, [followupDue, companyFilter]);
 
   const fetchPage = async (pg: number, reset = false) => {
     if (reset) setLoading(true);
+    if (followupDue && followupDueIds === null) return; // wait for ids
     let q = supabase.from("leads").select("*", { count: "exact" })
       .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .range(pg * PAGE, pg * PAGE + PAGE - 1);
     if (companyFilter) q = q.eq("company_id", companyFilter);
     if (status !== "all") q = q.eq("status", status);
+    if (followupDue) {
+      if (!followupDueIds || followupDueIds.length === 0) {
+        setLeads([]); setHasMore(false); setLoading(false); return;
+      }
+      q = q.in("id", followupDueIds);
+    }
     if (search.trim()) {
       const s = search.trim().replace(/'/g, "''");
       q = q.or(`full_name.ilike.%${s}%,phone.ilike.%${s}%`);
@@ -99,7 +135,7 @@ function LeadsInbox() {
     setPage(0);
     fetchPage(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyFilter, status]);
+  }, [companyFilter, status, followupDue, followupDueIds]);
 
   // debounced search
   useEffect(() => {

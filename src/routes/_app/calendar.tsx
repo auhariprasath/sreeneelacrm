@@ -155,11 +155,13 @@ function CalendarPage() {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center gap-2 shrink-0">
-                  {s.held_by_lead_id && leadsById[s.held_by_lead_id] && (
+                  {s.held_by_lead_id && leadsById[s.held_by_lead_id] ? (
                     <Link to="/leads/$leadId" params={{ leadId: s.held_by_lead_id }} className="text-primary hover:underline">
                       {leadsById[s.held_by_lead_id]}
                     </Link>
-                  )}
+                  ) : s.status === "free" ? (
+                    <span>Available</span>
+                  ) : null}
                   <span className="capitalize">{s.status.replace("_", " ")}</span>
                 </div>
               </div>

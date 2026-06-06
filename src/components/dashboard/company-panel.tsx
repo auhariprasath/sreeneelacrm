@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -139,6 +139,11 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
   const [tab, setTab] = useState<"overview" | "pending">("overview");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
+  const navigate = useNavigate();
+  const monthStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
 
   const refresh = useCallback(async () => {
     const [o, p] = await Promise.all([loadOverview(companyId), loadPending(companyId)]);
@@ -183,7 +188,13 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
                     <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={10} interval={3} />
                     <YAxis tickLine={false} axisLine={false} fontSize={10} width={36} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : v} />
                     <Tooltip formatter={(v: any) => formatINR(Number(v))} labelFormatter={(l) => `Day ${l}`} cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }} />
-                    <Bar dataKey="revenue" fill={brandColor} radius={[2, 2, 0, 0]} />
+                    <Bar
+                      dataKey="revenue"
+                      fill={brandColor}
+                      radius={[2, 2, 0, 0]}
+                      cursor="pointer"
+                      onClick={() => navigate({ to: "/bookings", search: { month: monthStr, company: companyId } as any })}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

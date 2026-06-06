@@ -24,12 +24,14 @@ export type DashboardTable =
   | "follow_ups"
   | "venue_meetings"
   | "win_loss_log"
-  | "companies";
+  | "companies"
+  | "requirements"
+  | "booking_vendors";
 
 const TABLES: DashboardTable[] = [
   "leads", "bookings", "tasks", "slots", "quotations",
   "payments", "feedback", "follow_ups", "venue_meetings",
-  "win_loss_log", "companies",
+  "win_loss_log", "companies", "requirements", "booking_vendors",
 ];
 
 const bus = new EventTarget();
