@@ -21,6 +21,7 @@ type Thresholds = Record<string, number>;
 export function ReminderTimingSection({ companyId }: Props) {
   const [enabled, setEnabled] = useState(true);
   const [thresholds, setThresholds] = useState<Thresholds>({});
+  const [quoteValidDays, setQuoteValidDays] = useState<number>(7);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -28,13 +29,14 @@ export function ReminderTimingSection({ companyId }: Props) {
     if (!companyId) return;
     setLoading(true);
     supabase.from("companies")
-      .select("stale_alerts_enabled, stale_thresholds")
+      .select("stale_alerts_enabled, stale_thresholds, quotation_valid_days")
       .eq("id", companyId).maybeSingle().then(({ data }) => {
         setEnabled((data as any)?.stale_alerts_enabled ?? true);
         const stored = ((data as any)?.stale_thresholds ?? {}) as Thresholds;
         const merged: Thresholds = {};
         STAGES.forEach((s) => { merged[s.key] = Number(stored[s.key] ?? s.defaultDays); });
         setThresholds(merged);
+        setQuoteValidDays(Number((data as any)?.quotation_valid_days ?? 7));
         setLoading(false);
       });
   }, [companyId]);
@@ -45,7 +47,11 @@ export function ReminderTimingSection({ companyId }: Props) {
   const save = async () => {
     setSaving(true);
     const { error } = await supabase.from("companies")
-      .update({ stale_alerts_enabled: enabled, stale_thresholds: thresholds as any })
+      .update({
+        stale_alerts_enabled: enabled,
+        stale_thresholds: thresholds as any,
+        quotation_valid_days: Math.max(1, quoteValidDays || 7),
+      })
       .eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message); else toast.success("Saved ✓");
@@ -77,6 +83,22 @@ export function ReminderTimingSection({ companyId }: Props) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold">Quotation validity</h4>
+        <div className="grid grid-cols-[1fr_120px] gap-3 items-end border rounded-md p-3">
+          <div>
+            <Label className="text-sm">Quotation valid for</Label>
+            <div className="text-xs text-muted-foreground">Sent quotations are auto-expired by the daily job after this many days.</div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Input type="number" min={1} max={90} value={quoteValidDays}
+              onChange={(e) => setQuoteValidDays(Math.max(1, Number(e.target.value) || 7))}
+              className="h-10" />
+            <span className="text-xs text-muted-foreground">days</span>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-end">

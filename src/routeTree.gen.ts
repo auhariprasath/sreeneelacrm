@@ -45,6 +45,7 @@ import { Route as ApiPublicHooksStaleLeadScanRouteImport } from './routes/api/pu
 import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
+import { Route as ApiPublicHooksExpireQuotationsRouteImport } from './routes/api/public/hooks/expire-quotations'
 import { Route as ApiPublicHooksCustomTaskRemindersRouteImport } from './routes/api/public/hooks/custom-task-reminders'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -232,6 +233,12 @@ const ApiPublicHooksPostEventAutomationRoute =
     path: '/api/public/hooks/post-event-automation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksExpireQuotationsRoute =
+  ApiPublicHooksExpireQuotationsRouteImport.update({
+    id: '/api/public/hooks/expire-quotations',
+    path: '/api/public/hooks/expire-quotations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCustomTaskRemindersRoute =
   ApiPublicHooksCustomTaskRemindersRouteImport.update({
     id: '/api/public/hooks/custom-task-reminders',
@@ -271,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
+  '/api/public/hooks/expire-quotations': typeof ApiPublicHooksExpireQuotationsRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
@@ -308,6 +316,7 @@ export interface FileRoutesByTo {
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
+  '/api/public/hooks/expire-quotations': typeof ApiPublicHooksExpireQuotationsRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
@@ -348,6 +357,7 @@ export interface FileRoutesById {
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
+  '/api/public/hooks/expire-quotations': typeof ApiPublicHooksExpireQuotationsRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
@@ -388,6 +398,7 @@ export interface FileRouteTypes {
     | '/api/public/seed'
     | '/leads/'
     | '/api/public/hooks/custom-task-reminders'
+    | '/api/public/hooks/expire-quotations'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/api/public/seed'
     | '/leads'
     | '/api/public/hooks/custom-task-reminders'
+    | '/api/public/hooks/expire-quotations'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
@@ -464,6 +476,7 @@ export interface FileRouteTypes {
     | '/api/public/seed'
     | '/_app/leads/'
     | '/api/public/hooks/custom-task-reminders'
+    | '/api/public/hooks/expire-quotations'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
@@ -484,6 +497,7 @@ export interface RootRouteChildren {
   VendorStatusTokenRoute: typeof VendorStatusTokenRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
   ApiPublicHooksCustomTaskRemindersRoute: typeof ApiPublicHooksCustomTaskRemindersRoute
+  ApiPublicHooksExpireQuotationsRoute: typeof ApiPublicHooksExpireQuotationsRoute
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
   ApiPublicHooksQuotationExpiryRoute: typeof ApiPublicHooksQuotationExpiryRoute
@@ -745,6 +759,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPostEventAutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/expire-quotations': {
+      id: '/api/public/hooks/expire-quotations'
+      path: '/api/public/hooks/expire-quotations'
+      fullPath: '/api/public/hooks/expire-quotations'
+      preLoaderRoute: typeof ApiPublicHooksExpireQuotationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/custom-task-reminders': {
       id: '/api/public/hooks/custom-task-reminders'
       path: '/api/public/hooks/custom-task-reminders'
@@ -837,6 +858,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSeedRoute: ApiPublicSeedRoute,
   ApiPublicHooksCustomTaskRemindersRoute:
     ApiPublicHooksCustomTaskRemindersRoute,
+  ApiPublicHooksExpireQuotationsRoute: ApiPublicHooksExpireQuotationsRoute,
   ApiPublicHooksPostEventAutomationRoute:
     ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,
