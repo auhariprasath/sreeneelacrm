@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -172,11 +174,11 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Date</Label>
-                <Input type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} />
+                <DateConfirmField value={date} onChange={setDate} fromDate={new Date(today)} />
               </div>
               <div className="space-y-1.5">
                 <Label>Time</Label>
-                <Input type="time" step={1800} value={time} onChange={(e) => setTime(e.target.value)} />
+                <TimeClockField value={time} onChange={setTime} />
               </div>
             </div>
             <div className="space-y-1.5">
