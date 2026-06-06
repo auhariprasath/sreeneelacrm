@@ -9,6 +9,7 @@ import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface Data {
   callBacks: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
+  overdueFollowUps: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
   tasks: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string | null }>;
   quotations: Array<{ id: string; lead_id: string; quotation_number: string; total: number }>;
   overdue: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string }>;
