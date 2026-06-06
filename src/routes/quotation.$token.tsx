@@ -143,7 +143,11 @@ function PublicQuotationPage() {
         </section>
 
         <footer className="p-5 border-t bg-muted/20">
-          {isAgreed ? (
+          {isExpired ? (
+            <div className="text-sm text-rose-700 dark:text-rose-300 font-medium">
+              This quotation has expired. Please contact us for a fresh one.
+            </div>
+          ) : isAgreed ? (
             <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-medium">
               <CheckCircle2 className="h-5 w-5" /> Approved — thank you! The team will be in touch shortly.
             </div>
