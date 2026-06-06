@@ -4,7 +4,7 @@ import { Phone, ListTodo, FileText, AlertCircle, AlertTriangle } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDateIN, formatTimeOfDay, formatINR } from "@/lib/format";
+import { formatDateIN, formatDateTimeIN, formatINR } from "@/lib/format";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface Data {
@@ -17,15 +17,14 @@ interface Data {
 
 async function load(): Promise<Data> {
   const nowIso = new Date().toISOString();
-  const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
-  const eotIso = endOfToday.toISOString();
   const in3d = new Date(Date.now() + 3 * 86400_000).toISOString();
+  const in14d = new Date(Date.now() + 14 * 86400_000).toISOString();
 
   const [followUps, tasksRes, quots, overdueRes, companiesRes] = await Promise.all([
     supabase.from("follow_ups")
       .select("id, lead_id, scheduled_at, leads!inner(full_name)")
       .eq("is_sent", false).eq("is_cancelled", false)
-      .lte("scheduled_at", eotIso).order("scheduled_at", { ascending: true }).limit(15),
+      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(30),
     supabase.from("tasks")
       .select("id, booking_id, title, due_at, bookings(lead_id)")
       .is("deleted_at", null).neq("status", "done")
@@ -121,7 +120,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   );
 
   const callBacks = (
-    <Section icon={Phone} title="Call backs today" count={data.callBacks.length}>
+    <Section icon={Phone} title="Upcoming Follow-ups" count={data.callBacks.length}>
       {data.callBacks.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None scheduled</div>
       ) : (
@@ -132,7 +131,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
               <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className={rowCls}>
                 <div className="min-w-0">
                   <div className="font-medium truncate">{c.full_name}</div>
-                  <div className="text-[11px] text-muted-foreground">{formatTimeOfDay(new Date(c.scheduled_at).toTimeString().slice(0, 8))}</div>
+                  <div className="text-[11px] text-muted-foreground">{formatDateTimeIN(c.scheduled_at)}</div>
                 </div>
                 <span className="text-xs text-primary underline shrink-0">Open</span>
               </Link>
