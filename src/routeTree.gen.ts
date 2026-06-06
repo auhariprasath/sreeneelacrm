@@ -27,6 +27,7 @@ import { Route as AppQuotationsRouteImport } from './routes/_app/quotations'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
 import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
+import { Route as AppFeedbackRouteImport } from './routes/_app/feedback'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCommandCentreRouteImport } from './routes/_app/command-centre'
 import { Route as AppCampaignsRouteImport } from './routes/_app/campaigns'
@@ -131,6 +132,11 @@ const AppLeadsRoute = AppLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFeedbackRoute = AppFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof AppCampaignsRoute
   '/command-centre': typeof AppCommandCentreRoute
   '/dashboard': typeof AppDashboardRoute
+  '/feedback': typeof AppFeedbackRoute
   '/leads': typeof AppLeadsRouteWithChildren
   '/more': typeof AppMoreRoute
   '/notifications': typeof AppNotificationsRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof AppCampaignsRoute
   '/command-centre': typeof AppCommandCentreRoute
   '/dashboard': typeof AppDashboardRoute
+  '/feedback': typeof AppFeedbackRoute
   '/more': typeof AppMoreRoute
   '/notifications': typeof AppNotificationsRoute
   '/quotations': typeof AppQuotationsRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   '/_app/campaigns': typeof AppCampaignsRoute
   '/_app/command-centre': typeof AppCommandCentreRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/feedback': typeof AppFeedbackRoute
   '/_app/leads': typeof AppLeadsRouteWithChildren
   '/_app/more': typeof AppMoreRoute
   '/_app/notifications': typeof AppNotificationsRoute
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/command-centre'
     | '/dashboard'
+    | '/feedback'
     | '/leads'
     | '/more'
     | '/notifications'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/command-centre'
     | '/dashboard'
+    | '/feedback'
     | '/more'
     | '/notifications'
     | '/quotations'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/_app/campaigns'
     | '/_app/command-centre'
     | '/_app/dashboard'
+    | '/_app/feedback'
     | '/_app/leads'
     | '/_app/more'
     | '/_app/notifications'
@@ -557,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/feedback': {
+      id: '/_app/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof AppFeedbackRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -678,6 +697,7 @@ interface AppRouteChildren {
   AppCampaignsRoute: typeof AppCampaignsRoute
   AppCommandCentreRoute: typeof AppCommandCentreRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppFeedbackRoute: typeof AppFeedbackRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMoreRoute: typeof AppMoreRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
@@ -695,6 +715,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCampaignsRoute: AppCampaignsRoute,
   AppCommandCentreRoute: AppCommandCentreRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppFeedbackRoute: AppFeedbackRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMoreRoute: AppMoreRoute,
   AppNotificationsRoute: AppNotificationsRoute,
