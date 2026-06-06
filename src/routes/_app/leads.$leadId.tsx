@@ -79,6 +79,7 @@ function LeadProfile() {
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
   const [editQuoteId, setEditQuoteId] = useState<string | null>(null);
+  const [reviseQuoteId, setReviseQuoteId] = useState<string | null>(null);
   const [sendQuoteId, setSendQuoteId] = useState<string | null>(null);
   const [bookQuoteId, setBookQuoteId] = useState<string | null>(null);
   const [chequeBooking, setChequeBooking] = useState<Booking | null>(null);
@@ -454,11 +455,10 @@ function LeadProfile() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        if (r.status !== "slot_confirmed") {
-                          toast.info("Confirm the slot first before building a quotation.");
-                          return;
-                        }
-                        setQuoteReqId(r.id); setEditQuoteId(null); setQuoteOpen(true);
+                        setQuoteReqId(r.id);
+                        setEditQuoteId(null);
+                        setReviseQuoteId(null);
+                        setQuoteOpen(true);
                       }}
                       disabled={lead.status === "locked"}
                     >
@@ -514,9 +514,19 @@ function LeadProfile() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
+                      <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); }}>
                         Open
                       </Button>
+                      {["sent", "agreed", "declined"].includes(q.status) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
+                          className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                        >
+                          Revise
+                        </Button>
+                      )}
                       {q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id) ? (
                         <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                           <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Book
@@ -531,7 +541,7 @@ function LeadProfile() {
                         leadId={leadId}
                         pdfUrl={q.pdf_url}
                         versionLabel={`v${q.version}`}
-                        onView={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}
+                        onView={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); }}
                         onResend={() => setSendQuoteId(q.id)}
                         onDeleted={loadQuotations}
                       />
@@ -732,11 +742,11 @@ function LeadProfile() {
         onScheduleFollowUp={() => setFuOpen(true)}
         onScheduleMeeting={() => setMeetingOpen(true)}
         onInterested={() => {
-          // open intake if no requirements; else open quotation builder on latest requirement
+          // No requirement yet → prompt to complete event details first
           const latest = requirements[requirements.length - 1];
-          if (!latest) { setEditReqId(null); setReqOpen(true); }
-          else if (latest.status === "slot_confirmed") { setQuoteReqId(latest.id); setEditQuoteId(null); setQuoteOpen(true); }
-          else { setEditReqId(latest.id); setReqOpen(true); }
+          if (!latest) { setEditReqId(null); setReqOpen(true); toast.info("Complete event details first, then build the quotation."); return; }
+          // Otherwise open the builder immediately, pre-filled from the latest requirement
+          setQuoteReqId(latest.id); setEditQuoteId(null); setReviseQuoteId(null); setQuoteOpen(true);
         }}
         onChanged={() => { load(); }}
       />
@@ -801,13 +811,14 @@ function LeadProfile() {
       )}
       <QuotationBuilder
         open={quoteOpen}
-        onOpenChange={(v) => { setQuoteOpen(v); if (!v) loadQuotations(); }}
+        onOpenChange={(v) => { setQuoteOpen(v); if (!v) { setReviseQuoteId(null); loadQuotations(); } }}
         leadId={lead.id}
         companyId={lead.company_id}
         requirementId={quoteReqId}
         quotationId={editQuoteId}
+        reviseFromId={reviseQuoteId}
         onSaved={loadQuotations}
-        onContinueToSend={(id) => { setQuoteOpen(false); loadQuotations(); setSendQuoteId(id); }}
+        onContinueToSend={(id) => { setQuoteOpen(false); setReviseQuoteId(null); loadQuotations(); setSendQuoteId(id); }}
       />
       <SendQuotationDialog
         open={!!sendQuoteId}

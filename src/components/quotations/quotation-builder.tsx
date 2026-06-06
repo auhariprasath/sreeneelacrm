@@ -33,6 +33,8 @@ interface Props {
   companyId: string;
   requirementId: string | null;
   quotationId?: string | null;
+  /** Open as a NEW revision based on this existing quotation (copies content, increments version). */
+  reviseFromId?: string | null;
   onSaved?: () => void;
   onContinueToSend?: (quotationId: string) => void;
 }
@@ -40,7 +42,7 @@ interface Props {
 const STEPS = ["Event", "Services", "Pricing", "Preview"] as const;
 
 export function QuotationBuilder({
-  open, onOpenChange, leadId, companyId, requirementId, quotationId, onSaved, onContinueToSend,
+  open, onOpenChange, leadId, companyId, requirementId, quotationId, reviseFromId, onSaved, onContinueToSend,
 }: Props) {
   const { role, profile } = useAuth();
   const [step, setStep] = useState(0);
@@ -79,6 +81,7 @@ export function QuotationBuilder({
 
   const [draftId, setDraftId] = useState<string | null>(quotationId ?? null);
   const [baseVersion, setBaseVersion] = useState(1);
+  const [revisingFromId, setRevisingFromId] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Preview message
@@ -128,9 +131,29 @@ export function QuotationBuilder({
       } else setPeakLabel(null);
 
       const allHistory = (prior as Quotation[]) ?? [];
-      const base = quotationId ? allHistory.find((q) => q.id === quotationId) : allHistory.find((q) => q.status === "draft");
-      if (base) {
+      const sourceForRevise = reviseFromId ? allHistory.find((q) => q.id === reviseFromId) : null;
+      const base = sourceForRevise
+        ? null
+        : quotationId
+          ? allHistory.find((q) => q.id === quotationId)
+          : allHistory.find((q) => q.status === "draft");
+      if (sourceForRevise) {
+        // Revising: copy contents, but treat as a brand-new draft with next version
+        setDraftId(null);
+        setRevisingFromId(sourceForRevise.id);
+        setBaseVersion((allHistory[0]?.version ?? sourceForRevise.version) + 1);
+        setServices(((sourceForRevise.services as any) ?? []) as LineItem[]);
+        setAddons(((sourceForRevise.addons as any) ?? []) as AddonItem[]);
+        const dp = Number(sourceForRevise.discount_percent || 0); const da = Number(sourceForRevise.discount_amount || 0);
+        if (dp > 0 && da === 0) { setDiscountMode("percent"); setDiscountPercent(dp); }
+        else if (da > 0) { setDiscountMode("amount"); setDiscountAmount(da); }
+        else { setDiscountMode("percent"); setDiscountPercent(0); setDiscountAmount(0); }
+        setDiscountReason(sourceForRevise.discount_reason ?? "");
+        setGstApplied(sourceForRevise.gst_applied ?? true);
+        setGstPercent(Number(sourceForRevise.gst_percent ?? gp));
+      } else if (base) {
         setDraftId(base.id);
+        setRevisingFromId(null);
         setBaseVersion(base.version);
         setServices(((base.services as any) ?? []) as LineItem[]);
         setAddons(((base.addons as any) ?? []) as AddonItem[]);
@@ -141,6 +164,7 @@ export function QuotationBuilder({
         setGstApplied(base.gst_applied ?? true);
         setGstPercent(Number(base.gst_percent ?? gp));
       } else {
+        setRevisingFromId(null);
         setAddons(((addOnsRows as any[]) ?? []).map((a) => ({ name: a.addon_name, price: Number(a.addon_price) || 0 })));
         setServices([]);
         setBaseVersion((allHistory[0]?.version ?? 0) + 1);
@@ -150,12 +174,12 @@ export function QuotationBuilder({
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, requirementId, companyId, leadId, quotationId]);
+  }, [open, requirementId, companyId, leadId, quotationId, reviseFromId]);
 
   // Reset on close
   useEffect(() => {
     if (!open) {
-      setDraftId(null); setRequirement(null);
+      setDraftId(null); setRequirement(null); setRevisingFromId(null);
       setServices([]); setAddons([]); setDiscountPercent(0); setDiscountAmount(0); setDiscountReason("");
       setGstApplied(true); setLastSaved(null); setStep(0);
     }
@@ -231,6 +255,35 @@ export function QuotationBuilder({
       const { data, error } = await supabase.from("quotations").insert(payload).select("id").single();
       if (error || !data) { setSaving(false); if (!silent) toast.error(error?.message || "Couldn't save draft"); return null; }
       id = data.id; setDraftId(id);
+
+      // First save of a revision: archive the source quotation and notify admins on 3+ revisions
+      if (revisingFromId) {
+        const archivedFrom = revisingFromId;
+        setRevisingFromId(null);
+        await supabase.from("quotations").update({ status: "revised" }).eq("id", archivedFrom);
+        await supabase.from("activity_logs").insert({
+          lead_id: leadId,
+          action: `Quotation revised — new v${baseVersion} created from v${baseVersion - 1}`,
+          action_type: "system",
+          performed_by: profile?.id ?? null,
+          metadata: { quotation_id: id, revised_from: archivedFrom, version: baseVersion },
+        });
+        if (baseVersion >= 4) {
+          const { data: admins } = await supabase
+            .from("user_roles")
+            .select("user_id, profiles!inner(company_id)")
+            .in("role", ["admin", "super_admin"])
+            .eq("profiles.company_id", companyId);
+          const rows = (admins ?? []).map((a: any) => ({
+            user_id: a.user_id,
+            title: "Review quotation revisions",
+            body: `${baseVersion - 1} revisions done on ${lead?.full_name ?? "lead"} — please review.`,
+            type: "system" as const,
+            lead_id: leadId,
+          }));
+          if (rows.length) await supabase.from("notifications").insert(rows);
+        }
+      }
     }
     setSaving(false);
     setLastSaved(new Date());
@@ -362,6 +415,7 @@ export function QuotationBuilder({
         <SheetHeader className="p-4 border-b">
           <SheetTitle>
             Quotation Builder {baseVersion > 1 && <span className="text-xs font-normal text-muted-foreground">· v{baseVersion}</span>}
+            {revisingFromId && <span className="ml-2 text-[10px] font-medium rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2 py-0.5">Revising</span>}
           </SheetTitle>
           <StepProgress current={step} />
         </SheetHeader>
