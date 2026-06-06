@@ -131,9 +131,29 @@ export function QuotationBuilder({
       } else setPeakLabel(null);
 
       const allHistory = (prior as Quotation[]) ?? [];
-      const base = quotationId ? allHistory.find((q) => q.id === quotationId) : allHistory.find((q) => q.status === "draft");
-      if (base) {
+      const sourceForRevise = reviseFromId ? allHistory.find((q) => q.id === reviseFromId) : null;
+      const base = sourceForRevise
+        ? null
+        : quotationId
+          ? allHistory.find((q) => q.id === quotationId)
+          : allHistory.find((q) => q.status === "draft");
+      if (sourceForRevise) {
+        // Revising: copy contents, but treat as a brand-new draft with next version
+        setDraftId(null);
+        setRevisingFromId(sourceForRevise.id);
+        setBaseVersion((allHistory[0]?.version ?? sourceForRevise.version) + 1);
+        setServices(((sourceForRevise.services as any) ?? []) as LineItem[]);
+        setAddons(((sourceForRevise.addons as any) ?? []) as AddonItem[]);
+        const dp = Number(sourceForRevise.discount_percent || 0); const da = Number(sourceForRevise.discount_amount || 0);
+        if (dp > 0 && da === 0) { setDiscountMode("percent"); setDiscountPercent(dp); }
+        else if (da > 0) { setDiscountMode("amount"); setDiscountAmount(da); }
+        else { setDiscountMode("percent"); setDiscountPercent(0); setDiscountAmount(0); }
+        setDiscountReason(sourceForRevise.discount_reason ?? "");
+        setGstApplied(sourceForRevise.gst_applied ?? true);
+        setGstPercent(Number(sourceForRevise.gst_percent ?? gp));
+      } else if (base) {
         setDraftId(base.id);
+        setRevisingFromId(null);
         setBaseVersion(base.version);
         setServices(((base.services as any) ?? []) as LineItem[]);
         setAddons(((base.addons as any) ?? []) as AddonItem[]);
@@ -144,6 +164,7 @@ export function QuotationBuilder({
         setGstApplied(base.gst_applied ?? true);
         setGstPercent(Number(base.gst_percent ?? gp));
       } else {
+        setRevisingFromId(null);
         setAddons(((addOnsRows as any[]) ?? []).map((a) => ({ name: a.addon_name, price: Number(a.addon_price) || 0 })));
         setServices([]);
         setBaseVersion((allHistory[0]?.version ?? 0) + 1);
