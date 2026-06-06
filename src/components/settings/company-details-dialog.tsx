@@ -155,6 +155,10 @@ export function CompanyDetailsDialog({
           brand_color: form.brand_color || null,
           max_capacity: form.max_capacity ? Number(form.max_capacity) : null,
           cancellation_policy: form.cancellation_policy.trim() || null,
+          portfolio_url: form.portfolio_url.trim() || null,
+          video_url: form.video_url.trim() || null,
+          include_photos_in_requirements: form.include_photos_in_requirements,
+          include_portfolio_in_day5: form.include_portfolio_in_day5,
         },
       });
       toast.success("Saved");
