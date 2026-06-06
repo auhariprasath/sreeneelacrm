@@ -193,23 +193,7 @@ function CompanyDashboard() {
 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base flex items-center">Active soft holds<InfoTip tip="activeDateHolds" /></CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {stats.activeHolds === 0 ? (
-              <EmptyList icon={Clock} title="No active holds" desc="Soft holds expire after 30 minutes." />
-            ) : (
-              <div className="text-sm">
-                <span className="text-2xl font-semibold">{stats.activeHolds}</span>
-                <span className="text-muted-foreground ml-2">slot{stats.activeHolds === 1 ? "" : "s"} held right now</span>
-                <Link to="/calendar" className="block mt-3 text-primary text-xs underline">View calendar →</Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
 
         <Card>
           <CardHeader><CardTitle className="text-base">Upcoming events</CardTitle></CardHeader>
