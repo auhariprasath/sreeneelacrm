@@ -306,12 +306,29 @@ function LeadProfile() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <a
                 href={`tel:+91${tel}`}
-                onClick={() => setTimeout(() => setCallOpen(true), 400)}
+                onClick={async () => {
+                  // No call-tracking API → set a safety 2h reminder + open post-call popup on return
+                  const due = new Date(Date.now() + 2 * 60 * 60_000);
+                  await supabase.from("follow_ups").insert({
+                    lead_id: lead.id, scheduled_at: due.toISOString(),
+                    note: "Auto: post-call safety reminder", created_by: profile?.id ?? null,
+                  });
+                  toast.info("No WhatsApp API connected. Reminder set for follow-up.");
+                  setTimeout(() => setCallOpen(true), 400);
+                }}
                 className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium"
               >
                 <Phone className="h-4 w-4" /> Call
               </a>
               <a href={`https://wa.me/91${tel}`} target="_blank" rel="noreferrer"
+                 onClick={() => {
+                   supabase.from("activity_logs").insert({
+                     lead_id: lead.id,
+                     action: `WhatsApp opened by ${profile?.full_name ?? "staff"}`,
+                     action_type: "system",
+                     performed_by: profile?.id ?? null,
+                   }).then(() => {});
+                 }}
                  className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-emerald-600 text-white text-sm font-medium">
                 <MessageSquare className="h-4 w-4" /> WhatsApp
               </a>
