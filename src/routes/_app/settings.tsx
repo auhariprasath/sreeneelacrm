@@ -16,6 +16,7 @@ import { StaffSection } from "@/components/settings/staff-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 import { PaymentCredentialsSection } from "@/components/settings/payment-credentials-section";
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
+import { WhatsappTemplatesSection } from "@/components/settings/whatsapp-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { CompaniesSection } from "@/components/settings/companies-section";
 
