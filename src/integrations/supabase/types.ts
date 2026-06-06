@@ -1183,6 +1183,7 @@ export type Database = {
         Row: {
           addons: Json
           agreed_at: string | null
+          approved_at: string | null
           company_id: string
           created_at: string
           created_by: string | null
@@ -1198,6 +1199,7 @@ export type Database = {
           lead_id: string
           pdf_url: string | null
           peak_season_label: string | null
+          public_token: string | null
           quotation_number: string | null
           requirement_id: string
           sent_at: string | null
@@ -1208,10 +1210,13 @@ export type Database = {
           total: number
           updated_at: string
           version: number
+          view_count: number
+          viewed_at: string | null
         }
         Insert: {
           addons?: Json
           agreed_at?: string | null
+          approved_at?: string | null
           company_id: string
           created_at?: string
           created_by?: string | null
@@ -1227,6 +1232,7 @@ export type Database = {
           lead_id: string
           pdf_url?: string | null
           peak_season_label?: string | null
+          public_token?: string | null
           quotation_number?: string | null
           requirement_id: string
           sent_at?: string | null
@@ -1237,10 +1243,13 @@ export type Database = {
           total?: number
           updated_at?: string
           version?: number
+          view_count?: number
+          viewed_at?: string | null
         }
         Update: {
           addons?: Json
           agreed_at?: string | null
+          approved_at?: string | null
           company_id?: string
           created_at?: string
           created_by?: string | null
@@ -1256,6 +1265,7 @@ export type Database = {
           lead_id?: string
           pdf_url?: string | null
           peak_season_label?: string | null
+          public_token?: string | null
           quotation_number?: string | null
           requirement_id?: string
           sent_at?: string | null
@@ -1266,6 +1276,8 @@ export type Database = {
           total?: number
           updated_at?: string
           version?: number
+          view_count?: number
+          viewed_at?: string | null
         }
         Relationships: []
       }

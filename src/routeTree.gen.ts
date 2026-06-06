@@ -16,6 +16,7 @@ import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorStatusTokenRouteImport } from './routes/vendor-status.$token'
+import { Route as QuotationTokenRouteImport } from './routes/quotation.$token'
 import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
@@ -71,6 +72,11 @@ const IndexRoute = IndexRouteImport.update({
 const VendorStatusTokenRoute = VendorStatusTokenRouteImport.update({
   id: '/vendor-status/$token',
   path: '/vendor-status/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuotationTokenRoute = QuotationTokenRouteImport.update({
+  id: '/quotation/$token',
+  path: '/quotation/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackBookingIdRoute = FeedbackBookingIdRouteImport.update({
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
@@ -238,6 +245,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/leads/$leadId': typeof AppLeadsLeadIdRoute
@@ -270,6 +278,7 @@ export interface FileRoutesById {
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
+  '/quotation/$token': typeof QuotationTokenRoute
   '/vendor-status/$token': typeof VendorStatusTokenRoute
   '/_app/company-settings/$companyId': typeof AppCompanySettingsCompanyIdRoute
   '/_app/leads/$leadId': typeof AppLeadsLeadIdRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
+    | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
     | '/leads/$leadId'
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/transfers'
     | '/feedback/$bookingId'
+    | '/quotation/$token'
     | '/vendor-status/$token'
     | '/company-settings/$companyId'
     | '/leads/$leadId'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/_app/tasks'
     | '/_app/transfers'
     | '/feedback/$bookingId'
+    | '/quotation/$token'
     | '/vendor-status/$token'
     | '/_app/company-settings/$companyId'
     | '/_app/leads/$leadId'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
+  QuotationTokenRoute: typeof QuotationTokenRoute
   VendorStatusTokenRoute: typeof VendorStatusTokenRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
   ApiPublicHooksCustomTaskRemindersRoute: typeof ApiPublicHooksCustomTaskRemindersRoute
@@ -438,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/vendor-status/$token'
       fullPath: '/vendor-status/$token'
       preLoaderRoute: typeof VendorStatusTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quotation/$token': {
+      id: '/quotation/$token'
+      path: '/quotation/$token'
+      fullPath: '/quotation/$token'
+      preLoaderRoute: typeof QuotationTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback/$bookingId': {
@@ -655,6 +675,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   FeedbackBookingIdRoute: FeedbackBookingIdRoute,
+  QuotationTokenRoute: QuotationTokenRoute,
   VendorStatusTokenRoute: VendorStatusTokenRoute,
   ApiPublicSeedRoute: ApiPublicSeedRoute,
   ApiPublicHooksCustomTaskRemindersRoute:

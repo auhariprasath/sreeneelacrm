@@ -487,6 +487,31 @@ function LeadProfile() {
                         {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
                         Updated {relativeTime(q.updated_at)}
                       </div>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        {(q as any).viewed_at && (
+                          <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-blue-500/15 text-blue-700 dark:text-blue-300">
+                            Viewed {relativeTime((q as any).viewed_at)}{(q as any).view_count > 1 ? ` · ${(q as any).view_count}×` : ""}
+                          </span>
+                        )}
+                        {((q as any).approved_at || q.agreed_at) && (
+                          <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                            Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
+                          </span>
+                        )}
+                        {(q as any).public_token && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const url = `${window.location.origin}/quotation/${(q as any).public_token}`;
+                              await navigator.clipboard.writeText(url);
+                              toast.success("Public link copied");
+                            }}
+                            className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                          >
+                            Copy link
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <Button size="sm" variant="outline" onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setQuoteOpen(true); }}>
