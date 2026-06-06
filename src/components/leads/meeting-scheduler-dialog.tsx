@@ -110,6 +110,10 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
 
   const submit = async (send: boolean) => {
     setSaving(true);
+    // Only one active venue meeting at a time — cancel existing scheduled ones for this lead
+    await supabase.from("venue_meetings")
+      .update({ status: "cancelled" })
+      .eq("lead_id", leadId).in("status", ["scheduled", "reminder_sent"]);
     const finalMsg = personalNote ? `${message}\n\n${personalNote}` : message;
     const { data: meeting, error } = await supabase.from("venue_meetings").insert({
       lead_id: leadId,
