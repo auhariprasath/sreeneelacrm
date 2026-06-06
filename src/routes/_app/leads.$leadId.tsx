@@ -811,13 +811,14 @@ function LeadProfile() {
       )}
       <QuotationBuilder
         open={quoteOpen}
-        onOpenChange={(v) => { setQuoteOpen(v); if (!v) loadQuotations(); }}
+        onOpenChange={(v) => { setQuoteOpen(v); if (!v) { setReviseQuoteId(null); loadQuotations(); } }}
         leadId={lead.id}
         companyId={lead.company_id}
         requirementId={quoteReqId}
         quotationId={editQuoteId}
+        reviseFromId={reviseQuoteId}
         onSaved={loadQuotations}
-        onContinueToSend={(id) => { setQuoteOpen(false); loadQuotations(); setSendQuoteId(id); }}
+        onContinueToSend={(id) => { setQuoteOpen(false); setReviseQuoteId(null); loadQuotations(); setSendQuoteId(id); }}
       />
       <SendQuotationDialog
         open={!!sendQuoteId}
