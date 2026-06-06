@@ -511,6 +511,7 @@ export type Database = {
           wa_template_task_completed: string | null
           wa_template_task_reminder_2d: string | null
           wa_template_thank_you: string | null
+          wa_templates: Json
         }
         Insert: {
           addons_catalog?: Json
@@ -592,6 +593,7 @@ export type Database = {
           wa_template_task_completed?: string | null
           wa_template_task_reminder_2d?: string | null
           wa_template_thank_you?: string | null
+          wa_templates?: Json
         }
         Update: {
           addons_catalog?: Json
@@ -673,6 +675,7 @@ export type Database = {
           wa_template_task_completed?: string | null
           wa_template_task_reminder_2d?: string | null
           wa_template_thank_you?: string | null
+          wa_templates?: Json
         }
         Relationships: []
       }
