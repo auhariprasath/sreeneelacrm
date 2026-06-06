@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Check, Clock, Sunrise, CalendarClock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 
 interface Props {
   open: boolean;
@@ -131,9 +133,21 @@ export function FollowUpDialog({ open, onOpenChange, leadId, performedBy, defaul
         </div>
 
         {selected === "custom" && (
-          <div className="space-y-1.5">
-            <Label htmlFor="fu-when">Date &amp; time</Label>
-            <Input id="fu-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="h-11" />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <Label>Date</Label>
+              <DateConfirmField
+                value={when.slice(0, 10)}
+                onChange={(d) => setWhen(`${d}T${when.slice(11, 16) || "10:00"}`)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Time</Label>
+              <TimeClockField
+                value={when.slice(11, 16) || "10:00"}
+                onChange={(t) => setWhen(`${when.slice(0, 10) || new Date().toISOString().slice(0, 10)}T${t}`)}
+              />
+            </div>
           </div>
         )}
 

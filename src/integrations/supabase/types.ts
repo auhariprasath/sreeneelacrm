@@ -480,6 +480,7 @@ export type Database = {
           portfolio_url: string | null
           quotation_counter: number
           quotation_prefix: string
+          quotation_valid_days: number
           razorpay_test_mode: boolean
           reengagement_auto_send: boolean
           reengagement_delay_days: number
@@ -568,6 +569,7 @@ export type Database = {
           portfolio_url?: string | null
           quotation_counter?: number
           quotation_prefix?: string
+          quotation_valid_days?: number
           razorpay_test_mode?: boolean
           reengagement_auto_send?: boolean
           reengagement_delay_days?: number
@@ -656,6 +658,7 @@ export type Database = {
           portfolio_url?: string | null
           quotation_counter?: number
           quotation_prefix?: string
+          quotation_valid_days?: number
           razorpay_test_mode?: boolean
           reengagement_auto_send?: boolean
           reengagement_delay_days?: number

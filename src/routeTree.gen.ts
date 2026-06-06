@@ -26,6 +26,7 @@ import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppQuotationsRouteImport } from './routes/_app/quotations'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
+import { Route as AppNotInterestedRouteImport } from './routes/_app/not-interested'
 import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
 import { Route as AppFeedbackRouteImport } from './routes/_app/feedback'
@@ -45,6 +46,7 @@ import { Route as ApiPublicHooksStaleLeadScanRouteImport } from './routes/api/pu
 import { Route as ApiPublicHooksQuotationExpiryRouteImport } from './routes/api/public/hooks/quotation-expiry'
 import { Route as ApiPublicHooksPreEventRemindersRouteImport } from './routes/api/public/hooks/pre-event-reminders'
 import { Route as ApiPublicHooksPostEventAutomationRouteImport } from './routes/api/public/hooks/post-event-automation'
+import { Route as ApiPublicHooksExpireQuotationsRouteImport } from './routes/api/public/hooks/expire-quotations'
 import { Route as ApiPublicHooksCustomTaskRemindersRouteImport } from './routes/api/public/hooks/custom-task-reminders'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -129,6 +131,11 @@ const AppQuotationsRoute = AppQuotationsRouteImport.update({
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotInterestedRoute = AppNotInterestedRouteImport.update({
+  id: '/not-interested',
+  path: '/not-interested',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMoreRoute = AppMoreRouteImport.update({
@@ -232,6 +239,12 @@ const ApiPublicHooksPostEventAutomationRoute =
     path: '/api/public/hooks/post-event-automation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksExpireQuotationsRoute =
+  ApiPublicHooksExpireQuotationsRouteImport.update({
+    id: '/api/public/hooks/expire-quotations',
+    path: '/api/public/hooks/expire-quotations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCustomTaskRemindersRoute =
   ApiPublicHooksCustomTaskRemindersRouteImport.update({
     id: '/api/public/hooks/custom-task-reminders',
@@ -254,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof AppFeedbackRoute
   '/leads': typeof AppLeadsRouteWithChildren
   '/more': typeof AppMoreRoute
+  '/not-interested': typeof AppNotInterestedRoute
   '/notifications': typeof AppNotificationsRoute
   '/quotations': typeof AppQuotationsRoute
   '/reports': typeof AppReportsRoute
@@ -271,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads/': typeof AppLeadsIndexRoute
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
+  '/api/public/hooks/expire-quotations': typeof ApiPublicHooksExpireQuotationsRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
@@ -291,6 +306,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/feedback': typeof AppFeedbackRoute
   '/more': typeof AppMoreRoute
+  '/not-interested': typeof AppNotInterestedRoute
   '/notifications': typeof AppNotificationsRoute
   '/quotations': typeof AppQuotationsRoute
   '/reports': typeof AppReportsRoute
@@ -308,6 +324,7 @@ export interface FileRoutesByTo {
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/leads': typeof AppLeadsIndexRoute
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
+  '/api/public/hooks/expire-quotations': typeof ApiPublicHooksExpireQuotationsRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
@@ -331,6 +348,7 @@ export interface FileRoutesById {
   '/_app/feedback': typeof AppFeedbackRoute
   '/_app/leads': typeof AppLeadsRouteWithChildren
   '/_app/more': typeof AppMoreRoute
+  '/_app/not-interested': typeof AppNotInterestedRoute
   '/_app/notifications': typeof AppNotificationsRoute
   '/_app/quotations': typeof AppQuotationsRoute
   '/_app/reports': typeof AppReportsRoute
@@ -348,6 +366,7 @@ export interface FileRoutesById {
   '/api/public/seed': typeof ApiPublicSeedRoute
   '/_app/leads/': typeof AppLeadsIndexRoute
   '/api/public/hooks/custom-task-reminders': typeof ApiPublicHooksCustomTaskRemindersRoute
+  '/api/public/hooks/expire-quotations': typeof ApiPublicHooksExpireQuotationsRoute
   '/api/public/hooks/post-event-automation': typeof ApiPublicHooksPostEventAutomationRoute
   '/api/public/hooks/pre-event-reminders': typeof ApiPublicHooksPreEventRemindersRoute
   '/api/public/hooks/quotation-expiry': typeof ApiPublicHooksQuotationExpiryRoute
@@ -371,6 +390,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/leads'
     | '/more'
+    | '/not-interested'
     | '/notifications'
     | '/quotations'
     | '/reports'
@@ -388,6 +408,7 @@ export interface FileRouteTypes {
     | '/api/public/seed'
     | '/leads/'
     | '/api/public/hooks/custom-task-reminders'
+    | '/api/public/hooks/expire-quotations'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
@@ -408,6 +429,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feedback'
     | '/more'
+    | '/not-interested'
     | '/notifications'
     | '/quotations'
     | '/reports'
@@ -425,6 +447,7 @@ export interface FileRouteTypes {
     | '/api/public/seed'
     | '/leads'
     | '/api/public/hooks/custom-task-reminders'
+    | '/api/public/hooks/expire-quotations'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
@@ -447,6 +470,7 @@ export interface FileRouteTypes {
     | '/_app/feedback'
     | '/_app/leads'
     | '/_app/more'
+    | '/_app/not-interested'
     | '/_app/notifications'
     | '/_app/quotations'
     | '/_app/reports'
@@ -464,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/public/seed'
     | '/_app/leads/'
     | '/api/public/hooks/custom-task-reminders'
+    | '/api/public/hooks/expire-quotations'
     | '/api/public/hooks/post-event-automation'
     | '/api/public/hooks/pre-event-reminders'
     | '/api/public/hooks/quotation-expiry'
@@ -484,6 +509,7 @@ export interface RootRouteChildren {
   VendorStatusTokenRoute: typeof VendorStatusTokenRoute
   ApiPublicSeedRoute: typeof ApiPublicSeedRoute
   ApiPublicHooksCustomTaskRemindersRoute: typeof ApiPublicHooksCustomTaskRemindersRoute
+  ApiPublicHooksExpireQuotationsRoute: typeof ApiPublicHooksExpireQuotationsRoute
   ApiPublicHooksPostEventAutomationRoute: typeof ApiPublicHooksPostEventAutomationRoute
   ApiPublicHooksPreEventRemindersRoute: typeof ApiPublicHooksPreEventRemindersRoute
   ApiPublicHooksQuotationExpiryRoute: typeof ApiPublicHooksQuotationExpiryRoute
@@ -610,6 +636,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/not-interested': {
+      id: '/_app/not-interested'
+      path: '/not-interested'
+      fullPath: '/not-interested'
+      preLoaderRoute: typeof AppNotInterestedRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/more': {
@@ -745,6 +778,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPostEventAutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/expire-quotations': {
+      id: '/api/public/hooks/expire-quotations'
+      path: '/api/public/hooks/expire-quotations'
+      fullPath: '/api/public/hooks/expire-quotations'
+      preLoaderRoute: typeof ApiPublicHooksExpireQuotationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/custom-task-reminders': {
       id: '/api/public/hooks/custom-task-reminders'
       path: '/api/public/hooks/custom-task-reminders'
@@ -791,6 +831,7 @@ interface AppRouteChildren {
   AppFeedbackRoute: typeof AppFeedbackRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMoreRoute: typeof AppMoreRoute
+  AppNotInterestedRoute: typeof AppNotInterestedRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppQuotationsRoute: typeof AppQuotationsRoute
   AppReportsRoute: typeof AppReportsRoute
@@ -811,6 +852,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFeedbackRoute: AppFeedbackRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMoreRoute: AppMoreRoute,
+  AppNotInterestedRoute: AppNotInterestedRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppQuotationsRoute: AppQuotationsRoute,
   AppReportsRoute: AppReportsRoute,
@@ -837,6 +879,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSeedRoute: ApiPublicSeedRoute,
   ApiPublicHooksCustomTaskRemindersRoute:
     ApiPublicHooksCustomTaskRemindersRoute,
+  ApiPublicHooksExpireQuotationsRoute: ApiPublicHooksExpireQuotationsRoute,
   ApiPublicHooksPostEventAutomationRoute:
     ApiPublicHooksPostEventAutomationRoute,
   ApiPublicHooksPreEventRemindersRoute: ApiPublicHooksPreEventRemindersRoute,

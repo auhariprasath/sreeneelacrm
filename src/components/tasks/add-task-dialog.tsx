@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 import { TaskRequirementsDialog } from "./task-requirements-dialog";
 import { TaskReminderSection } from "./task-reminder-section";
 import { DEFAULT_REMINDER_FORM, saveReminder, type ReminderFormState } from "@/lib/task-reminders";
@@ -196,11 +198,11 @@ export function AddTaskDialog({ open, onOpenChange, companyId, bookingId, defaul
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Due date</Label>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <DateConfirmField value={dueDate} onChange={setDueDate} />
             </div>
             <div>
               <Label>Due time</Label>
-              <Input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} />
+              <TimeClockField value={dueTime} onChange={setDueTime} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
