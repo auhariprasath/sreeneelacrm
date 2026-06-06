@@ -5,15 +5,17 @@ type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 interface Props {
   quotation: Pick<
     Quotation,
-    "status" | "viewed_at" | "approved_at" | "agreed_at" | "sent_at" | "valid_until"
-  > & { expired_at?: string | null };
+    "status" | "viewed_at" | "approved_at" | "agreed_at" | "sent_at"
+  >;
+  /** Optional expiry window in days from sent_at — defaults to 7. */
+  expiryDays?: number;
   className?: string;
 }
 
 /** Derives a friendlier display label/color from the raw quotation row.
  *  Display priority: Expired > Approved > Changes requested > Revised > Viewed > Sent > Draft. */
-export function QuotationStatusBadge({ quotation, className = "" }: Props) {
-  const { label, tone } = derive(quotation);
+export function QuotationStatusBadge({ quotation, expiryDays = 7, className = "" }: Props) {
+  const { label, tone } = derive(quotation, expiryDays);
   return (
     <span
       className={`inline-flex items-center text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 font-medium ${tone} ${className}`}
@@ -23,15 +25,15 @@ export function QuotationStatusBadge({ quotation, className = "" }: Props) {
   );
 }
 
-export function deriveQuotationDisplayStatus(q: Props["quotation"]) {
-  return derive(q).label;
+export function deriveQuotationDisplayStatus(q: Props["quotation"], expiryDays = 7) {
+  return derive(q, expiryDays).label;
 }
 
-function derive(q: Props["quotation"]): { label: string; tone: string } {
-  // Expired — either explicit flag/column or past valid_until
-  const explicitExpired = (q as any).expired_at != null;
-  const pastValidity = q.valid_until ? new Date(q.valid_until) < new Date() : false;
-  if (explicitExpired || (pastValidity && q.status !== "agreed")) {
+function derive(q: Props["quotation"], expiryDays: number): { label: string; tone: string } {
+  const ageMs = q.sent_at ? Date.now() - new Date(q.sent_at).getTime() : 0;
+  const isExpired = q.status === "sent" && !q.viewed_at && !q.approved_at && !q.agreed_at && ageMs > expiryDays * 86_400_000;
+
+  if (isExpired) {
     return { label: "Expired", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300" };
   }
   if (q.status === "agreed" || q.approved_at || q.agreed_at) {
