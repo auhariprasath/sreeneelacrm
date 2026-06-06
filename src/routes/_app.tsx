@@ -132,7 +132,15 @@ function AppLayout() {
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <Select
                 value={activeCompanyId ?? "__all"}
-                onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
+                onValueChange={(v) => {
+                  if (v === "__all") {
+                    setActiveCompanyId(null);
+                    navigate({ to: "/dashboard" });
+                  } else {
+                    setActiveCompanyId(v);
+                    navigate({ to: "/company-dashboard/$companyId", params: { companyId: v } });
+                  }
+                }}
               >
                 <SelectTrigger className="w-[160px] lg:w-[200px] h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
