@@ -109,7 +109,7 @@ function TasksPage() {
 
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeCompanyId, companyFilter, role]);
-  useRealtimeRefresh(["tasks", "bookings", "leads"], load);
+  useDashboardRealtime(["tasks", "bookings", "leads"], load);
 
   const filtered = useMemo(() => {
     if (!items) return null;
