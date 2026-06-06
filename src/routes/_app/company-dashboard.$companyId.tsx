@@ -41,28 +41,24 @@ function CompanyDashboardPage() {
   if (!company) return <div className="text-sm text-muted-foreground">Company not found.</div>;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 max-w-[1400px]">
-      <div className="space-y-4 min-w-0">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> All companies</Button>
-            </Link>
-            <h1 className="text-xl sm:text-2xl font-semibold truncate">{company.name}</h1>
-          </div>
-          <Link to="/company-settings/$companyId" params={{ companyId: company.id }}>
-            <Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" /> Company settings</Button>
+    <div className="space-y-6 max-w-[1400px] mx-auto">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> All companies</Button>
           </Link>
+          <h1 className="text-xl sm:text-2xl font-semibold truncate">{company.name}</h1>
         </div>
-        <CompanyPanel
-          companyId={company.id}
-          companyName={company.name}
-          brandColor={company.brand_color || "#6366f1"}
-        />
+        <Link to="/company-settings/$companyId" params={{ companyId: company.id }}>
+          <Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" /> Company settings</Button>
+        </Link>
       </div>
-      <aside className="hidden xl:block">
-        <div className="sticky top-4"><RightSidebar /></div>
-      </aside>
+      <CompanyPanel
+        companyId={company.id}
+        companyName={company.name}
+        brandColor={company.brand_color || "#6366f1"}
+      />
+      <RightSidebar layout="grid" />
     </div>
   );
 }
