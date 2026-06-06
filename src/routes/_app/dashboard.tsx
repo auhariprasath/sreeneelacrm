@@ -5,15 +5,16 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { Users, ClipboardList, CalendarClock, AlertCircle, IndianRupee, ListTodo, Inbox, Clock, CheckCircle2, UserCheck } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { SuperAdminDashboard } from "@/components/dashboard/super-admin-dashboard";
 
 export const Route = createFileRoute("/_app/dashboard")({ component: DashboardPage });
 
-function StatCard({ label, value, icon: Icon, hint, to }: { label: string; value: string | number; icon: any; hint?: string; to?: string }) {
-  const inner = (
-    <Card className={to ? "transition-colors hover:bg-accent/40 cursor-pointer h-full" : "h-full"}>
+function StatCard({ label, value, icon: Icon, hint, clickable }: { label: string; value: string | number; icon: any; hint?: string; clickable?: boolean }) {
+  return (
+    <Card className={clickable ? "transition-colors hover:bg-accent/40 cursor-pointer h-full" : "h-full"}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div>
@@ -28,8 +29,6 @@ function StatCard({ label, value, icon: Icon, hint, to }: { label: string; value
       </CardContent>
     </Card>
   );
-  if (!to) return inner;
-  return <Link to={to} className="block focus:outline-none focus:ring-2 focus:ring-ring rounded-lg">{inner}</Link>;
 }
 
 function EmptyList({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
