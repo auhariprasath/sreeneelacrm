@@ -175,7 +175,7 @@ function Legend() {
     <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
       <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> Confirmed</span>
       <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" /> Enquiry</span>
-      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-300" /> Soft hold</span>
+      
       <span className="inline-flex items-center gap-1.5 text-rose-600"><span>⚠</span> Double booking</span>
     </div>
   );
