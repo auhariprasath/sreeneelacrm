@@ -218,6 +218,7 @@ export function QuotationBuilder({
       event_date: evDate || null,
       start_time: evStart || null,
       end_time: evEnd || null,
+      duration_hours: evDuration || null,
       guest_count: evGuests === "" ? null : Number(evGuests),
       notes: evNotes || null,
     } as any;
