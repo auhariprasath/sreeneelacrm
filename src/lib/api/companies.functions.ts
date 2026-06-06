@@ -166,6 +166,10 @@ const updateSchema = z.object({
   brand_color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
   max_capacity: z.number().int().min(0).max(100000).nullable().optional(),
   cancellation_policy: z.string().max(2000).nullable().optional(),
+  portfolio_url: z.string().max(500).nullable().optional(),
+  video_url: z.string().max(500).nullable().optional(),
+  include_photos_in_requirements: z.boolean().optional(),
+  include_portfolio_in_day5: z.boolean().optional(),
 });
 
 export const updateCompanyDetails = createServerFn({ method: "POST" })
