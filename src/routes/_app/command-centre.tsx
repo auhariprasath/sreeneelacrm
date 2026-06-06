@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN } from "@/lib/format";
+import { buildWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 import { Building2, Gift, Activity, Users, XCircle, Lightbulb, MessageCircle } from "lucide-react";
 
