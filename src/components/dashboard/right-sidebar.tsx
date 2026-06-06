@@ -25,7 +25,7 @@ async function load(): Promise<Data> {
     supabase.from("follow_ups")
       .select("id, lead_id, scheduled_at, leads!inner(full_name)")
       .eq("is_sent", false).eq("is_cancelled", false)
-      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(30),
+      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(60),
     supabase.from("tasks")
       .select("id, booking_id, title, due_at, bookings(lead_id)")
       .is("deleted_at", null).neq("status", "done")
