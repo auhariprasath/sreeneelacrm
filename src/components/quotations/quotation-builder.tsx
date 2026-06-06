@@ -33,6 +33,8 @@ interface Props {
   companyId: string;
   requirementId: string | null;
   quotationId?: string | null;
+  /** Open as a NEW revision based on this existing quotation (copies content, increments version). */
+  reviseFromId?: string | null;
   onSaved?: () => void;
   onContinueToSend?: (quotationId: string) => void;
 }
