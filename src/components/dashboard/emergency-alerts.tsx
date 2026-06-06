@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateIN } from "@/lib/format";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface AlertRow {
   id: string;
@@ -16,35 +17,33 @@ interface AlertRow {
 export function EmergencyAlerts() {
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const cutoff = new Date(Date.now() - 24 * 3600_000).toISOString();
-      const { data } = await supabase
-        .from("bookings")
-        .select("id, lead_id, event_date, assigned_to, created_at, companies(name, brand_color), leads(full_name)")
-        .is("deleted_at", null)
-        .eq("status", "confirmed")
-        .is("assigned_to", null)
-        .lt("created_at", cutoff)
-        .gte("event_date", new Date().toISOString().slice(0, 10))
-        .order("event_date", { ascending: true })
-        .limit(20);
-      if (cancelled) return;
-      setAlerts((data ?? []).map((b: any) => ({
-        id: b.id, lead_id: b.lead_id, event_date: b.event_date,
-        full_name: b.leads?.full_name ?? "—",
-        company_name: b.companies?.name ?? "—",
-        brand_color: b.companies?.brand_color ?? "#ef4444",
-      })));
-    };
-    load();
-    const ch = supabase.channel("dash-alerts")
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, load)
-      .subscribe();
-    const t = setInterval(load, 5 * 60_000);
-    return () => { cancelled = true; clearInterval(t); supabase.removeChannel(ch); };
+  const load = useCallback(async () => {
+    const cutoff = new Date(Date.now() - 24 * 3600_000).toISOString();
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, lead_id, event_date, assigned_to, created_at, companies(name, brand_color), leads(full_name)")
+      .is("deleted_at", null)
+      .eq("status", "confirmed")
+      .is("assigned_to", null)
+      .lt("created_at", cutoff)
+      .gte("event_date", new Date().toISOString().slice(0, 10))
+      .order("event_date", { ascending: true })
+      .limit(20);
+    setAlerts((data ?? []).map((b: any) => ({
+      id: b.id, lead_id: b.lead_id, event_date: b.event_date,
+      full_name: b.leads?.full_name ?? "—",
+      company_name: b.companies?.name ?? "—",
+      brand_color: b.companies?.brand_color ?? "#ef4444",
+    })));
   }, []);
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 5 * 60_000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  useDashboardRealtime(["bookings"], load);
 
   if (alerts.length === 0) return null;
 

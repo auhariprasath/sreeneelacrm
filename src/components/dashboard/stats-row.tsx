@@ -4,6 +4,7 @@ import { IndianRupee, Users, ClipboardList, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
+import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 
 interface Stats {
   revenue: number;
@@ -62,18 +63,9 @@ function Tile({ label, value, icon: Icon, to, hint }: { label: string; value: st
 
 export function StatsRow() {
   const [s, setS] = useState<Stats | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    const refresh = () => loadStats().then((r) => { if (!cancelled) setS(r); });
-    refresh();
-    const ch = supabase.channel("dash-stats")
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "win_loss_log" }, refresh)
-      .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
-  }, []);
+  const refresh = () => loadStats().then(setS);
+  useEffect(() => { refresh(); }, []);
+  useDashboardRealtime(["payments", "leads", "bookings", "win_loss_log"], refresh);
 
   const v = s ?? { revenue: 0, enquiries: 0, bookings: 0, conversion: 0 };
   return (
