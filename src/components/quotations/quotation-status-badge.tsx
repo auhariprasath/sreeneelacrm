@@ -31,7 +31,8 @@ export function deriveQuotationDisplayStatus(q: Props["quotation"], expiryDays =
 
 function derive(q: Props["quotation"], expiryDays: number): { label: string; tone: string } {
   const ageMs = q.sent_at ? Date.now() - new Date(q.sent_at).getTime() : 0;
-  const isExpired = q.status === "sent" && !q.viewed_at && !q.approved_at && !q.agreed_at && ageMs > expiryDays * 86_400_000;
+  const isExpired = q.status === "expired"
+    || (q.status === "sent" && !q.viewed_at && !q.approved_at && !q.agreed_at && ageMs > expiryDays * 86_400_000);
 
   if (isExpired) {
     return { label: "Expired", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300" };
