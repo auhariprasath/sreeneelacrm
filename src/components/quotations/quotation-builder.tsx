@@ -732,11 +732,42 @@ function LineRow({ item, onChange, onRemove }: { item: LineItem; onChange: (it: 
 }
 
 function AddonInline({ item, onChange, onRemove }: { item: AddonItem; onChange: (it: AddonItem) => void; onRemove: () => void }) {
+  const qty = Number(item.quantity ?? 1) || 1;
+  const price = Number(item.price) || 0;
+  const lineTotal = qty * price;
   return (
-    <div className="bg-card border rounded-md p-2.5 grid grid-cols-[1fr_110px_auto] gap-2 items-center">
+    <div className="bg-card border rounded-md p-2 grid grid-cols-[1fr_70px_80px_110px_110px_auto] gap-2 items-center">
       <Input value={item.name} onChange={(e) => onChange({ ...item, name: e.target.value })} placeholder="Add-on name" />
-      <Input type="number" min={0} value={item.price} onChange={(e) => onChange({ ...item, price: Number(e.target.value) })} placeholder="Price" />
+      <Input type="number" min={1} className="text-right" value={qty} onChange={(e) => onChange({ ...item, quantity: Number(e.target.value) || 1 })} />
+      <Input value={item.unit ?? ""} onChange={(e) => onChange({ ...item, unit: e.target.value })} placeholder="pcs" />
+      <Input type="number" min={0} className="text-right" value={price} onChange={(e) => onChange({ ...item, price: Number(e.target.value) })} />
+      <div className="h-9 px-3 flex items-center justify-end text-sm font-medium border rounded-md bg-muted/30 tabular-nums">{formatINR(lineTotal)}</div>
       <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
+    </div>
+  );
+}
+
+function DurationPicker({ value, onChange }: { value: number; onChange: (h: number) => void }) {
+  const presets = [2, 3, 4, 5, 6, 8];
+  const isPreset = presets.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  return (
+    <div className="space-y-1">
+      <select
+        className="h-9 w-full rounded-md border bg-background px-2 text-sm"
+        value={custom ? "custom" : String(value)}
+        onChange={(e) => {
+          if (e.target.value === "custom") { setCustom(true); }
+          else { setCustom(false); onChange(Number(e.target.value)); }
+        }}
+      >
+        {presets.map((p) => <option key={p} value={p}>{p} hours</option>)}
+        <option value="custom">Custom…</option>
+      </select>
+      {custom && (
+        <Input type="number" min={0.5} step={0.5} value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)} placeholder="Hours" />
+      )}
     </div>
   );
 }
