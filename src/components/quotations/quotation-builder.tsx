@@ -618,11 +618,15 @@ export function QuotationBuilder({
                         <span>{formatINR((Number(s.price) || 0) * (Number(s.quantity) || 0))}</span>
                       </div>
                     ))}
-                    {addons.map((a, i) => (
-                      <div key={i} className="flex justify-between py-0.5 text-muted-foreground">
-                        <span>+ {a.name}</span><span>{formatINR(a.price)}</span>
-                      </div>
-                    ))}
+                    {addons.map((a, i) => {
+                      const qty = Number(a.quantity) || 1;
+                      return (
+                        <div key={i} className="flex justify-between py-0.5 text-muted-foreground">
+                          <span>+ {a.name} {qty > 1 ? <span className="text-xs">× {qty} {a.unit || ""}</span> : null}</span>
+                          <span>{formatINR((Number(a.price) || 0) * qty)}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="p-3 border-t text-sm space-y-1">
                     <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
