@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { formatINR, formatDateIN, formatTimeOfDay, addHoursToTime } from "@/lib/format";
 import { toast } from "sonner";
 import { generateQuotationPdf, downloadBlob, type QuotationPdfInput } from "@/lib/quotation-pdf";
 import type { Database } from "@/integrations/supabase/types";
@@ -22,7 +22,7 @@ type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 
 interface LineItem { name: string; price: number; quantity: number }
-interface AddonItem { name: string; price: number }
+interface AddonItem { name: string; price: number; quantity?: number; unit?: string }
 interface CatalogItem { name: string; price?: number }
 interface PeakRange { start: string; end: string; label?: string }
 
@@ -55,6 +55,7 @@ export function QuotationBuilder({
   const [evDate, setEvDate] = useState("");
   const [evStart, setEvStart] = useState("");
   const [evEnd, setEvEnd] = useState("");
+  const [evDuration, setEvDuration] = useState<number>(4);
   const [evGuests, setEvGuests] = useState<number | "">("");
   const [evVenue, setEvVenue] = useState("");
   const [evNotes, setEvNotes] = useState("");
@@ -111,6 +112,7 @@ export function QuotationBuilder({
       setEvDate(r.event_date || "");
       setEvStart(r.start_time || "");
       setEvEnd(r.end_time || "");
+      setEvDuration(Number((r as any).duration_hours ?? 4));
       setEvGuests(r.guest_count ?? "");
       setEvVenue("");
       setEvNotes(r.notes || "");
@@ -188,7 +190,7 @@ export function QuotationBuilder({
   // Totals
   const subtotal = useMemo(
     () => services.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0)
-        + addons.reduce((sum, it) => sum + (Number(it.price) || 0), 0),
+        + addons.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0),
     [services, addons],
   );
   const effDiscountAmount = useMemo(() => {
@@ -216,6 +218,7 @@ export function QuotationBuilder({
       event_date: evDate || null,
       start_time: evStart || null,
       end_time: evEnd || null,
+      duration_hours: evDuration || null,
       guest_count: evGuests === "" ? null : Number(evGuests),
       notes: evNotes || null,
     } as any;
@@ -317,6 +320,7 @@ export function QuotationBuilder({
       event: {
         type: evType, date: evDate || null, start_time: evStart || null, end_time: evEnd || null,
         venue: evVenue || null, guest_count: evGuests === "" ? null : Number(evGuests),
+        duration_hours: evDuration || null,
       },
       quotation: {
         number: null, version: baseVersion,
@@ -447,9 +451,23 @@ export function QuotationBuilder({
                   <Field label="Event date *"><Input type="date" value={evDate} onChange={(e) => setEvDate(e.target.value)} /></Field>
                   <Field label="Guest count"><Input type="number" min={0} value={evGuests} onChange={(e) => setEvGuests(e.target.value === "" ? "" : Number(e.target.value))} /></Field>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Start time"><Input type="time" value={evStart} onChange={(e) => setEvStart(e.target.value)} /></Field>
-                  <Field label="End time"><Input type="time" value={evEnd} onChange={(e) => setEvEnd(e.target.value)} /></Field>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Start time">
+                    <Input type="time" value={evStart} onChange={(e) => {
+                      const t = e.target.value;
+                      setEvStart(t);
+                      if (t && evDuration) setEvEnd(addHoursToTime(t, evDuration));
+                    }} />
+                  </Field>
+                  <Field label="Duration">
+                    <DurationPicker value={evDuration} onChange={(h) => {
+                      setEvDuration(h);
+                      if (evStart && h) setEvEnd(addHoursToTime(evStart, h));
+                    }} />
+                  </Field>
+                  <Field label="Ends at">
+                    <div className="h-9 px-3 flex items-center text-sm border rounded-md bg-muted/30">{evEnd ? formatTimeOfDay(evEnd) : "—"}</div>
+                  </Field>
                 </div>
                 <Field label="Venue (optional)"><Input value={evVenue} onChange={(e) => setEvVenue(e.target.value)} /></Field>
                 <Field label="Notes (optional)"><Textarea rows={3} value={evNotes} onChange={(e) => setEvNotes(e.target.value)} /></Field>
@@ -508,7 +526,7 @@ export function QuotationBuilder({
                           <Checkbox
                             checked={checked}
                             onCheckedChange={(v) => {
-                              if (v) setAddons([...addons, { name: c.name, price: c.price ?? 0 }]);
+                              if (v) setAddons([...addons, { name: c.name, price: c.price ?? 0, quantity: 1, unit: "pcs" }]);
                               else setAddons(addons.filter((a) => a.name !== c.name));
                             }}
                           />
@@ -520,14 +538,20 @@ export function QuotationBuilder({
                   </div>
                   {addons.length > 0 && (
                     <div className="space-y-2 mt-2">
+                      <div className="grid grid-cols-[1fr_70px_80px_110px_110px_auto] gap-2 px-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <div>Add-on</div><div className="text-right">Qty</div><div>Unit</div><div className="text-right">Rate ₹</div><div className="text-right">Line total</div><div />
+                      </div>
                       {addons.map((it, idx) => (
                         <AddonInline key={idx} item={it}
                           onChange={(next) => setAddons(addons.map((x, i) => i === idx ? next : x))}
                           onRemove={() => setAddons(addons.filter((_, i) => i !== idx))} />
                       ))}
+                      <div className="flex justify-end pr-1 pt-1 text-xs text-muted-foreground border-t">
+                        Add-ons subtotal: <span className="ml-2 font-semibold text-foreground">{formatINR(addons.reduce((s, a) => s + (Number(a.price) || 0) * (Number(a.quantity) || 1), 0))}</span>
+                      </div>
                     </div>
                   )}
-                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setAddons([...addons, { name: "", price: 0 }])}>
+                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setAddons([...addons, { name: "", price: 0, quantity: 1, unit: "pcs" }])}>
                     <Plus className="h-3.5 w-3.5 mr-1" /> Add custom add-on
                   </Button>
                 </div>
@@ -594,11 +618,15 @@ export function QuotationBuilder({
                         <span>{formatINR((Number(s.price) || 0) * (Number(s.quantity) || 0))}</span>
                       </div>
                     ))}
-                    {addons.map((a, i) => (
-                      <div key={i} className="flex justify-between py-0.5 text-muted-foreground">
-                        <span>+ {a.name}</span><span>{formatINR(a.price)}</span>
-                      </div>
-                    ))}
+                    {addons.map((a, i) => {
+                      const qty = Number(a.quantity) || 1;
+                      return (
+                        <div key={i} className="flex justify-between py-0.5 text-muted-foreground">
+                          <span>+ {a.name} {qty > 1 ? <span className="text-xs">× {qty} {a.unit || ""}</span> : null}</span>
+                          <span>{formatINR((Number(a.price) || 0) * qty)}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="p-3 border-t text-sm space-y-1">
                     <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
@@ -704,11 +732,42 @@ function LineRow({ item, onChange, onRemove }: { item: LineItem; onChange: (it: 
 }
 
 function AddonInline({ item, onChange, onRemove }: { item: AddonItem; onChange: (it: AddonItem) => void; onRemove: () => void }) {
+  const qty = Number(item.quantity ?? 1) || 1;
+  const price = Number(item.price) || 0;
+  const lineTotal = qty * price;
   return (
-    <div className="bg-card border rounded-md p-2.5 grid grid-cols-[1fr_110px_auto] gap-2 items-center">
+    <div className="bg-card border rounded-md p-2 grid grid-cols-[1fr_70px_80px_110px_110px_auto] gap-2 items-center">
       <Input value={item.name} onChange={(e) => onChange({ ...item, name: e.target.value })} placeholder="Add-on name" />
-      <Input type="number" min={0} value={item.price} onChange={(e) => onChange({ ...item, price: Number(e.target.value) })} placeholder="Price" />
+      <Input type="number" min={1} className="text-right" value={qty} onChange={(e) => onChange({ ...item, quantity: Number(e.target.value) || 1 })} />
+      <Input value={item.unit ?? ""} onChange={(e) => onChange({ ...item, unit: e.target.value })} placeholder="pcs" />
+      <Input type="number" min={0} className="text-right" value={price} onChange={(e) => onChange({ ...item, price: Number(e.target.value) })} />
+      <div className="h-9 px-3 flex items-center justify-end text-sm font-medium border rounded-md bg-muted/30 tabular-nums">{formatINR(lineTotal)}</div>
       <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>
+    </div>
+  );
+}
+
+function DurationPicker({ value, onChange }: { value: number; onChange: (h: number) => void }) {
+  const presets = [2, 3, 4, 5, 6, 8];
+  const isPreset = presets.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  return (
+    <div className="space-y-1">
+      <select
+        className="h-9 w-full rounded-md border bg-background px-2 text-sm"
+        value={custom ? "custom" : String(value)}
+        onChange={(e) => {
+          if (e.target.value === "custom") { setCustom(true); }
+          else { setCustom(false); onChange(Number(e.target.value)); }
+        }}
+      >
+        {presets.map((p) => <option key={p} value={p}>{p} hours</option>)}
+        <option value="custom">Custom…</option>
+      </select>
+      {custom && (
+        <Input type="number" min={0.5} step={0.5} value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)} placeholder="Hours" />
+      )}
     </div>
   );
 }

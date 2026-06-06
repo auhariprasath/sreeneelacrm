@@ -326,13 +326,14 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
                   <TimeClockField value={form.start_time} onChange={onStartChange} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Duration (hours)</Label>
-                  <Input type="number" min={1} max={24} step={0.5} value={form.duration_hours}
-                    onChange={(e) => onDurationChange(Number(e.target.value) || 0)} />
+                  <Label>Duration</Label>
+                  <DurationSelect value={form.duration_hours} onChange={onDurationChange} />
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <Label>End time</Label>
-                  <TimeClockField value={form.end_time} onChange={(v) => setForm({ ...form, end_time: v })} />
+                  <Label>Ends at</Label>
+                  <div className="h-10 px-3 flex items-center text-sm border rounded-md bg-muted/30">
+                    {form.end_time ? formatTimeOfDay(form.end_time) : "—"}
+                  </div>
                 </div>
               </div>
             )}
@@ -471,4 +472,30 @@ function DateInfoBanner({ count, loading, hasDate }: { count: number | null; loa
     </div>
   );
 }
+
+function DurationSelect({ value, onChange }: { value: number; onChange: (h: number) => void }) {
+  const presets = [2, 3, 4, 5, 6, 8];
+  const isPreset = presets.includes(value);
+  const [custom, setCustom] = useState(!isPreset);
+  return (
+    <div className="space-y-1">
+      <select
+        className="h-10 w-full rounded-md border bg-background px-2 text-sm"
+        value={custom ? "custom" : String(value)}
+        onChange={(e) => {
+          if (e.target.value === "custom") setCustom(true);
+          else { setCustom(false); onChange(Number(e.target.value)); }
+        }}
+      >
+        {presets.map((p) => <option key={p} value={p}>{p} hours</option>)}
+        <option value="custom">Custom…</option>
+      </select>
+      {custom && (
+        <Input type="number" min={0.5} max={24} step={0.5} value={value}
+          onChange={(e) => onChange(Number(e.target.value) || 0)} placeholder="Hours" />
+      )}
+    </div>
+  );
+}
+
 

@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
-import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
+import { formatINRPdf, formatDateIN, formatTimeOfDay } from "@/lib/format";
 
 export interface InvoicePdfInput {
   company: {
@@ -147,10 +147,10 @@ export async function generateInvoicePdf(input: InvoicePdfInput): Promise<Blob> 
   doc.text("AMOUNT DUE", M + 20, y + 24);
   doc.setTextColor(...PURPLE_DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(32);
   const amountDue = input.invoice.balance_due ?? input.invoice.total;
-  doc.text(formatINR(amountDue), M + 20, y + 60);
+  doc.text(formatINRPdf(amountDue), M + 20, y + 60);
   doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...MUTED);
   if (input.invoice.amount_paid && input.invoice.amount_paid > 0) {
-    doc.text(`Paid ${formatINR(input.invoice.amount_paid)} of ${formatINR(input.invoice.total)}`, M + 20, y + 78);
+    doc.text(`Paid ${formatINRPdf(input.invoice.amount_paid)} of ${formatINRPdf(input.invoice.total)}`, M + 20, y + 78);
   }
   if (input.invoice.due_date) {
     doc.setTextColor(...PURPLE_DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
@@ -250,14 +250,14 @@ export async function generateInvoicePdf(input: InvoicePdfInput): Promise<Blob> 
     doc.text(value, colVal, y, { align: "right" });
     y += (opts.size ?? 10) + 6;
   };
-  row("Subtotal", formatINR(input.invoice.subtotal));
-  if (input.invoice.discount_amount > 0) row("Discount", `− ${formatINR(input.invoice.discount_amount)}`, { color: [34, 153, 84] });
-  if (input.invoice.gst_amount > 0) row("GST", formatINR(input.invoice.gst_amount));
+  row("Subtotal", formatINRPdf(input.invoice.subtotal));
+  if (input.invoice.discount_amount > 0) row("Discount", `− ${formatINRPdf(input.invoice.discount_amount)}`, { color: [34, 153, 84] });
+  if (input.invoice.gst_amount > 0) row("GST", formatINRPdf(input.invoice.gst_amount));
   y += 2;
-  row("Total", formatINR(input.invoice.total), { bold: true });
+  row("Total", formatINRPdf(input.invoice.total), { bold: true });
   if (input.invoice.amount_paid && input.invoice.amount_paid > 0) {
-    row("Paid", `− ${formatINR(input.invoice.amount_paid)}`, { color: [34, 153, 84] });
-    row("Balance due", formatINR(input.invoice.balance_due ?? 0), { bold: true, color: PURPLE, size: 12 });
+    row("Paid", `− ${formatINRPdf(input.invoice.amount_paid)}`, { color: [34, 153, 84] });
+    row("Balance due", formatINRPdf(input.invoice.balance_due ?? 0), { bold: true, color: PURPLE, size: 12 });
   }
 
   // 7. Footer
