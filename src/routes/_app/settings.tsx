@@ -16,6 +16,7 @@ import { StaffSection } from "@/components/settings/staff-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 import { PaymentCredentialsSection } from "@/components/settings/payment-credentials-section";
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
+import { WhatsappTemplatesSection } from "@/components/settings/whatsapp-templates-section";
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { CompaniesSection } from "@/components/settings/companies-section";
 
@@ -142,34 +143,23 @@ function SettingsPage() {
             </CardContent>
           </Card>
         );
-      case "wa": {
-        const tokens = "Tokens: [client_name] [company_name] [event_type] [event_date] [start_time] [end_time] [guest_count] [total_amount] [amount_paid] [balance_amount] [staff_name] [task_title] [task_due_date] [venue_address]";
-        const fields: CompanyField[] = [
-          { key: "wa_template_booking_confirmed", label: "Booking confirmed", type: "textarea", rows: 8, fullWidth: true, description: tokens },
-          { key: "wa_template_task_assigned", label: "Task assigned", type: "textarea", rows: 6, fullWidth: true, description: tokens },
-          { key: "wa_template_task_reminder_2d", label: "Task reminder (2 days before)", type: "textarea", rows: 4, fullWidth: true, description: tokens },
-          { key: "wa_template_task_completed", label: "Task completed", type: "textarea", rows: 4, fullWidth: true, description: tokens },
-          { key: "wa_template_payment_reminder", label: "Payment reminder", type: "textarea", rows: 4, fullWidth: true, description: tokens },
-          { key: "wa_template_thank_you", label: "Thank you", type: "textarea", rows: 4, fullWidth: true, description: tokens },
-          { key: "wa_template_reschedule", label: "Reschedule notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
-          { key: "wa_template_competing_leads", label: "Competing leads notification", type: "textarea", rows: 4, fullWidth: true, description: tokens },
-          { key: "auto_wa_on_reschedule", label: "Send WhatsApp automatically on reschedule", type: "switch" },
-          { key: "auto_notify_competing_leads", label: "Auto-notify competing leads when a slot frees up", type: "switch" },
-          { key: "auto_sms_fallback", label: "Send SMS fallback if WhatsApp fails", type: "switch" },
-        ];
+      case "wa":
         return (
           <Card>
             <CardHeader>
               <CardTitle>WhatsApp templates</CardTitle>
-              <CardDescription>Message templates used by the reminder engine and booking flows. Use square-bracket placeholders.</CardDescription>
+              <CardDescription>All 30 templates that the system can send. Toggle auto-send per template or preview a sample before sending. Use square-bracket placeholders.</CardDescription>
             </CardHeader>
             <CardContent>
               <CompanyPicker />
-              <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+              {activeCompanyId ? (
+                <WhatsappTemplatesSection companyId={activeCompanyId} />
+              ) : (
+                <div className="text-sm text-muted-foreground">Pick a company to manage templates.</div>
+              )}
             </CardContent>
           </Card>
         );
-      }
       case "peak":
         return (
           <Card>
