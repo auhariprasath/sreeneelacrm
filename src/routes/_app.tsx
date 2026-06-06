@@ -128,13 +128,13 @@ function AppLayout() {
           </div>
 
           {role === "super_admin" && companies.length > 0 && (
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <Select
                 value={activeCompanyId ?? "__all"}
                 onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
               >
-                <SelectTrigger className="w-[200px] h-9"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[160px] lg:w-[200px] h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all">All companies</SelectItem>
                   {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -143,9 +143,9 @@ function AppLayout() {
             </div>
           )}
           {role !== "super_admin" && companies[0] && (
-            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
               <Building2 className="h-4 w-4" />
-              {companies[0].name}
+              <span className="truncate max-w-[180px]">{companies[0].name}</span>
             </div>
           )}
 
