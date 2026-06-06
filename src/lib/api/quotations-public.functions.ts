@@ -85,3 +85,33 @@ export const approveQuotationByToken = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const requestQuotationChanges = createServerFn({ method: "POST" })
+  .inputValidator(requestChangesSchema)
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: q } = await supabaseAdmin
+      .from("quotations")
+      .select("id,lead_id,version,status,created_by")
+      .eq("public_token", data.token)
+      .maybeSingle();
+    if (!q) return { ok: false };
+    if (q.status === "agreed") return { ok: false, reason: "already_approved" };
+    await supabaseAdmin.from("quotations").update({ status: "declined" }).eq("id", q.id);
+    await supabaseAdmin.from("activity_logs").insert({
+      lead_id: q.lead_id,
+      action: `Client requested CHANGES on quotation v${q.version}`,
+      action_type: "status_change",
+      metadata: { quotation_id: q.id, note: data.note },
+    });
+    if (q.created_by) {
+      await supabaseAdmin.from("notifications").insert({
+        user_id: q.created_by,
+        title: "Client requested changes",
+        body: `On quotation v${q.version}: "${data.note.slice(0, 140)}"`,
+        type: "system",
+        lead_id: q.lead_id,
+      });
+    }
+    return { ok: true };
+  });
