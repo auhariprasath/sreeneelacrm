@@ -193,7 +193,6 @@ function StatusDot({ status }: { status: string }) {
   const tone =
     status === "confirmed" ? "bg-rose-500"
     : status === "enquiry" ? "bg-amber-500"
-    : status === "soft_hold" ? "bg-amber-300"
     : "bg-muted-foreground";
   return <span className={`h-2 w-2 rounded-full ${tone}`} />;
 }
@@ -201,7 +200,7 @@ function StatusDot({ status }: { status: string }) {
 function countByStatus(ds: Slot[]) {
   return ds.reduce(
     (acc, s) => { (acc as any)[s.status] = ((acc as any)[s.status] ?? 0) + 1; return acc; },
-    { confirmed: 0, enquiry: 0, soft_hold: 0, free: 0 } as Record<string, number>,
+    { confirmed: 0, enquiry: 0, free: 0 } as Record<string, number>,
   );
 }
 
