@@ -455,11 +455,10 @@ function LeadProfile() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        if (r.status !== "slot_confirmed") {
-                          toast.info("Confirm the slot first before building a quotation.");
-                          return;
-                        }
-                        setQuoteReqId(r.id); setEditQuoteId(null); setQuoteOpen(true);
+                        setQuoteReqId(r.id);
+                        setEditQuoteId(null);
+                        setReviseQuoteId(null);
+                        setQuoteOpen(true);
                       }}
                       disabled={lead.status === "locked"}
                     >
