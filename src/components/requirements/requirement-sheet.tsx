@@ -12,10 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAutosaveDraft, loadDraft } from "@/hooks/use-autosave-draft";
-import { useCountdown } from "@/hooks/use-countdown";
-import { checkSlot, createSoftHold, releaseSoftHold, type SlotCheck } from "@/lib/slots";
 import { formatINR, formatTimeOfDay, addHoursToTime } from "@/lib/format";
-import { Loader2, Clock, CheckCircle2, AlertTriangle, XCircle, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, Info, Sparkles, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Requirement = Database["public"]["Tables"]["requirements"]["Row"];
