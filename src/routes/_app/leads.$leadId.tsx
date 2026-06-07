@@ -658,7 +658,7 @@ function LeadProfile() {
                             pdfUrl={q.pdf_url}
                             versionLabel={`v${q.version}`}
                             onView={openBuilder}
-                            onResend={() => invoiceGenerated ? handleSendInvoice({ stopPropagation: () => {} } as any) : setSendQuoteId(q.id)}
+                            onResend={() => invoiceGenerated ? handleSendInvoice() : setSendQuoteId(q.id)}
                             onDeleted={loadQuotations}
                           />
                         </div>
