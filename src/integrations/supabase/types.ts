@@ -940,6 +940,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          email: string | null
           follow_up_count: number
           full_name: string
           id: string
@@ -962,6 +963,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          email?: string | null
           follow_up_count?: number
           full_name: string
           id?: string
@@ -984,6 +986,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          email?: string | null
           follow_up_count?: number
           full_name?: string
           id?: string
