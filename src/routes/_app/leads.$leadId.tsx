@@ -96,6 +96,9 @@ function LeadProfile() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
+  const [paymentReceivedQuoteId, setPaymentReceivedQuoteId] = useState<string | null>(null);
+  const [paymentReceivedMethod, setPaymentReceivedMethod] = useState<"cash" | "cheque" | "bank_transfer" | "upi" | "razorpay">("cash");
+  const [generatingInvoiceFor, setGeneratingInvoiceFor] = useState<string | null>(null);
   
 
   const loadRequirements = async () => {
