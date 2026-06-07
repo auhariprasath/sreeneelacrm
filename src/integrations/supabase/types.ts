@@ -1303,6 +1303,9 @@ export type Database = {
           gst_applied: boolean
           gst_percent: number
           id: string
+          invoice_generated_at: string | null
+          invoice_number: string | null
+          invoice_sent_at: string | null
           is_peak_season: boolean
           lead_id: string
           pdf_url: string | null
@@ -1310,6 +1313,7 @@ export type Database = {
           public_token: string | null
           quotation_number: string | null
           requirement_id: string
+          selected_payment_method: string | null
           sent_at: string | null
           sent_via: Database["public"]["Enums"]["sent_channel"] | null
           services: Json
@@ -1336,6 +1340,9 @@ export type Database = {
           gst_applied?: boolean
           gst_percent?: number
           id?: string
+          invoice_generated_at?: string | null
+          invoice_number?: string | null
+          invoice_sent_at?: string | null
           is_peak_season?: boolean
           lead_id: string
           pdf_url?: string | null
@@ -1343,6 +1350,7 @@ export type Database = {
           public_token?: string | null
           quotation_number?: string | null
           requirement_id: string
+          selected_payment_method?: string | null
           sent_at?: string | null
           sent_via?: Database["public"]["Enums"]["sent_channel"] | null
           services?: Json
@@ -1369,6 +1377,9 @@ export type Database = {
           gst_applied?: boolean
           gst_percent?: number
           id?: string
+          invoice_generated_at?: string | null
+          invoice_number?: string | null
+          invoice_sent_at?: string | null
           is_peak_season?: boolean
           lead_id?: string
           pdf_url?: string | null
@@ -1376,6 +1387,7 @@ export type Database = {
           public_token?: string | null
           quotation_number?: string | null
           requirement_id?: string
+          selected_payment_method?: string | null
           sent_at?: string | null
           sent_via?: Database["public"]["Enums"]["sent_channel"] | null
           services?: Json
@@ -2079,6 +2091,9 @@ export type Database = {
         | "cash"
         | "cheque"
         | "b2b_credit"
+        | "bank_transfer"
+        | "upi"
+        | "razorpay"
       quotation_status:
         | "draft"
         | "sent"
@@ -2315,6 +2330,9 @@ export const Constants = {
         "cash",
         "cheque",
         "b2b_credit",
+        "bank_transfer",
+        "upi",
+        "razorpay",
       ],
       quotation_status: [
         "draft",
