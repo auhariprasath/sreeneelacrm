@@ -215,6 +215,12 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       toast.error("Event date and event type are required");
       return null;
     }
+    const trimmedEmail = leadEmail.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("Enter a valid email address");
+      return null;
+    }
+    await supabase.from("leads").update({ email: trimmedEmail || null }).eq("id", leadId);
     const payload: any = {
       lead_id: leadId,
       company_id: companyId,
@@ -347,6 +353,20 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
             <div className="space-y-1.5">
               <Label>Muhurtham time (optional)</Label>
               <TimeClockField value={form.muhurtham_time} onChange={(v) => setForm({ ...form, muhurtham_time: v })} />
+              <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="req-email">Email <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                id="req-email"
+                type="email"
+                value={leadEmail}
+                onChange={(e) => setLeadEmail(e.target.value)}
+                placeholder="name@example.com"
+              />
+            </div>
               <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
             </div>
 
