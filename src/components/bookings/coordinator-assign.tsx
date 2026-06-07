@@ -33,6 +33,11 @@ export function CoordinatorAssign(props: Props) {
     supabase.from("companies").select("name").eq("id", companyId).maybeSingle()
       .then(({ data }) => setCompanyName(((data as any)?.name) ?? ""));
   }, [companyId]);
+  const [alreadyAssigned, setAlreadyAssigned] = useState<boolean | null>(null);
+  useEffect(() => {
+    supabase.from("event_coordination" as any).select("id").eq("booking_id", bookingId).maybeSingle()
+      .then(({ data }) => setAlreadyAssigned(!!data));
+  }, [bookingId]);
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
