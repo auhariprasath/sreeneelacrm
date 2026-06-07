@@ -23,12 +23,16 @@ interface Props {
   eventDate: string;
   startTime: string | null;
   venue: string | null;
-  companyName: string;
   onAssigned?: () => void;
 }
 
 export function CoordinatorAssign(props: Props) {
-  const { bookingId, companyId, leadName, leadPhone, eventType, eventDate, startTime, venue, companyName } = props;
+  const { bookingId, companyId, leadName, leadPhone, eventType, eventDate, startTime, venue } = props;
+  const [companyName, setCompanyName] = useState<string>("");
+  useEffect(() => {
+    supabase.from("companies").select("name").eq("id", companyId).maybeSingle()
+      .then(({ data }) => setCompanyName(((data as any)?.name) ?? ""));
+  }, [companyId]);
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
