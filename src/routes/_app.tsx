@@ -8,10 +8,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, BarChart3, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal, ArrowRightLeft, FileText,
+  LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, BarChart3, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal, ArrowRightLeft, FileText, Menu,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/offline-banner";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { toast } from "sonner";
@@ -40,12 +41,23 @@ const SIDEBAR_NAV: NavItem[] = [
 ];
 
 // Mobile bottom nav: Dashboard | Leads | Tasks | Notifications | More
-const BOTTOM_NAV: NavItem[] = [
-  { to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["super_admin","admin","staff"] },
-  { to: "/leads", label: "Leads", icon: Users, roles: ["super_admin","admin","staff"] },
-  { to: "/tasks", label: "Tasks", icon: KanbanSquare, roles: ["super_admin","admin","staff"] },
-  { to: "/notifications", label: "Alerts", icon: Bell, roles: ["super_admin","admin","staff"] },
-  { to: "/more", label: "More", icon: MoreHorizontal, roles: ["super_admin","admin","staff"] },
+const BOTTOM_NAV: Omit<NavItem, "to"> & { to: string | null }[] = [] as any;
+const BOTTOM_TABS: { key: string; to: string | null; label: string; icon: any; roles: AppRole[] }[] = [
+  { key: "dashboard", to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["super_admin","admin","staff"] },
+  { key: "leads", to: "/leads", label: "Leads", icon: Users, roles: ["super_admin","admin","staff"] },
+  { key: "tasks", to: "/tasks", label: "Tasks", icon: KanbanSquare, roles: ["super_admin","admin","staff"] },
+  { key: "notifications", to: "/notifications", label: "Alerts", icon: Bell, roles: ["super_admin","admin","staff"] },
+  { key: "more", to: null, label: "More", icon: MoreHorizontal, roles: ["super_admin","admin","staff"] },
+];
+
+// Items shown in the "More" sheet on mobile
+const MORE_SHEET_NAV: NavItem[] = [
+  { to: "/bookings", label: "Bookings", icon: ClipboardList, roles: ["super_admin","admin","staff"] },
+  { to: "/quotations", label: "Quotations", icon: FileText, roles: ["super_admin","admin","staff"] },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays, roles: ["super_admin","admin","staff"] },
+  { to: "/reports", label: "Reports", icon: BarChart3, roles: ["super_admin","admin","staff"] },
+  { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
+  { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
 ];
 
 function AppLayout() {
@@ -53,6 +65,15 @@ function AppLayout() {
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const [tabletNavOpen, setTabletNavOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Close overlays on route change
+  useEffect(() => {
+    setTabletNavOpen(false);
+    setMoreOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!loading && user && profile?.must_change_password && pathname !== "/change-password") {
@@ -70,55 +91,123 @@ function AppLayout() {
   if (!user) return <Navigate to="/login" replace />;
 
   const sidebarItems = SIDEBAR_NAV.filter((n) => role && n.roles.includes(role));
-  const bottomItems = BOTTOM_NAV.filter((n) => role && n.roles.includes(role));
+  const moreItems = MORE_SHEET_NAV.filter((n) => role && n.roles.includes(role));
+  const bottomItems = BOTTOM_TABS.filter((n) => role && n.roles.includes(role));
   const roleLabel = role === "super_admin" ? "Super Admin" : role === "admin" ? "Admin" : "Staff";
   const initials = initialsOf(profile?.full_name || profile?.email || "U");
 
+  const isActive = (to: string) => {
+    const dashboardCompanyId = role === "super_admin" && to === "/dashboard" ? activeCompanyId : null;
+    return dashboardCompanyId
+      ? pathname === `/company-dashboard/${dashboardCompanyId}`
+      : pathname === to || pathname.startsWith(to + "/");
+  };
+
+  const renderNavLink = (item: NavItem, opts: { collapsed: boolean }) => {
+    const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
+    const active = isActive(item.to);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.to}
+        to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
+        params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
+        title={item.label}
+        className={`flex items-center gap-3 rounded-md py-2 text-sm transition-colors ${
+          opts.collapsed ? "justify-center px-2" : "justify-start px-3"
+        } ${
+          active
+            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        }`}
+      >
+        <Icon className="h-5 w-5 shrink-0" />
+        {!opts.collapsed && <span>{item.label}</span>}
+      </Link>
+    );
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-background flex-col md:flex-row">
-      {/* Sidebar — always visible from md+. Icon-only between md and lg, full at lg+.
-          Below md (phones) we keep the bottom nav. */}
+      {/* Persistent sidebar — visible at md+ (768px+).
+          md (768-1023): icon rail 56px with hamburger.
+          lg+ (1024+):   full sidebar 220px, no hamburger. */}
       <aside
         className="hidden md:flex shrink-0 bg-sidebar text-sidebar-foreground flex-col
-                   w-16 lg:w-60 transition-[width] duration-200"
+                   w-14 lg:w-[220px] transition-[width] duration-200"
         title="Navigation"
       >
-        <div className="h-16 flex items-center gap-2 px-3 lg:px-5 border-b border-sidebar-border">
-          <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
-          <div className="leading-tight hidden lg:block">
-            <div className="text-sm font-semibold">Neela Events</div>
-            <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
+        <div className="h-16 flex items-center gap-2 px-2 lg:px-4 border-b border-sidebar-border">
+          {/* Hamburger — visible only on tablet rail (md to lg-1) */}
+          <button
+            type="button"
+            onClick={() => setTabletNavOpen(true)}
+            className="lg:hidden h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-sidebar-accent"
+            aria-label="Open navigation"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="hidden lg:flex items-center gap-2">
+            <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
+            <div className="leading-tight">
+              <div className="text-sm font-semibold">Neela Events</div>
+              <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
+            </div>
           </div>
         </div>
-        <nav className="flex-1 p-2 lg:p-3 space-y-1">
-          {sidebarItems.map((item) => {
-            const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
-            const active = dashboardCompanyId
-              ? pathname === `/company-dashboard/${dashboardCompanyId}`
-              : pathname === item.to || pathname.startsWith(item.to + "/");
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
-                params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
-                title={item.label}
-                className={`flex items-center gap-3 rounded-md px-2 lg:px-3 py-2 text-sm transition-colors justify-center lg:justify-start ${
-                  active
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <Icon className="h-5 w-5 lg:h-4 lg:w-4 shrink-0" />
-                <span className="hidden lg:inline">{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 p-2 lg:p-3 space-y-1 overflow-y-auto">
+          {/* Render two variants and toggle via responsive visibility so labels appear only at lg+ */}
+          <div className="lg:hidden space-y-1">
+            {sidebarItems.map((item) => renderNavLink(item, { collapsed: true }))}
+          </div>
+          <div className="hidden lg:block space-y-1">
+            {sidebarItems.map((item) => renderNavLink(item, { collapsed: false }))}
+          </div>
         </nav>
         <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border hidden lg:block">
           v0.4 · Phase 4
         </div>
       </aside>
+
+      {/* Tablet overlay sidebar (md to lg-1): triggered by rail hamburger */}
+      <Sheet open={tabletNavOpen} onOpenChange={setTabletNavOpen}>
+        <SheetContent side="left" className="w-[260px] p-0 bg-sidebar text-sidebar-foreground border-sidebar-border">
+          <SheetHeader className="h-16 px-4 border-b border-sidebar-border flex flex-row items-center gap-2 space-y-0">
+            <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
+            <SheetTitle className="text-sm font-semibold text-sidebar-foreground">Neela Events</SheetTitle>
+          </SheetHeader>
+          <nav className="p-3 space-y-1 overflow-y-auto">
+            {sidebarItems.map((item) => renderNavLink(item, { collapsed: false }))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile "More" bottom sheet */}
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="rounded-t-xl">
+          <SheetHeader>
+            <SheetTitle>More</SheetTitle>
+          </SheetHeader>
+          <div className="grid grid-cols-2 gap-2 mt-4 pb-6">
+            {moreItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-3 rounded-md border px-3 py-3 text-sm min-h-[48px] ${
+                    active ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -126,7 +215,15 @@ function AppLayout() {
 
         {/* Top header */}
         <header className="h-14 lg:h-16 border-b bg-card flex items-center gap-2 lg:gap-3 px-3 lg:px-6 sticky top-0 z-30">
-          {/* Brand shown until sidebar takes over */}
+          {/* Mobile (below md): hamburger + brand */}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            className="md:hidden h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-accent"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
           <div className="md:hidden flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">N</div>
             <span className="text-sm font-semibold">Neela CRM</span>
@@ -237,14 +334,28 @@ function AppLayout() {
         {/* Bottom nav — phones only (sidebar takes over at md+) */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
           {bottomItems.map((item) => {
-            const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
-            const active = dashboardCompanyId
-              ? pathname === `/company-dashboard/${dashboardCompanyId}`
-              : pathname === item.to || pathname.startsWith(item.to + "/");
             const Icon = item.icon;
+            if (item.to === null) {
+              // "More" tab → opens bottom sheet
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setMoreOpen(true)}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] min-h-[44px] ${
+                    moreOpen ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </button>
+              );
+            }
+            const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
+            const active = isActive(item.to);
             return (
               <Link
-                key={item.to}
+                key={item.key}
                 to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
                 params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] min-h-[44px] ${
@@ -263,4 +374,3 @@ function AppLayout() {
     </div>
   );
 }
-
