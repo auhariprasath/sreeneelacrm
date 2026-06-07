@@ -128,6 +128,7 @@ export function CoordinatorAssign(props: Props) {
     }
   };
 
+  if (alreadyAssigned) return null;
   return (
     <>
       <Button size="sm" variant="outline" className="h-8" onClick={() => setOpen(true)}>
