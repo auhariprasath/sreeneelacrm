@@ -115,3 +115,23 @@ export const requestQuotationChanges = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+export const getInvoiceByToken = createServerFn({ method: "POST" })
+  .inputValidator(tokenSchema)
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: q } = await supabaseAdmin
+      .from("quotations")
+      .select("*")
+      .eq("public_token", data.token)
+      .is("deleted_at", null)
+      .not("invoice_generated_at", "is", null)
+      .maybeSingle();
+    if (!q) return { invoice: null, lead: null, requirement: null, company: null };
+    const [{ data: l }, { data: r }, { data: c }] = await Promise.all([
+      supabaseAdmin.from("leads").select("id,full_name,phone,email").eq("id", q.lead_id).maybeSingle(),
+      supabaseAdmin.from("requirements").select("id,event_type,event_date,start_time,end_time,guest_count").eq("id", q.requirement_id).maybeSingle(),
+      supabaseAdmin.from("companies").select("id,name,logo_url,wa_number,email,address,gstin,upi_id,bank_account,ifsc").eq("id", q.company_id).maybeSingle(),
+    ]);
+    return { invoice: q, lead: l, requirement: r, company: c };
+  });

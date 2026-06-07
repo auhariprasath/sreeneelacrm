@@ -45,7 +45,7 @@ function applyTokens(template: string, tokens: Record<string, string>): string {
   return out;
 }
 
-export function buildConfirmationMessage(ctx: BookingConfirmationContext): string {
+export function buildConfirmationMessage(ctx: BookingConfirmationContext, invoiceUrl?: string | null): string {
   const { booking, lead, company, requirement, addOns } = ctx;
   const template = company.wa_template_booking_confirmed?.trim() || DEFAULT_TEMPLATE;
 
@@ -57,6 +57,7 @@ export function buildConfirmationMessage(ctx: BookingConfirmationContext): strin
   const addOnLines = addOns.length
     ? "\nAdd-ons:\n" + addOns.map((a) => `• ${a.addon_name}`).join("\n")
     : "";
+  const invoiceLine = invoiceUrl ? `\n\n📄 Download invoice: ${invoiceUrl}` : "";
 
   const tokens: Record<string, string> = {
     client_name: lead.full_name,
@@ -76,7 +77,7 @@ export function buildConfirmationMessage(ctx: BookingConfirmationContext): strin
     closing_line: applyTokens(closingLine, { event_type: requirement?.event_type || "your event" }),
   };
 
-  return applyTokens(template, tokens) + addOnLines;
+  return applyTokens(template, tokens) + addOnLines + invoiceLine;
 }
 
 export async function loadBookingConfirmationContext(
@@ -99,6 +100,20 @@ export async function loadBookingConfirmationContext(
     requirement: (requirement as Requirement) ?? null,
     addOns: (addOns ?? []) as AddOn[],
   };
+}
+
+/** Look up the public invoice URL for this booking's quotation (if invoice was generated). */
+export async function loadInvoiceUrlForBooking(bookingId: string): Promise<string | null> {
+  const { data: b } = await supabase.from("bookings").select("quotation_id").eq("id", bookingId).maybeSingle();
+  if (!b?.quotation_id) return null;
+  const { data: q } = await supabase
+    .from("quotations")
+    .select("public_token,invoice_generated_at")
+    .eq("id", b.quotation_id)
+    .maybeSingle();
+  if (!q?.public_token || !q.invoice_generated_at) return null;
+  if (typeof window === "undefined") return null;
+  return `${window.location.origin}/invoice/${q.public_token}`;
 }
 
 export interface SendConfirmationArgs {
