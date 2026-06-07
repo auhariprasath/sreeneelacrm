@@ -10,6 +10,7 @@ import {
   buildConfirmationMessage,
   buildWaLink,
   loadBookingConfirmationContext,
+  loadInvoiceUrlForBooking,
   markConfirmationSent,
   type BookingConfirmationContext,
 } from "@/lib/booking-confirmation";
@@ -34,12 +35,16 @@ export function BookingConfirmationDialog({ open, onOpenChange, bookingId, onSen
     let cancelled = false;
     setLoading(true);
     setEditing(false);
-    loadBookingConfirmationContext(bookingId).then((c) => {
+    (async () => {
+      const [c, invoiceUrl] = await Promise.all([
+        loadBookingConfirmationContext(bookingId),
+        loadInvoiceUrlForBooking(bookingId),
+      ]);
       if (cancelled) return;
       setCtx(c);
-      setMessage(c ? buildConfirmationMessage(c) : "");
+      setMessage(c ? buildConfirmationMessage(c, invoiceUrl) : "");
       setLoading(false);
-    });
+    })();
     return () => { cancelled = true; };
   }, [open, bookingId]);
 
