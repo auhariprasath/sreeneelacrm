@@ -521,84 +521,158 @@ function LeadProfile() {
               <div className="text-xs font-semibold text-muted-foreground mb-2">Quotations</div>
               <div className="space-y-2">
                 {quotations.map((q) => {
-                  const needsInvoice = q.status === "agreed" && !bookings.some((b) => b.quotation_id === q.id);
+                  const hasBooking = bookings.some((b) => b.quotation_id === q.id);
+                  const approved = q.status === "agreed";
+                  const invoiceGenerated = !!q.invoice_generated_at;
+                  const invoiceSent = !!q.invoice_sent_at;
+                  const showGenerate = approved && !hasBooking && !invoiceGenerated;
+                  const showSendInvoice = approved && !hasBooking && invoiceGenerated && !invoiceSent;
+                  const showPaymentCard = approved && !hasBooking && invoiceSent;
                   const openBuilder = () => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); };
+
+                  const handleGenerateInvoice = async (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    setGeneratingInvoiceFor(q.id);
+                    try {
+                      const res = await generateInvoiceForQuotation(q.id, profile?.id ?? null);
+                      if (!res) { toast.error("Couldn't generate invoice"); return; }
+                      toast.success(`Invoice ${res.invoice_number} generated`);
+                      loadQuotations();
+                    } finally { setGeneratingInvoiceFor(null); }
+                  };
+
+                  const handleSendInvoice = async (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    const lead = await supabase.from("leads").select("phone,full_name").eq("id", leadId).maybeSingle();
+                    const phone = lead.data?.phone;
+                    if (!phone) { toast.error("Lead has no phone number"); return; }
+                    const url = `${window.location.origin}/invoice/${(q as any).public_token}`;
+                    const company = await supabase.from("companies").select("name").eq("id", q.company_id).maybeSingle();
+                    const msg = `Hi ${lead.data?.full_name ?? ""}, your invoice ${q.invoice_number} from ${company.data?.name ?? ""} is ready.\n\nAmount: ${formatINR(Number(q.total))}\n\nView & download: ${url}\n\nReply once payment is done. Thank you!`;
+                    const wa = buildWaMeLink(phone, msg);
+                    if (!wa) { toast.error("Invalid phone number"); return; }
+                    // Also download the PDF so staff can attach it
+                    downloadInvoicePdf(q.id).catch(() => {});
+                    window.open(wa, "_blank", "noopener");
+                    await markInvoiceSent(q.id, profile?.id ?? null);
+                    toast.success("Invoice sent · WhatsApp opened");
+                    loadQuotations();
+                  };
+
                   return (
-                    <div
-                      key={q.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={openBuilder}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBuilder(); } }}
-                      className="bg-card border rounded-md p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium flex items-center gap-2">
-                          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                          v{q.version} · {formatINR(Number(q.total))}
-                          <QuotationStatusBadge quotation={q} />
+                    <div key={q.id} className="space-y-2">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={openBuilder}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBuilder(); } }}
+                        className="bg-card border rounded-md p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium flex items-center gap-2">
+                            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                            v{q.version} · {formatINR(Number(q.total))}
+                            <QuotationStatusBadge quotation={q} />
+                            {q.invoice_number && (
+                              <span className="text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 bg-primary/10 text-primary">
+                                {q.invoice_number}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
+                            Updated {relativeTime(q.updated_at)}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            {(q as any).viewed_at && (
+                              <span className="text-[10px] text-muted-foreground">
+                                Viewed {relativeTime((q as any).viewed_at)}{(q as any).view_count > 1 ? ` · ${(q as any).view_count}×` : ""}
+                              </span>
+                            )}
+                            {((q as any).approved_at || q.agreed_at) && (
+                              <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                                · Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
+                              </span>
+                            )}
+                            {invoiceSent && (
+                              <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                                · Invoice sent {relativeTime(q.invoice_sent_at!)}
+                              </span>
+                            )}
+                            {(q as any).public_token && (
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const url = invoiceGenerated
+                                    ? `${window.location.origin}/invoice/${(q as any).public_token}`
+                                    : `${window.location.origin}/quotation/${(q as any).public_token}`;
+                                  await navigator.clipboard.writeText(url);
+                                  toast.success(invoiceGenerated ? "Invoice link copied" : "Quotation link copied");
+                                }}
+                                className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                              >
+                                Copy link
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">
-                          {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
-                          Updated {relativeTime(q.updated_at)}
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                          {(q as any).viewed_at && (
-                            <span className="text-[10px] text-muted-foreground">
-                              Viewed {relativeTime((q as any).viewed_at)}{(q as any).view_count > 1 ? ` · ${(q as any).view_count}×` : ""}
-                            </span>
-                          )}
-                          {((q as any).approved_at || q.agreed_at) && (
-                            <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
-                              · Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
-                            </span>
-                          )}
-                          {(q as any).public_token && (
-                            <button
-                              type="button"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                const url = `${window.location.origin}/quotation/${(q as any).public_token}`;
-                                await navigator.clipboard.writeText(url);
-                                toast.success("Public link copied");
-                              }}
-                              className="text-[10px] underline text-muted-foreground hover:text-foreground"
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          {["sent", "agreed", "declined"].includes(q.status) && !invoiceGenerated && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
+                              className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
                             >
-                              Copy link
-                            </button>
+                              Revise
+                            </Button>
                           )}
+                          {showGenerate ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={handleGenerateInvoice}
+                                disabled={generatingInvoiceFor === q.id}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                                {generatingInvoiceFor === q.id ? "Generating…" : "Generate invoice"}
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setBookQuoteId(q.id)} title="Advanced: instalments / partial advance / cheque">
+                                Advanced…
+                              </Button>
+                            </>
+                          ) : showSendInvoice ? (
+                            <Button size="sm" onClick={handleSendInvoice} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                              <Send className="h-3.5 w-3.5 mr-1" /> Send invoice
+                            </Button>
+                          ) : !invoiceGenerated ? (
+                            <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
+                              <Send className="h-3.5 w-3.5 mr-1" /> Send
+                            </Button>
+                          ) : null}
+                          <InvoiceRowMenu
+                            quotationId={q.id}
+                            leadId={leadId}
+                            pdfUrl={q.pdf_url}
+                            versionLabel={`v${q.version}`}
+                            onView={openBuilder}
+                            onResend={() => invoiceGenerated ? handleSendInvoice({ stopPropagation: () => {} } as any) : setSendQuoteId(q.id)}
+                            onDeleted={loadQuotations}
+                          />
                         </div>
                       </div>
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        {["sent", "agreed", "declined"].includes(q.status) && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
-                            className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
-                          >
-                            Revise
-                          </Button>
-                        )}
-                        {needsInvoice ? (
-                          <Button size="sm" onClick={() => setBookQuoteId(q.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Generate invoice
-                          </Button>
-                        ) : (
-                          <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
-                            <Send className="h-3.5 w-3.5 mr-1" /> Send
-                          </Button>
-                        )}
-                        <InvoiceRowMenu
-                          quotationId={q.id}
-                          leadId={leadId}
-                          pdfUrl={q.pdf_url}
-                          versionLabel={`v${q.version}`}
-                          onView={openBuilder}
-                          onResend={() => setSendQuoteId(q.id)}
-                          onDeleted={loadQuotations}
+                      {showPaymentCard && (
+                        <InvoicePaymentCard
+                          quotation={q}
+                          onPaymentReceived={(qid, method) => {
+                            setPaymentReceivedQuoteId(qid);
+                            setPaymentReceivedMethod(method);
+                          }}
+                          onChanged={loadQuotations}
                         />
-                      </div>
+                      )}
                     </div>
                   );
                 })}
