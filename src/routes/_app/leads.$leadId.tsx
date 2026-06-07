@@ -37,6 +37,8 @@ import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
 import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
 import { BookingAssignedTo } from "@/components/bookings/booking-assigned-to";
+import { CoordinatorAssign } from "@/components/bookings/coordinator-assign";
+import { CoordinationProgress } from "@/components/bookings/coordination-progress";
 import { SourcesTab } from "@/components/leads/sources-tab";
 import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
 import type { Database } from "@/integrations/supabase/types";
