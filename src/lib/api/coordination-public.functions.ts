@@ -35,7 +35,7 @@ async function loadByCoord(token: string, kind: "coordinator" | "client") {
   let company: any = null;
   if (bk) {
     const [{ data: l }, { data: co }] = await Promise.all([
-      supabaseAdmin.from("leads").select("full_name,phone,event_type").eq("id", (bk as any).lead_id).maybeSingle(),
+      supabaseAdmin.from("leads").select("full_name,phone").eq("id", (bk as any).lead_id).maybeSingle(),
       supabaseAdmin.from("companies").select("name,meeting_contact_name,meeting_contact_phone").eq("id", (bk as any).company_id).maybeSingle(),
     ]);
     lead = l; company = co;
