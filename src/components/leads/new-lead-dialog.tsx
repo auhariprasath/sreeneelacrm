@@ -24,6 +24,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [language, setLanguage] = useState("English");
   const [source, setSource] = useState<"inbound_call" | "walkin" | "referral" | "portal" | "manual">("manual");
   const [score, setScore] = useState<"hot" | "warm" | "cold">("warm");
@@ -35,7 +36,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
-    setFullName(""); setPhone(""); setLanguage("English");
+    setFullName(""); setPhone(""); setEmail(""); setLanguage("English");
     setSource("manual"); setScore("warm"); setNotes(""); setDuplicate(null);
     setReferredByName(""); setReferredByLeadId(null); setRefSearch([]);
   };
@@ -66,11 +67,16 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     const d = normalizedPhone(phone);
     if (!fullName.trim()) { toast.error("Enter a name."); return; }
     if (!d) { toast.error("Enter a valid 10-digit phone."); return; }
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("Enter a valid email address."); return;
+    }
 
     setSubmitting(true);
     const { data, error } = await supabase.from("leads").insert({
       full_name: fullName.trim(),
       phone: `+91${d}`,
+      email: trimmedEmail || null,
       language,
       source,
       lead_score: score,
