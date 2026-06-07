@@ -636,7 +636,7 @@ export function QuotationBuilder({
                     {gstApplied && <div className="flex justify-between text-muted-foreground"><span>GST ({gstPercent}%)</span><span>{formatINR(gstAmount)}</span></div>}
                     <div className="flex justify-between font-semibold text-base pt-1 border-t mt-1"><span>Total</span><span>{formatINR(total)}</span></div>
                   </div>
-                  <div className="m-3 p-3 rounded-md bg-emerald-50 dark:bg-success/30 border border-success dark:border-success text-success dark:text-success text-sm">
+                  <div className="m-3 p-3 rounded-md bg-success/10 dark:bg-success/30 border border-success dark:border-success text-success dark:text-success text-sm">
                     <div className="font-semibold flex items-center gap-1"><Check className="h-4 w-4" /> Ready to confirm?</div>
                     <div className="text-xs mt-1 opacity-90">Reply "AGREED" on WhatsApp{company?.wa_number ? ` to ${company.wa_number}` : ""} to lock the date.</div>
                   </div>
