@@ -134,6 +134,17 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
             )}
           </div>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="ln-email">Email <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input
+              id="ln-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Language</Label>
