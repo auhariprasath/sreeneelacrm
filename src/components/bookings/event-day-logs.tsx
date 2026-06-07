@@ -27,7 +27,7 @@ const TYPE_META: Record<LogType, { label: string; icon: any; defaultSeverity: Se
 };
 
 const SEVERITY_CLASS: Record<Severity, string> = {
-  low: "bg-info/10 text-info dark:text-sky-300 border-sky-500/30",
+  low: "bg-info/10 text-info  ",
   medium: "bg-warning/10 text-warning dark:text-warning border-warning/30",
   high: "bg-destructive/10 text-destructive dark:text-destructive border-destructive/30",
 };

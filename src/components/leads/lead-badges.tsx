@@ -24,7 +24,7 @@ const STATUS_CLASS: Record<Status, string> = {
 const SCORE_CLASS: Record<Score, string> = {
   hot: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30",
   warm: "bg-warning/15 text-warning dark:text-warning border-warning/30",
-  cold: "bg-info/15 text-info dark:text-sky-300 border-sky-500/30",
+  cold: "bg-info/15 text-info  ",
 };
 
 const SOURCE_LABEL: Record<Source, string> = {
