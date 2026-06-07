@@ -367,8 +367,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
                 placeholder="name@example.com"
               />
             </div>
-              <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
-            </div>
+
+
 
 
             {/* Event type */}
