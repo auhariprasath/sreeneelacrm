@@ -953,12 +953,19 @@ function LeadProfile() {
         onOpenChange={(v) => { if (!v) setSendQuoteId(null); }}
         quotationId={sendQuoteId}
         onResponded={() => { loadQuotations(); load(); }}
-        onAgreed={(qid) => setBookQuoteId(qid)}
+        onAgreed={() => { loadQuotations(); load(); }}
       />
       <BookingConfirmDialog
         open={!!bookQuoteId}
         onOpenChange={(v) => { if (!v) setBookQuoteId(null); }}
         quotationId={bookQuoteId}
+        onConfirmed={(bookingId) => { loadBookings(); loadQuotations(); load(); setConfirmationBookingId(bookingId); }}
+      />
+      <PaymentReceivedDialog
+        open={!!paymentReceivedQuoteId}
+        onOpenChange={(v) => { if (!v) setPaymentReceivedQuoteId(null); }}
+        quotationId={paymentReceivedQuoteId}
+        defaultMethod={paymentReceivedMethod}
         onConfirmed={(bookingId) => { loadBookings(); loadQuotations(); load(); setConfirmationBookingId(bookingId); }}
       />
       <BookingConfirmationDialog
