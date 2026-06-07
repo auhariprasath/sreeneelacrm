@@ -728,6 +728,24 @@ function LeadProfile() {
                           onChanged={loadBookings}
                         />
                       )}
+                      {b.status !== "cancelled" && (
+                        <CoordinationProgress bookingId={b.id} />
+                      )}
+                      {b.status !== "cancelled" && b.status !== "completed" && (
+                        <div className="flex flex-wrap gap-1.5">
+                          <CoordinatorAssign
+                            bookingId={b.id}
+                            companyId={b.company_id}
+                            leadName={lead.full_name}
+                            leadPhone={lead.phone}
+                            eventType={(lead as any).event_type ?? null}
+                            eventDate={b.event_date}
+                            startTime={b.start_time}
+                            venue={b.venue}
+                            onAssigned={loadBookings}
+                          />
+                        </div>
+                      )}
                       {pending.length > 0 && (
                         <div className="border-t pt-2 space-y-1">
                           <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1"><IndianRupee className="h-3 w-3" /> Pending payments</div>
