@@ -44,7 +44,7 @@ function derive(q: Props["quotation"], expiryDays: number): { label: string; ton
     return { label: "Changes requested", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" };
   }
   if (q.status === "revised") {
-    return { label: "Revised", tone: "bg-slate-500/15 text-slate-700 dark:text-slate-300" };
+    return { label: "Superseded", tone: "bg-slate-500/15 text-slate-600 dark:text-slate-400" };
   }
   if (q.viewed_at) {
     return { label: "Viewed", tone: "bg-blue-500/15 text-blue-700 dark:text-blue-300" };

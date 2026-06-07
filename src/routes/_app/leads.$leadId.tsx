@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InfoTip } from "@/components/ui/info-tip";
-import { ArrowLeft, Phone, MessageSquare, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Mail, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
@@ -314,6 +314,15 @@ function LeadProfile() {
                     </button>
                   )}
                 </div>
+                {(lead as any).email && (
+                  <a
+                    href={`mailto:${(lead as any).email}`}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 hover:text-foreground hover:underline w-fit"
+                  >
+                    <Mail className="h-3 w-3" />
+                    <span className="truncate">{(lead as any).email}</span>
+                  </a>
+                )}
               </div>
               <ScoreBadge score={lead.lead_score} />
             </div>

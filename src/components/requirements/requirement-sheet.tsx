@@ -83,6 +83,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
   const [countingOthers, setCountingOthers] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentReqId, setCurrentReqId] = useState<string | null>(requirementId ?? null);
+  const [leadEmail, setLeadEmail] = useState("");
 
   useAutosaveDraft(draftKey, { form, isMandapam, selectedAddons }, open && !requirementId);
 
@@ -91,11 +92,15 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
     if (!open) return;
     setLoading(true);
     (async () => {
-      const { data: co } = await supabase
-        .from("companies")
-        .select("is_mandapam, sessions, event_types, addons_catalog")
-        .eq("id", companyId)
-        .maybeSingle();
+      const [{ data: co }, { data: leadRow }] = await Promise.all([
+        supabase
+          .from("companies")
+          .select("is_mandapam, sessions, event_types, addons_catalog")
+          .eq("id", companyId)
+          .maybeSingle(),
+        supabase.from("leads").select("email").eq("id", leadId).maybeSingle(),
+      ]);
+      setLeadEmail(((leadRow as any)?.email ?? "") as string);
       const c: any = co ?? {};
       setIsMandapam(!!c.is_mandapam);
       setSessions(Array.isArray(c.sessions) ? c.sessions : []);
@@ -210,6 +215,12 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       toast.error("Event date and event type are required");
       return null;
     }
+    const trimmedEmail = leadEmail.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("Enter a valid email address");
+      return null;
+    }
+    await supabase.from("leads").update({ email: trimmedEmail || null }).eq("id", leadId);
     const payload: any = {
       lead_id: leadId,
       company_id: companyId,
@@ -344,6 +355,20 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
               <TimeClockField value={form.muhurtham_time} onChange={(v) => setForm({ ...form, muhurtham_time: v })} />
               <p className="text-[11px] text-muted-foreground">For your reference — slot is locked only when payment confirms the booking.</p>
             </div>
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="req-email">Email <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                id="req-email"
+                type="email"
+                value={leadEmail}
+                onChange={(e) => setLeadEmail(e.target.value)}
+                placeholder="name@example.com"
+              />
+            </div>
+
+
 
 
             {/* Event type */}
