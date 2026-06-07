@@ -52,12 +52,12 @@ export function BookingAssignedTo({ bookingId, companyId, assignedTo, onChanged 
         <span className="text-muted-foreground">Assigned to</span>
         {assignedTo ? (
           <span className="font-medium inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-success" />
             {currentName ?? "Loading…"}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          <span className="inline-flex items-center gap-1.5 text-warning dark:text-warning">
+            <span className="h-1.5 w-1.5 rounded-full bg-warning" />
             Unassigned
           </span>
         )}

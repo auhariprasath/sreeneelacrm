@@ -269,7 +269,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
       <DialogContent className="max-w-lg p-0 gap-0 max-h-[90vh] flex flex-col">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Confirm booking
+            <CheckCircle2 className="h-4 w-4 text-success" /> Confirm booking
           </DialogTitle>
         </DialogHeader>
 
@@ -344,7 +344,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
 
             {paymentType === "cheque" && (
               <div className="space-y-2 border rounded-md p-3 bg-card">
-                <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded p-2">
+                <div className="text-xs text-warning dark:text-warning bg-warning/10 border border-warning/30 rounded p-2">
                   Booking will be marked provisional until the cheque clears.
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -375,7 +375,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
                     </Button>
                   </div>
                 ))}
-                <div className={`text-xs ${instalmentValid ? "text-muted-foreground" : "text-rose-600"}`}>
+                <div className={`text-xs ${instalmentValid ? "text-muted-foreground" : "text-destructive"}`}>
                   Sum: {formatINR(instalmentSum)} / {formatINR(total)}
                   {!instalmentValid && ` (off by ${formatINR(Math.abs(instalmentSum - total))})`}
                 </div>

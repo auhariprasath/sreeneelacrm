@@ -279,10 +279,10 @@ export function VendorAssignment(props: Props) {
   }
 
   const stageColor = (s: string) =>
-    s === "packed" ? "bg-blue-500/15 text-blue-700 dark:text-blue-300"
-      : s === "traveling" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+    s === "packed" ? "bg-info/15 text-info "
+      : s === "traveling" ? "bg-warning/15 text-warning dark:text-warning"
       : s === "arrived" ? "bg-orange-500/15 text-orange-700 dark:text-orange-300"
-      : s === "setup_done" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+      : s === "setup_done" ? "bg-success/15 text-success dark:text-success"
       : "bg-muted text-muted-foreground";
 
   return (
@@ -315,7 +315,7 @@ export function VendorAssignment(props: Props) {
                     <span className="text-[10px] text-muted-foreground">· {a.vendor?.service_type ?? a.service_description}</span>
                     {a.confirmed && <Badge variant="secondary" className="text-[10px] gap-0.5"><CheckCircle2 className="h-2.5 w-2.5" /> Confirmed</Badge>}
                     {a.no_show && <Badge variant="destructive" className="text-[10px] gap-0.5"><AlertTriangle className="h-2.5 w-2.5" /> No-show</Badge>}
-                    {a.rating != null && <Badge variant="outline" className="text-[10px] gap-0.5"><Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" /> {Number(a.rating).toFixed(1)}</Badge>}
+                    {a.rating != null && <Badge variant="outline" className="text-[10px] gap-0.5"><Star className="h-2.5 w-2.5 fill-warning text-warning" /> {Number(a.rating).toFixed(1)}</Badge>}
                     {last && <Badge className={`text-[10px] ${stageColor(last.status)}`}>{last.status.replace("_", " ")}</Badge>}
                   </div>
                   {a.service_description && a.service_description !== a.vendor?.service_type && (
@@ -328,7 +328,7 @@ export function VendorAssignment(props: Props) {
                     </div>
                   )}
                 </div>
-                <Button size="icon" variant="ghost" className="h-6 w-6 text-rose-600 shrink-0"
+                <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive shrink-0"
                   onClick={() => removeAssignment(a)} aria-label="Remove">
                   <Trash2 className="h-3 w-3" />
                 </Button>
@@ -359,7 +359,7 @@ export function VendorAssignment(props: Props) {
                   </SelectContent>
                 </Select>
                 {!a.no_show && (
-                  <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-rose-600" onClick={() => { setNoShowOpen(a); setNoShowNote(""); }}>
+                  <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => { setNoShowOpen(a); setNoShowNote(""); }}>
                     <AlertTriangle className="h-3 w-3 mr-1" /> No-show
                   </Button>
                 )}
@@ -481,7 +481,7 @@ export function VendorAssignment(props: Props) {
                     <div>
                       <div className="text-sm font-medium">{v.name}</div>
                       <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                        <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {v.rating ? Number(v.rating).toFixed(1) : "—"}</span>
+                        <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-warning text-warning" /> {v.rating ? Number(v.rating).toFixed(1) : "—"}</span>
                         <span>· {v.total_bookings} bookings</span>
                         {v.standard_rate != null && <span>· {formatINR(Number(v.standard_rate))}</span>}
                       </div>
@@ -509,7 +509,7 @@ export function VendorAssignment(props: Props) {
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setRatingValue(n)} aria-label={`${n} star`}>
-                  <Star className={`h-7 w-7 ${n <= ratingValue ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
+                  <Star className={`h-7 w-7 ${n <= ratingValue ? "fill-warning text-warning" : "text-muted-foreground"}`} />
                 </button>
               ))}
               <span className="ml-2 text-sm font-medium">{ratingValue}/5</span>

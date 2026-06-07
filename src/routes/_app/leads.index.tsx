@@ -263,7 +263,7 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
               <div className="font-medium truncate flex items-center gap-2">
                 {lead.full_name}
                 {lead.is_blacklisted && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive dark:text-destructive border border-destructive/30">
                     Flagged
                   </span>
                 )}
@@ -299,7 +299,7 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
                 className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-accent"
                 aria-label="WhatsApp"
               >
-                <MessageSquare className="h-4 w-4 text-emerald-600" />
+                <MessageSquare className="h-4 w-4 text-success" />
               </a>
             </div>
           </div>

@@ -103,7 +103,7 @@ function PublicPaymentPage() {
 
         <section className="p-5">
           {done || payment.proof_url ? (
-            <div className="flex items-start gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-medium">
+            <div className="flex items-start gap-2 text-success dark:text-success text-sm font-medium">
               <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
               <div>
                 Proof received — thank you!<br />

@@ -232,13 +232,13 @@ function CompanyDashboard() {
           <div className="rounded-lg border p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <CheckCircle2 className="h-4 w-4 text-success" />
                 Tasks completed
               </div>
               <span className="text-sm font-semibold">{stats.taskCompletionPct}%</span>
             </div>
             <div className="h-2 rounded bg-muted overflow-hidden">
-              <div className="h-full bg-emerald-500 transition-all" style={{ width: `${stats.taskCompletionPct}%` }} />
+              <div className="h-full bg-success transition-all" style={{ width: `${stats.taskCompletionPct}%` }} />
             </div>
             <div className="text-xs text-muted-foreground mt-2">
               {stats.tasksDone} of {stats.tasksTotal} tasks done
@@ -247,13 +247,13 @@ function CompanyDashboard() {
           <div className="rounded-lg border p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <UserCheck className="h-4 w-4 text-sky-600" />
+                <UserCheck className="h-4 w-4 text-info" />
                 Vendors confirmed
               </div>
               <span className="text-sm font-semibold">{stats.vendorsConfirmedPct}%</span>
             </div>
             <div className="h-2 rounded bg-muted overflow-hidden">
-              <div className="h-full bg-sky-500 transition-all" style={{ width: `${stats.vendorsConfirmedPct}%` }} />
+              <div className="h-full bg-info transition-all" style={{ width: `${stats.vendorsConfirmedPct}%` }} />
             </div>
             <div className="text-xs text-muted-foreground mt-2">
               {stats.vendorsConfirmed} of {stats.vendorsTotal} vendor assignments confirmed

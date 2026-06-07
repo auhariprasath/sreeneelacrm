@@ -34,10 +34,10 @@ interface Row {
 }
 
 function statusColor(s: string) {
-  return s === "agreed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-    : s === "sent" ? "bg-blue-500/15 text-blue-700 dark:text-blue-300"
-    : s === "declined" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
-    : s === "revised" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+  return s === "agreed" ? "bg-success/15 text-success dark:text-success"
+    : s === "sent" ? "bg-info/15 text-info "
+    : s === "declined" ? "bg-destructive/15 text-destructive dark:text-destructive"
+    : s === "revised" ? "bg-warning/15 text-warning dark:text-warning"
     : "bg-muted text-muted-foreground";
 }
 

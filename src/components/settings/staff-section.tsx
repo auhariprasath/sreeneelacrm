@@ -144,7 +144,7 @@ export function StaffSection({ companyId }: { companyId: string | undefined }) {
                     <span className="font-medium">{r.full_name || "(no name)"}</span>
                     <Badge variant="secondary" className="text-[10px]">{r.role}</Badge>
                     {!r.is_active && <Badge variant="destructive" className="text-[10px]">Deactivated</Badge>}
-                    {r.on_leave && <Badge className="text-[10px] bg-amber-500 hover:bg-amber-500">On leave</Badge>}
+                    {r.on_leave && <Badge className="text-[10px] bg-warning hover:bg-warning">On leave</Badge>}
                     {r.must_change_password && <Badge variant="outline" className="text-[10px]">Password reset pending</Badge>}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5 truncate">{r.email}</div>

@@ -485,13 +485,13 @@ function DateInfoBanner({ count, loading, hasDate }: { count: number | null; loa
   }
   if (count === 0) {
     return (
-      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 px-3 py-2 text-xs inline-flex items-center gap-2">
+      <div className="rounded-md border border-success/30 bg-success/10 text-success dark:text-success px-3 py-2 text-xs inline-flex items-center gap-2">
         <Info className="h-3.5 w-3.5" /> No other enquiries — this date is free.
       </div>
     );
   }
   return (
-    <div className="rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs inline-flex items-center gap-2">
+    <div className="rounded-md border border-warning/30 bg-warning/10 text-warning dark:text-warning px-3 py-2 text-xs inline-flex items-center gap-2">
       <Info className="h-3.5 w-3.5" />
       {count} other {count === 1 ? "enquiry" : "enquiries"} on this date. First to pay locks the slot.
     </div>

@@ -40,11 +40,11 @@ const TABS: { key: "all" | Status; label: string }[] = [
 
 function statusStyle(s: Status) {
   switch (s) {
-    case "confirmed": return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
-    case "cheque_pending": return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
+    case "confirmed": return "bg-success/15 text-success dark:text-success";
+    case "cheque_pending": return "bg-warning/15 text-warning dark:text-warning";
     case "cancelled":
-    case "disputed": return "bg-rose-500/15 text-rose-700 dark:text-rose-300";
-    case "rescheduled": return "bg-sky-500/15 text-sky-700 dark:text-sky-300";
+    case "disputed": return "bg-destructive/15 text-destructive dark:text-destructive";
+    case "rescheduled": return "bg-info/15 text-info dark:text-sky-300";
     default: return "bg-muted text-muted-foreground";
   }
 }
@@ -161,8 +161,8 @@ function BookingsIndex() {
               </div>
               <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
                 <div><div className="text-muted-foreground">Total</div><div className="font-semibold">{formatINR(Number(b.total_amount))}</div></div>
-                <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(Number(b.amount_paid))}</div></div>
-                <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-rose-700 dark:text-rose-400">{formatINR(Number(b.balance_due))}</div></div>
+                <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-success dark:text-success">{formatINR(Number(b.amount_paid))}</div></div>
+                <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-destructive dark:text-destructive">{formatINR(Number(b.balance_due))}</div></div>
               </div>
             </Link>
           ))}

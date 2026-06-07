@@ -74,7 +74,7 @@ export function CoordinationProgress({ bookingId }: Props) {
               <button
                 type="button"
                 className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all
-                  ${done ? "bg-emerald-500 border-emerald-500 text-white" :
+                  ${done ? "bg-success border-success text-white" :
                     isCurrent ? "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20" :
                     "bg-muted border-muted text-muted-foreground"}`}
                 aria-label={meta.label}
@@ -99,12 +99,12 @@ export function CoordinationProgress({ bookingId }: Props) {
                       </PopoverContent>
                     </Popover>
                   ) : bubble}
-                  <div className={`text-[10px] text-center leading-tight ${done ? "text-emerald-700 dark:text-emerald-400" : isCurrent ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                  <div className={`text-[10px] text-center leading-tight ${done ? "text-success dark:text-success" : isCurrent ? "text-primary font-medium" : "text-muted-foreground"}`}>
                     {meta.short}
                   </div>
                 </div>
                 {i < STAGE_ORDER.length - 1 && (
-                  <div className={`h-0.5 w-6 mt-[-14px] ${i < lastDoneIdx ? "bg-emerald-500" : "bg-muted"}`} />
+                  <div className={`h-0.5 w-6 mt-[-14px] ${i < lastDoneIdx ? "bg-success" : "bg-muted"}`} />
                 )}
               </Fragment>
             );

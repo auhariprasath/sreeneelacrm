@@ -23,10 +23,10 @@ interface Props {
 }
 
 const OPTIONS: { value: Decision; label: string; desc: string; icon: any; tone: string }[] = [
-  { value: "interested", label: "Interested — send proposal", desc: "Marks the lead positive and logs the next step.", icon: FileCheck2, tone: "text-emerald-600" },
+  { value: "interested", label: "Interested — send proposal", desc: "Marks the lead positive and logs the next step.", icon: FileCheck2, tone: "text-success" },
   { value: "confirm_booking", label: "Ready to confirm booking", desc: "Locks the slot as confirmed and moves to bookings.", icon: CheckCircle2, tone: "text-primary" },
-  { value: "needs_time", label: "Needs more time", desc: "Schedules a follow-up and keeps the requirement open.", icon: Clock, tone: "text-amber-600" },
-  { value: "not_interested", label: "Not interested — drop", desc: "Captures the reason and releases any held slot.", icon: ThumbsDown, tone: "text-rose-600" },
+  { value: "needs_time", label: "Needs more time", desc: "Schedules a follow-up and keeps the requirement open.", icon: Clock, tone: "text-warning" },
+  { value: "not_interested", label: "Not interested — drop", desc: "Captures the reason and releases any held slot.", icon: ThumbsDown, tone: "text-destructive" },
 ];
 
 export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirementId, onDone }: Props) {

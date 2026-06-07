@@ -127,7 +127,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
               placeholder="98XXXXXXXX"
             />
             {duplicate && (
-              <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-md p-2">
+              <div className="flex items-start gap-2 text-xs text-warning dark:text-warning bg-warning/10 border border-warning/30 rounded-md p-2">
                 <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>This phone already exists in <b>{duplicate.company}</b> (status: {duplicate.status}). Creating anyway will make a separate lead.</span>
               </div>
@@ -217,7 +217,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
                 </div>
               )}
               {referredByLeadId && (
-                <div className="text-[11px] text-emerald-700 dark:text-emerald-300">Linked to existing lead ✓</div>
+                <div className="text-[11px] text-success dark:text-success">Linked to existing lead ✓</div>
               )}
             </div>
           )}

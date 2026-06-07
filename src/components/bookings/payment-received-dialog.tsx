@@ -147,7 +147,7 @@ export function PaymentReceivedDialog({ open, onOpenChange, quotationId, default
       <DialogContent className="max-w-md p-0 gap-0">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Payment received
+            <CheckCircle2 className="h-4 w-4 text-success" /> Payment received
           </DialogTitle>
         </DialogHeader>
         <div className="p-4 space-y-4">

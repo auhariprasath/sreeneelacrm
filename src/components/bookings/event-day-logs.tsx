@@ -27,15 +27,15 @@ const TYPE_META: Record<LogType, { label: string; icon: any; defaultSeverity: Se
 };
 
 const SEVERITY_CLASS: Record<Severity, string> = {
-  low: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30",
-  medium: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  high: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
+  low: "bg-info/10 text-info  ",
+  medium: "bg-warning/10 text-warning dark:text-warning border-warning/30",
+  high: "bg-destructive/10 text-destructive dark:text-destructive border-destructive/30",
 };
 
 const STATUS_CLASS: Record<Status, string> = {
-  open: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  in_progress: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  resolved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  open: "bg-destructive/10 text-destructive dark:text-destructive border-destructive/30",
+  in_progress: "bg-warning/10 text-warning dark:text-warning border-warning/30",
+  resolved: "bg-success/10 text-success dark:text-success border-success/30",
   closed: "bg-muted text-muted-foreground border-border",
 };
 
@@ -104,8 +104,8 @@ export function EventDayLogs({
                     <div className="text-[11px] text-muted-foreground mt-0.5 whitespace-pre-wrap">{l.description}</div>
                     <div className="text-[10px] text-muted-foreground mt-0.5">{formatDateTimeIN(l.created_at)}</div>
                     {l.resolution_note && (
-                      <div className="mt-1 rounded bg-emerald-500/10 border border-emerald-500/30 p-1.5 text-[11px]">
-                        <span className="font-medium text-emerald-700 dark:text-emerald-300">Resolution: </span>
+                      <div className="mt-1 rounded bg-success/10 border border-success/30 p-1.5 text-[11px]">
+                        <span className="font-medium text-success dark:text-success">Resolution: </span>
                         {l.resolution_note}
                       </div>
                     )}

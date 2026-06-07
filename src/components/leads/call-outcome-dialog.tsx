@@ -29,11 +29,11 @@ interface Props {
 }
 
 const OUTCOMES: { key: Outcome; label: string; sub: string; icon: any; cls: string }[] = [
-  { key: "interested",          label: "Interested",          sub: "Lead wants to proceed",                icon: CheckCircle2, cls: "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20" },
-  { key: "meeting_scheduled",   label: "Meeting at venue",    sub: "Client wants to visit before deciding",icon: Building2,   cls: "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20" },
-  { key: "callback_requested",  label: "Callback requested",  sub: "They asked me to call back",           icon: PhoneCall,   cls: "bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20" },
+  { key: "interested",          label: "Interested",          sub: "Lead wants to proceed",                icon: CheckCircle2, cls: "bg-success/10 border-success/30 hover:bg-success/20" },
+  { key: "meeting_scheduled",   label: "Meeting at venue",    sub: "Client wants to visit before deciding",icon: Building2,   cls: "bg-info/10 border-info/30 hover:bg-info/20" },
+  { key: "callback_requested",  label: "Callback requested",  sub: "They asked me to call back",           icon: PhoneCall,   cls: "bg-warning/10 border-warning/30 hover:bg-warning/20" },
   { key: "other",               label: "Other",               sub: "Something else happened",              icon: Edit3,       cls: "bg-muted border-border hover:bg-muted/70" },
-  { key: "not_interested",      label: "Not interested",      sub: "Lead declined",                         icon: XCircle,     cls: "bg-rose-500/10 border-rose-500/30 hover:bg-rose-500/20" },
+  { key: "not_interested",      label: "Not interested",      sub: "Lead declined",                         icon: XCircle,     cls: "bg-destructive/10 border-destructive/30 hover:bg-destructive/20" },
 ];
 
 export function CallOutcomeDialog({
@@ -230,7 +230,7 @@ export function CallOutcomeDialog({
               )}
             </div>
             {confirmingClose && (
-              <div className="text-sm bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-md p-3">
+              <div className="text-sm bg-destructive/10 border border-destructive/30 text-destructive dark:text-destructive rounded-md p-3">
                 Are you sure? <strong>{leadName}</strong> will be marked as closed. A 30-day re-engagement WhatsApp will be auto-scheduled.
               </div>
             )}

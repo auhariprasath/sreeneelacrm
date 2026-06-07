@@ -23,9 +23,9 @@ type Booking = {
 };
 
 function tagMeta(tag: string) {
-  if (tag === "vip") return { label: "VIP", icon: Diamond, cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" };
-  if (tag === "promoter") return { label: "Promoter", icon: Star, cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" };
-  return { label: "Returning", icon: Repeat, cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30" };
+  if (tag === "vip") return { label: "VIP", icon: Diamond, cls: "bg-warning/15 text-warning dark:text-warning border-warning/30" };
+  if (tag === "promoter") return { label: "Promoter", icon: Star, cls: "bg-success/15 text-success dark:text-success border-success/30" };
+  return { label: "Returning", icon: Repeat, cls: "bg-info/15 text-info  border-info/30" };
 }
 
 function CustomerProfile() {
@@ -94,7 +94,7 @@ function CustomerProfile() {
             {c.avg_rating != null && (
               <div className="text-right">
                 <div className="text-muted-foreground text-xs">Avg rating</div>
-                <div className="font-semibold text-lg inline-flex items-center gap-1">{Number(c.avg_rating).toFixed(1)} <Star className="h-4 w-4 text-amber-500" /></div>
+                <div className="font-semibold text-lg inline-flex items-center gap-1">{Number(c.avg_rating).toFixed(1)} <Star className="h-4 w-4 text-warning" /></div>
               </div>
             )}
           </div>

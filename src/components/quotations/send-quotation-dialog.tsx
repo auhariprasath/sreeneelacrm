@@ -227,7 +227,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
               </div>
 
               <div className="grid grid-cols-3 gap-2 pt-1">
-                <Button onClick={sendViaWhatsApp} disabled={!!sending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button onClick={sendViaWhatsApp} disabled={!!sending} className="bg-success hover:bg-success text-white">
                   {sending === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4 mr-1" />}
                   WhatsApp
                 </Button>
@@ -264,7 +264,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
               <div className="text-sm text-muted-foreground">Log the client's reply after they review the quotation.</div>
               <Textarea rows={3} placeholder="Optional note (e.g. asked for 10% off, wants to confirm tomorrow)" value={respondNote} onChange={(e) => setRespondNote(e.target.value)} />
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <Button onClick={() => respond("agreed")} disabled={!!responding} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button onClick={() => respond("agreed")} disabled={!!responding} className="bg-success hover:bg-success text-white">
                   <CheckCircle2 className="h-4 w-4 mr-1" /> Agreed
                 </Button>
                 <Button onClick={() => respond("negotiating")} disabled={!!responding} variant="outline">
@@ -273,7 +273,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
                 <Button onClick={() => respond("revision")} disabled={!!responding} variant="outline">
                   <RotateCcw className="h-4 w-4 mr-1" /> Needs revision
                 </Button>
-                <Button onClick={() => respond("declined")} disabled={!!responding} variant="outline" className="text-rose-600 hover:text-rose-700">
+                <Button onClick={() => respond("declined")} disabled={!!responding} variant="outline" className="text-destructive hover:text-destructive">
                   <XCircle className="h-4 w-4 mr-1" /> Declined
                 </Button>
               </div>

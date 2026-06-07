@@ -80,8 +80,8 @@ function FeedbackPage() {
           </div>
         ) : submitted ? (
           <div className="text-center space-y-3 py-4">
-            <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/15 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+            <div className="mx-auto h-12 w-12 rounded-full bg-success/15 flex items-center justify-center">
+              <CheckCircle2 className="h-6 w-6 text-success" />
             </div>
             <h1 className="text-lg font-semibold">Thank you!</h1>
             <p className="text-sm text-muted-foreground">Your feedback helps us improve. We appreciate your time.</p>
@@ -107,7 +107,7 @@ function FeedbackPage() {
                   className="p-1 transition-transform hover:scale-110 min-h-11 min-w-11"
                   aria-label={`${n} star${n > 1 ? "s" : ""}`}>
                   <Star className={cn("h-8 w-8 transition-colors",
-                    (hover || rating) >= n ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40")} />
+                    (hover || rating) >= n ? "fill-warning text-warning" : "text-muted-foreground/40")} />
                 </button>
               ))}
             </div>

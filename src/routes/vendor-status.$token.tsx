@@ -12,10 +12,10 @@ export const Route = createFileRoute("/vendor-status/$token")({ component: Vendo
 type Stage = "packed" | "traveling" | "arrived" | "setup_done";
 const ORDER: Stage[] = ["packed", "traveling", "arrived", "setup_done"];
 const META: Record<Stage, { label: string; icon: any; color: string }> = {
-  packed:     { label: "Packed and ready",         icon: Package,      color: "bg-blue-500" },
-  traveling:  { label: "Started traveling to venue", icon: Car,        color: "bg-amber-500" },
+  packed:     { label: "Packed and ready",         icon: Package,      color: "bg-info" },
+  traveling:  { label: "Started traveling to venue", icon: Car,        color: "bg-warning" },
   arrived:    { label: "Reached venue",            icon: MapPin,       color: "bg-orange-500" },
-  setup_done: { label: "Setup complete",           icon: CheckCircle2, color: "bg-emerald-500" },
+  setup_done: { label: "Setup complete",           icon: CheckCircle2, color: "bg-success" },
 };
 
 interface Booking { id: string; event_date: string; start_time: string | null; venue: string | null; company_id: string }

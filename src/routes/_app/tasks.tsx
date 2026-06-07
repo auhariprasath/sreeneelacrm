@@ -32,13 +32,13 @@ type Bucket = "pending" | "in_progress" | "done" | "overdue";
 
 const STATUS_META: Record<Bucket, { label: string; cls: string }> = {
   pending: { label: "Pending", cls: "bg-muted text-foreground" },
-  in_progress: { label: "In progress", cls: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200" },
+  in_progress: { label: "In progress", cls: "bg-blue-100 text-info dark:bg-info " },
   done: { label: "Done", cls: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200" },
   overdue: { label: "Overdue", cls: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200" },
 };
 
 const PRIORITY_DOT: Record<string, string> = {
-  high: "bg-red-500", medium: "bg-amber-500", low: "bg-muted-foreground",
+  high: "bg-red-500", medium: "bg-warning", low: "bg-muted-foreground",
 };
 
 function applyOverdue<T extends { status: TaskRow["status"]; due_at: string }>(t: T): T {
@@ -194,7 +194,7 @@ function TasksPage() {
             <div key={b} className="space-y-2">
               <div className="flex items-center justify-between px-1 text-sm font-medium">
                 <span className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${b === "overdue" ? "bg-red-500" : b === "done" ? "bg-green-500" : b === "in_progress" ? "bg-blue-500" : "bg-muted-foreground"}`} />
+                  <span className={`w-2 h-2 rounded-full ${b === "overdue" ? "bg-red-500" : b === "done" ? "bg-green-500" : b === "in_progress" ? "bg-info" : "bg-muted-foreground"}`} />
                   {STATUS_META[b].label}
                 </span>
                 <span className="text-xs text-muted-foreground">{buckets[b].length}</span>

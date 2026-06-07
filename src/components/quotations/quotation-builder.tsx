@@ -423,7 +423,7 @@ export function QuotationBuilder({
         <SheetHeader className="p-4 border-b">
           <SheetTitle>
             Quotation Builder {baseVersion > 1 && <span className="text-xs font-normal text-muted-foreground">· v{baseVersion}</span>}
-            {revisingFromId && <span className="ml-2 text-[10px] font-medium rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2 py-0.5">Revising</span>}
+            {revisingFromId && <span className="ml-2 text-[10px] font-medium rounded-full bg-warning/15 text-warning dark:text-warning px-2 py-0.5">Revising</span>}
           </SheetTitle>
           <StepProgress current={step} />
         </SheetHeader>
@@ -436,7 +436,7 @@ export function QuotationBuilder({
         ) : !requirement ? null : (
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {peakLabel && step < 3 && (
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3 flex items-start gap-2 text-amber-900 dark:text-amber-100">
+              <div className="bg-warning/10 border border-warning/30 rounded-md p-3 flex items-start gap-2 text-warning dark:text-warning">
                 <Sparkles className="h-4 w-4 mt-0.5 shrink-0" />
                 <div className="text-sm">
                   <div className="font-semibold">Peak season — {peakLabel}</div>
@@ -580,8 +580,8 @@ export function QuotationBuilder({
                   {effDiscountAmount > 0 && (
                     <Input value={discountReason} onChange={(e) => setDiscountReason(e.target.value)} placeholder={requireReason ? "Reason for discount (required)" : "Reason for discount"} />
                   )}
-                  {discountOverLimit && <div className="text-xs text-rose-600">Discount exceeds your limit ({myMax}%). Request super admin approval.</div>}
-                  {reasonMissing && <div className="text-xs text-rose-600">Reason is required when a discount is applied.</div>}
+                  {discountOverLimit && <div className="text-xs text-destructive">Discount exceeds your limit ({myMax}%). Request super admin approval.</div>}
+                  {reasonMissing && <div className="text-xs text-destructive">Reason is required when a discount is applied.</div>}
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center gap-2">
@@ -636,7 +636,7 @@ export function QuotationBuilder({
                     {gstApplied && <div className="flex justify-between text-muted-foreground"><span>GST ({gstPercent}%)</span><span>{formatINR(gstAmount)}</span></div>}
                     <div className="flex justify-between font-semibold text-base pt-1 border-t mt-1"><span>Total</span><span>{formatINR(total)}</span></div>
                   </div>
-                  <div className="m-3 p-3 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100 text-sm">
+                  <div className="m-3 p-3 rounded-md bg-success/10 dark:bg-success/30 border border-success dark:border-success text-success dark:text-success text-sm">
                     <div className="font-semibold flex items-center gap-1"><Check className="h-4 w-4" /> Ready to confirm?</div>
                     <div className="text-xs mt-1 opacity-90">Reply "AGREED" on WhatsApp{company?.wa_number ? ` to ${company.wa_number}` : ""} to lock the date.</div>
                   </div>
@@ -648,7 +648,7 @@ export function QuotationBuilder({
                 </div>
 
                 <div className="grid grid-cols-4 gap-2">
-                  <Button onClick={sendViaWhatsApp} disabled={!!sending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Button onClick={sendViaWhatsApp} disabled={!!sending} className="bg-success hover:bg-success text-white">
                     <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
                   </Button>
                   <Button variant="outline" onClick={sendViaEmail} disabled={!!sending}>
@@ -695,13 +695,13 @@ function StepProgress({ current }: { current: number }) {
         const done = i < current; const active = i === current;
         return (
           <div key={label} className="flex-1 flex items-center gap-1.5">
-            <div className={`flex items-center gap-1.5 ${active ? "text-foreground" : done ? "text-emerald-600" : "text-muted-foreground"}`}>
-              <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold border ${active ? "bg-primary text-primary-foreground border-primary" : done ? "bg-emerald-600 text-white border-emerald-600" : "bg-muted border-border"}`}>
+            <div className={`flex items-center gap-1.5 ${active ? "text-foreground" : done ? "text-success" : "text-muted-foreground"}`}>
+              <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold border ${active ? "bg-primary text-primary-foreground border-primary" : done ? "bg-success text-white border-success" : "bg-muted border-border"}`}>
                 {done ? <Check className="h-3 w-3" /> : i + 1}
               </div>
               <span className="text-[11px] font-medium hidden sm:inline">{label}</span>
             </div>
-            {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 ${done ? "bg-emerald-600" : "bg-border"}`} />}
+            {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 ${done ? "bg-success" : "bg-border"}`} />}
           </div>
         );
       })}
