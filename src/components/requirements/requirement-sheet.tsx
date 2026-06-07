@@ -83,6 +83,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
   const [countingOthers, setCountingOthers] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentReqId, setCurrentReqId] = useState<string | null>(requirementId ?? null);
+  const [leadEmail, setLeadEmail] = useState("");
 
   useAutosaveDraft(draftKey, { form, isMandapam, selectedAddons }, open && !requirementId);
 
@@ -91,11 +92,15 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
     if (!open) return;
     setLoading(true);
     (async () => {
-      const { data: co } = await supabase
-        .from("companies")
-        .select("is_mandapam, sessions, event_types, addons_catalog")
-        .eq("id", companyId)
-        .maybeSingle();
+      const [{ data: co }, { data: leadRow }] = await Promise.all([
+        supabase
+          .from("companies")
+          .select("is_mandapam, sessions, event_types, addons_catalog")
+          .eq("id", companyId)
+          .maybeSingle(),
+        supabase.from("leads").select("email").eq("id", leadId).maybeSingle(),
+      ]);
+      setLeadEmail(((leadRow as any)?.email ?? "") as string);
       const c: any = co ?? {};
       setIsMandapam(!!c.is_mandapam);
       setSessions(Array.isArray(c.sessions) ? c.sessions : []);
