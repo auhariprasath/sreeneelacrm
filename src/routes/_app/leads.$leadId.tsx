@@ -530,8 +530,8 @@ function LeadProfile() {
                   const showPaymentCard = approved && !hasBooking && invoiceSent;
                   const openBuilder = () => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); };
 
-                  const handleGenerateInvoice = async (e: React.MouseEvent) => {
-                    e.stopPropagation();
+                  const handleGenerateInvoice = async (e?: { stopPropagation?: () => void }) => {
+                    e?.stopPropagation?.();
                     setGeneratingInvoiceFor(q.id);
                     try {
                       const res = await generateInvoiceForQuotation(q.id, profile?.id ?? null);
@@ -541,8 +541,8 @@ function LeadProfile() {
                     } finally { setGeneratingInvoiceFor(null); }
                   };
 
-                  const handleSendInvoice = async (e: React.MouseEvent) => {
-                    e.stopPropagation();
+                  const handleSendInvoice = async (e?: { stopPropagation?: () => void }) => {
+                    e?.stopPropagation?.();
                     const lead = await supabase.from("leads").select("phone,full_name").eq("id", leadId).maybeSingle();
                     const phone = lead.data?.phone;
                     if (!phone) { toast.error("Lead has no phone number"); return; }
