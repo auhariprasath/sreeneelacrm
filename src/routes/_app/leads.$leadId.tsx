@@ -37,6 +37,8 @@ import { PaymentCredentialsDialog } from "@/components/leads/payment-credentials
 import { MeetingSchedulerDialog } from "@/components/leads/meeting-scheduler-dialog";
 import { BookingTasksList } from "@/components/tasks/booking-tasks-list";
 import { BookingAssignedTo } from "@/components/bookings/booking-assigned-to";
+import { CoordinatorAssign } from "@/components/bookings/coordinator-assign";
+import { CoordinationProgress } from "@/components/bookings/coordination-progress";
 import { SourcesTab } from "@/components/leads/sources-tab";
 import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
 import type { Database } from "@/integrations/supabase/types";
@@ -725,6 +727,24 @@ function LeadProfile() {
                           assignedTo={(b as any).assigned_to ?? null}
                           onChanged={loadBookings}
                         />
+                      )}
+                      {b.status !== "cancelled" && (
+                        <CoordinationProgress bookingId={b.id} />
+                      )}
+                      {b.status !== "cancelled" && b.status !== "completed" && (
+                        <div className="flex flex-wrap gap-1.5">
+                          <CoordinatorAssign
+                            bookingId={b.id}
+                            companyId={b.company_id}
+                            leadName={lead.full_name}
+                            leadPhone={lead.phone}
+                            eventType={(lead as any).event_type ?? null}
+                            eventDate={b.event_date}
+                            startTime={b.start_time}
+                            venue={b.venue}
+                            onAssigned={loadBookings}
+                          />
+                        </div>
                       )}
                       {pending.length > 0 && (
                         <div className="border-t pt-2 space-y-1">

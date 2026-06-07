@@ -20,6 +20,8 @@ import { Route as QuotationTokenRouteImport } from './routes/quotation.$token'
 import { Route as PaymentTokenRouteImport } from './routes/payment.$token'
 import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
 import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
+import { Route as EventStatusTokenRouteImport } from './routes/event-status.$token'
+import { Route as CoordinateTokenRouteImport } from './routes/coordinate.$token'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppStaleLeadsRouteImport } from './routes/_app/stale-leads'
@@ -103,6 +105,16 @@ const InvoiceTokenRoute = InvoiceTokenRouteImport.update({
 const FeedbackBookingIdRoute = FeedbackBookingIdRouteImport.update({
   id: '/feedback/$bookingId',
   path: '/feedback/$bookingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventStatusTokenRoute = EventStatusTokenRouteImport.update({
+  id: '/event-status/$token',
+  path: '/event-status/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoordinateTokenRoute = CoordinateTokenRouteImport.update({
+  id: '/coordinate/$token',
+  path: '/coordinate/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppTransfersRoute = AppTransfersRouteImport.update({
@@ -288,6 +300,8 @@ export interface FileRoutesByFullPath {
   '/stale-leads': typeof AppStaleLeadsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
+  '/coordinate/$token': typeof CoordinateTokenRoute
+  '/event-status/$token': typeof EventStatusTokenRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/payment/$token': typeof PaymentTokenRoute
@@ -329,6 +343,8 @@ export interface FileRoutesByTo {
   '/stale-leads': typeof AppStaleLeadsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
+  '/coordinate/$token': typeof CoordinateTokenRoute
+  '/event-status/$token': typeof EventStatusTokenRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/payment/$token': typeof PaymentTokenRoute
@@ -373,6 +389,8 @@ export interface FileRoutesById {
   '/_app/stale-leads': typeof AppStaleLeadsRoute
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
+  '/coordinate/$token': typeof CoordinateTokenRoute
+  '/event-status/$token': typeof EventStatusTokenRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/payment/$token': typeof PaymentTokenRoute
@@ -417,6 +435,8 @@ export interface FileRouteTypes {
     | '/stale-leads'
     | '/tasks'
     | '/transfers'
+    | '/coordinate/$token'
+    | '/event-status/$token'
     | '/feedback/$bookingId'
     | '/invoice/$token'
     | '/payment/$token'
@@ -458,6 +478,8 @@ export interface FileRouteTypes {
     | '/stale-leads'
     | '/tasks'
     | '/transfers'
+    | '/coordinate/$token'
+    | '/event-status/$token'
     | '/feedback/$bookingId'
     | '/invoice/$token'
     | '/payment/$token'
@@ -501,6 +523,8 @@ export interface FileRouteTypes {
     | '/_app/stale-leads'
     | '/_app/tasks'
     | '/_app/transfers'
+    | '/coordinate/$token'
+    | '/event-status/$token'
     | '/feedback/$bookingId'
     | '/invoice/$token'
     | '/payment/$token'
@@ -528,6 +552,8 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  CoordinateTokenRoute: typeof CoordinateTokenRoute
+  EventStatusTokenRoute: typeof EventStatusTokenRoute
   FeedbackBookingIdRoute: typeof FeedbackBookingIdRoute
   InvoiceTokenRoute: typeof InvoiceTokenRoute
   PaymentTokenRoute: typeof PaymentTokenRoute
@@ -620,6 +646,20 @@ declare module '@tanstack/react-router' {
       path: '/feedback/$bookingId'
       fullPath: '/feedback/$bookingId'
       preLoaderRoute: typeof FeedbackBookingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/event-status/$token': {
+      id: '/event-status/$token'
+      path: '/event-status/$token'
+      fullPath: '/event-status/$token'
+      preLoaderRoute: typeof EventStatusTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coordinate/$token': {
+      id: '/coordinate/$token'
+      path: '/coordinate/$token'
+      fullPath: '/coordinate/$token'
+      preLoaderRoute: typeof CoordinateTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/transfers': {
@@ -914,6 +954,8 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  CoordinateTokenRoute: CoordinateTokenRoute,
+  EventStatusTokenRoute: EventStatusTokenRoute,
   FeedbackBookingIdRoute: FeedbackBookingIdRoute,
   InvoiceTokenRoute: InvoiceTokenRoute,
   PaymentTokenRoute: PaymentTokenRoute,

@@ -798,6 +798,94 @@ export type Database = {
           },
         ]
       }
+      event_coordination: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          booking_id: string
+          client_status_token: string
+          company_id: string
+          coordinator_id: string
+          coordinator_token: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          booking_id: string
+          client_status_token?: string
+          company_id: string
+          coordinator_id: string
+          coordinator_token?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          booking_id?: string
+          client_status_token?: string
+          company_id?: string
+          coordinator_id?: string
+          coordinator_token?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_coordination_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_coordination_updates: {
+        Row: {
+          booking_id: string
+          company_id: string
+          coordination_id: string
+          id: string
+          stage: Database["public"]["Enums"]["coordination_stage"]
+          updated_at: string
+          updated_by: string | null
+          updated_via: string
+        }
+        Insert: {
+          booking_id: string
+          company_id: string
+          coordination_id: string
+          id?: string
+          stage: Database["public"]["Enums"]["coordination_stage"]
+          updated_at?: string
+          updated_by?: string | null
+          updated_via?: string
+        }
+        Update: {
+          booking_id?: string
+          company_id?: string
+          coordination_id?: string
+          id?: string
+          stage?: Database["public"]["Enums"]["coordination_stage"]
+          updated_at?: string
+          updated_by?: string | null
+          updated_via?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_coordination_updates_coordination_id_fkey"
+            columns: ["coordination_id"]
+            isOneToOne: false
+            referencedRelation: "event_coordination"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_day_logs: {
         Row: {
           assigned_to: string | null
@@ -2049,6 +2137,13 @@ export type Database = {
       campaign_lead_status: "pending" | "sent" | "delivered" | "failed"
       campaign_status: "draft" | "sent" | "completed"
       company_type: "garden" | "banquet" | "party" | "mandapam"
+      coordination_stage:
+        | "coordinator_assigned"
+        | "requirements_reviewed"
+        | "preparations_started"
+        | "venue_ready"
+        | "event_started"
+        | "event_completed"
       event_day_log_type:
         | "amendment"
         | "complaint"
@@ -2284,6 +2379,14 @@ export const Constants = {
       campaign_lead_status: ["pending", "sent", "delivered", "failed"],
       campaign_status: ["draft", "sent", "completed"],
       company_type: ["garden", "banquet", "party", "mandapam"],
+      coordination_stage: [
+        "coordinator_assigned",
+        "requirements_reviewed",
+        "preparations_started",
+        "venue_ready",
+        "event_started",
+        "event_completed",
+      ],
       event_day_log_type: [
         "amendment",
         "complaint",
