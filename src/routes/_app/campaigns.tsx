@@ -163,8 +163,8 @@ function CampaignCard({ c, canManage, onSend, onChanged }: { c: CampaignRow; can
 
   const statusColor: Record<string, string> = {
     draft: "bg-muted text-foreground",
-    sending: "bg-amber-500 text-white",
-    completed: "bg-emerald-600 text-white",
+    sending: "bg-warning text-white",
+    completed: "bg-success text-white",
     cancelled: "bg-muted text-muted-foreground",
   };
 

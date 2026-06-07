@@ -81,7 +81,7 @@ export function EventCompleteDialog({ open, onOpenChange, booking, leadId, leadP
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Mark event complete
+            <CheckCircle2 className="h-5 w-5 text-success" /> Mark event complete
           </DialogTitle>
           <DialogDescription>
             Confirm the event happened. Feedback request and re-engagement will be scheduled automatically.
@@ -102,7 +102,7 @@ export function EventCompleteDialog({ open, onOpenChange, booking, leadId, leadP
               <a
                 href={buildWaMeLink(leadPhone, `Thanks for choosing us! We'd love your feedback: ${feedbackUrl}`) ?? undefined}
                 target="_blank" rel="noreferrer"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-emerald-600 px-3 text-sm text-white hover:bg-emerald-700 w-full"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-success px-3 text-sm text-white hover:bg-success w-full"
               >
                 Send via WhatsApp
               </a>
@@ -115,18 +115,18 @@ export function EventCompleteDialog({ open, onOpenChange, booking, leadId, leadP
               <div className="rounded-md border bg-muted/40 p-2 text-xs space-y-1">
                 <div><span className="text-muted-foreground">Event date:</span> <span className="font-medium">{formatDateIN(booking.event_date)}</span></div>
                 {booking.venue && <div><span className="text-muted-foreground">Venue:</span> {booking.venue}</div>}
-                <div><span className="text-muted-foreground">Balance due:</span> <span className={balanceDue > 0 ? "font-semibold text-rose-600" : "font-semibold text-emerald-600"}>{formatINR(balanceDue)}</span></div>
+                <div><span className="text-muted-foreground">Balance due:</span> <span className={balanceDue > 0 ? "font-semibold text-destructive" : "font-semibold text-success"}>{formatINR(balanceDue)}</span></div>
               </div>
 
               {beforeEvent && (
-                <div className="flex gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <div className="flex gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs">
+                  <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
                   <span>The event date hasn't arrived yet. Are you sure?</span>
                 </div>
               )}
               {balanceDue > 0 && (
-                <div className="flex gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <div className="flex gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs">
+                  <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
                   <span>Balance of {formatINR(balanceDue)} is still pending. Mark complete anyway?</span>
                 </div>
               )}

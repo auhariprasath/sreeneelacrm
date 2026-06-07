@@ -115,7 +115,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
     <Link to="/stale-leads" className="block">
       <Card className="p-3 flex items-center justify-between hover:bg-accent/40 transition">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <AlertTriangle className="h-4 w-4 text-warning" />
           <div className="text-sm font-medium">Stale leads</div>
         </div>
         <div className="text-lg font-semibold">{data.staleCount}</div>

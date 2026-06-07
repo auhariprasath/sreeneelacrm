@@ -260,7 +260,7 @@ function LeadProfile() {
 
       {/* Locked banner */}
       {lead.status === "locked" && (
-        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 rounded-lg p-3 flex items-start gap-2">
+        <div className="bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-lg p-3 flex items-start gap-2">
           <Lock className="h-4 w-4 mt-0.5 shrink-0" />
           <div className="text-sm">
             <div className="font-medium">Lead locked</div>
@@ -271,7 +271,7 @@ function LeadProfile() {
 
       {/* Rejected transfer banner */}
       {rejectedTransfer && lead.status !== "locked" && (
-        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-200 rounded-lg p-3 flex items-start gap-2">
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive dark:text-destructive rounded-lg p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div className="text-sm">
             <div className="font-medium">Transfer to {rejectedTransfer.to_name} was rejected</div>
@@ -285,7 +285,7 @@ function LeadProfile() {
 
       {/* Flag banner */}
       {lead.is_blacklisted && (
-        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-lg p-3 flex items-start gap-2">
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive dark:text-destructive rounded-lg p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div className="text-sm">
             <div className="font-medium flex items-center">Flagged — do not contact (all companies)<InfoTip tip="flagContact" /></div>
@@ -339,7 +339,7 @@ function LeadProfile() {
               <StatusBadge status={lead.status} />
               <span className="text-[11px] text-muted-foreground">Updated {relativeTime(lead.updated_at)}</span>
               {upcomingFu && (
-                <span className="text-[11px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-full px-2 py-0.5">
+                <span className="text-[11px] bg-warning/15 text-warning dark:text-warning border border-warning/30 rounded-full px-2 py-0.5">
                   Follow-up: {formatDateTimeIN(upcomingFu.scheduled_at)}
                 </span>
               )}
@@ -377,7 +377,7 @@ function LeadProfile() {
                      performed_by: profile?.id ?? null,
                    }).then(() => {});
                  }}
-                 className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-emerald-600 text-white text-sm font-medium">
+                 className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-success text-white text-sm font-medium">
                 <MessageSquare className="h-4 w-4" /> WhatsApp
               </a>
               <Button variant="outline" className="h-11" onClick={() => setFuOpen(true)}>
@@ -396,7 +396,7 @@ function LeadProfile() {
                   <DropdownMenuItem onClick={() => setTrOpen(true)} disabled={lead.status === "locked"}>
                     <ArrowRightLeft className="h-4 w-4 mr-2" /> Move to another team
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setBlOpen(true)} className={lead.is_blacklisted ? "" : "text-rose-600 dark:text-rose-400 focus:text-rose-700"}>
+                  <DropdownMenuItem onClick={() => setBlOpen(true)} className={lead.is_blacklisted ? "" : "text-destructive dark:text-destructive focus:text-destructive"}>
                     {lead.is_blacklisted
                       ? (<><ShieldOff className="h-4 w-4 mr-2" /> Remove flag</>)
                       : (<><ShieldAlert className="h-4 w-4 mr-2" /> Flag — do not contact</>)}
@@ -442,7 +442,7 @@ function LeadProfile() {
               <div className="text-xs font-semibold text-muted-foreground">Outcomes history</div>
               {winLoss.map((w, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
-                  <span className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${w.outcome === "won" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/15 text-rose-700 dark:text-rose-300"}`}>
+                  <span className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${w.outcome === "won" ? "bg-success/15 text-success dark:text-success" : "bg-destructive/15 text-destructive dark:text-destructive"}`}>
                     {w.outcome}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -582,7 +582,7 @@ function LeadProfile() {
                             )}
                           </div>
                           <div className="text-[11px] text-muted-foreground mt-0.5">
-                            {q.is_peak_season && <span className="text-amber-700 dark:text-amber-300">Peak · </span>}
+                            {q.is_peak_season && <span className="text-warning dark:text-warning">Peak · </span>}
                             Updated {relativeTime(q.updated_at)}
                           </div>
                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -592,12 +592,12 @@ function LeadProfile() {
                               </span>
                             )}
                             {((q as any).approved_at || q.agreed_at) && (
-                              <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                              <span className="text-[10px] text-success dark:text-success">
                                 · Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
                               </span>
                             )}
                             {invoiceSent && (
-                              <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                              <span className="text-[10px] text-success dark:text-success">
                                 · Invoice sent {relativeTime(q.invoice_sent_at!)}
                               </span>
                             )}
@@ -625,7 +625,7 @@ function LeadProfile() {
                               size="sm"
                               variant="outline"
                               onClick={() => { setQuoteReqId(q.requirement_id); setEditQuoteId(null); setReviseQuoteId(q.id); setQuoteOpen(true); }}
-                              className="border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                              className="border-warning/50 text-warning dark:text-warning hover:bg-warning/10"
                             >
                               Revise
                             </Button>
@@ -636,7 +636,7 @@ function LeadProfile() {
                                 size="sm"
                                 onClick={handleGenerateInvoice}
                                 disabled={generatingInvoiceFor === q.id}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                className="bg-success hover:bg-success text-white shadow-sm"
                               >
                                 <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
                                 {generatingInvoiceFor === q.id ? "Generating…" : "Generate invoice"}
@@ -646,7 +646,7 @@ function LeadProfile() {
                               </Button>
                             </>
                           ) : showSendInvoice ? (
-                            <Button size="sm" onClick={handleSendInvoice} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                            <Button size="sm" onClick={handleSendInvoice} className="bg-success hover:bg-success text-white">
                               <Send className="h-3.5 w-3.5 mr-1" /> Send invoice
                             </Button>
                           ) : !invoiceGenerated ? (
@@ -700,15 +700,15 @@ function LeadProfile() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                             {formatDateIN(b.event_date)}
                             {b.start_time && ` · ${formatTimeOfDay(b.start_time)}`}
-                            <span className={`text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 ${b.status === "confirmed" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : b.status === "cheque_pending" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : b.status === "cancelled" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300" : "bg-muted text-muted-foreground"}`}>
+                            <span className={`text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 ${b.status === "confirmed" ? "bg-success/15 text-success dark:text-success" : b.status === "cheque_pending" ? "bg-warning/15 text-warning dark:text-warning" : b.status === "cancelled" ? "bg-destructive/15 text-destructive dark:text-destructive" : "bg-muted text-muted-foreground"}`}>
                               {b.status.replace("_", " ")}
                             </span>
                           </div>
                           {rescheduled && (
-                            <div className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
+                            <div className="text-[11px] text-warning dark:text-warning mt-0.5">
                               Rescheduled from {formatDateIN(b.rescheduled_from_date)} → {formatDateIN(b.event_date)}
                             </div>
                           )}
@@ -717,8 +717,8 @@ function LeadProfile() {
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div><div className="text-muted-foreground">Total</div><div className="font-semibold">{formatINR(Number(b.total_amount))}</div></div>
-                        <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(Number(b.amount_paid))}</div></div>
-                        <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-rose-700 dark:text-rose-400">{formatINR(Number(b.balance_due))}</div></div>
+                        <div><div className="text-muted-foreground">Paid</div><div className="font-semibold text-success dark:text-success">{formatINR(Number(b.amount_paid))}</div></div>
+                        <div><div className="text-muted-foreground">Due</div><div className="font-semibold text-destructive dark:text-destructive">{formatINR(Number(b.balance_due))}</div></div>
                       </div>
                       {b.status !== "cancelled" && (
                         <BookingAssignedTo
@@ -791,7 +791,7 @@ function LeadProfile() {
                           <Button size="sm" variant="outline" className="h-8" onClick={() => setReschedBooking(b)}>
                             <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
                           </Button>
-                          <Button size="sm" className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => setCompleteBooking(b)}>
+                          <Button size="sm" className="h-8 bg-success hover:bg-success text-white" onClick={() => setCompleteBooking(b)}>
                             <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Mark complete
                           </Button>
                           <DropdownMenu>
@@ -803,7 +803,7 @@ function LeadProfile() {
                             <DropdownMenuContent align="end" className="w-48">
                               <DropdownMenuItem
                                 onClick={() => setCancelBooking(b)}
-                                className="text-rose-600 dark:text-rose-400 focus:text-rose-700"
+                                className="text-destructive dark:text-destructive focus:text-destructive"
                               >
                                 <XCircle className="h-4 w-4 mr-2" /> Cancel booking
                               </DropdownMenuItem>
@@ -862,7 +862,7 @@ function LeadProfile() {
                   <div className="min-w-0">
                     <div className="text-sm font-medium">{formatDateTimeIN(f.scheduled_at)}</div>
                     {f.note && <div className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{f.note}</div>}
-                    {f.is_sent && <div className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-1">✓ Done</div>}
+                    {f.is_sent && <div className="text-[11px] text-success dark:text-success mt-1">✓ Done</div>}
                   </div>
                   {!f.is_sent && (
                     <Button size="sm" variant="ghost" onClick={() => markFollowUpDone(f.id)}>Mark done</Button>

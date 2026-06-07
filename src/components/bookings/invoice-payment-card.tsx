@@ -41,14 +41,14 @@ export function InvoicePaymentCard({ quotation, onPaymentReceived, onChanged }: 
   };
 
   return (
-    <div className="bg-amber-500/5 border border-amber-500/30 rounded-md p-3 space-y-3">
+    <div className="bg-warning/5 border border-warning/30 rounded-md p-3 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm">
-          <Clock className="h-3.5 w-3.5 text-amber-600" />
+          <Clock className="h-3.5 w-3.5 text-warning" />
           <span className="font-medium">Invoice {quotation.invoice_number}</span>
           <span className="text-xs text-muted-foreground">· {formatINR(Number(quotation.total))}</span>
         </div>
-        <span className="text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 bg-amber-500/20 text-amber-700 dark:text-amber-300">
+        <span className="text-[10px] uppercase tracking-wide rounded-full px-2 py-0.5 bg-warning/20 text-warning dark:text-warning">
           Payment not yet received
         </span>
       </div>
@@ -75,7 +75,7 @@ export function InvoicePaymentCard({ quotation, onPaymentReceived, onChanged }: 
         <Button
           size="sm"
           onClick={() => onPaymentReceived(quotation.id, method)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="bg-success hover:bg-success text-white"
         >
           <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Payment received
         </Button>

@@ -361,7 +361,7 @@ function CommandCentrePage() {
                         <TableCell className="text-right"><Users className="h-3 w-3 inline mr-1" />{r.refer_count}</TableCell>
                         <TableCell>
                           {r.benefit_sent ? (
-                            <Badge className="bg-emerald-600">Sent {r.benefit_sent_at ? formatDateIN(r.benefit_sent_at) : ""}</Badge>
+                            <Badge className="bg-success">Sent {r.benefit_sent_at ? formatDateIN(r.benefit_sent_at) : ""}</Badge>
                           ) : (
                             <Badge variant="outline">Pending</Badge>
                           )}
@@ -440,7 +440,7 @@ function NotInterestedSection({ rows }: { rows: NotInterestedRow[] }) {
     <>
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2"><Lightbulb className="h-4 w-4 text-amber-500" /> What we're learning</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><Lightbulb className="h-4 w-4 text-warning" /> What we're learning</CardTitle>
           <CardDescription>Plain-language insights from leads that didn't convert</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -469,7 +469,7 @@ function NotInterestedSection({ rows }: { rows: NotInterestedRow[] }) {
             <ul className="space-y-1.5 text-sm border-t pt-3">
               {suggestions.map((s, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-amber-500 shrink-0">•</span>
+                  <span className="text-warning shrink-0">•</span>
                   <span>{s}</span>
                 </li>
               ))}

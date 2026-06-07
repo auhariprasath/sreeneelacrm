@@ -206,7 +206,7 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
               </div>
             </div>
             {!company?.full_address && (
-              <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded p-2">
+              <div className="text-xs text-warning dark:text-warning bg-warning/10 border border-warning/30 rounded p-2">
                 ⚠ Add the full venue address in Settings → Company details for the confirmation message.
               </div>
             )}
@@ -251,7 +251,7 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
             <DialogFooter className="gap-2">
               <Button variant="ghost" onClick={() => setStep("pick")}>Back</Button>
               <Button variant="outline" onClick={() => submit(false)} disabled={saving}>Save without sending</Button>
-              <Button onClick={() => submit(true)} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button onClick={() => submit(true)} disabled={saving} className="bg-success hover:bg-success text-white">
                 <Send className="h-4 w-4 mr-1" /> Send to {leadName}
               </Button>
             </DialogFooter>

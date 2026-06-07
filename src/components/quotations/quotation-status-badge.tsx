@@ -35,19 +35,19 @@ function derive(q: Props["quotation"], expiryDays: number): { label: string; ton
     || (q.status === "sent" && !q.viewed_at && !q.approved_at && !q.agreed_at && ageMs > expiryDays * 86_400_000);
 
   if (isExpired) {
-    return { label: "Expired", tone: "bg-rose-500/15 text-rose-700 dark:text-rose-300" };
+    return { label: "Expired", tone: "bg-destructive/15 text-destructive dark:text-destructive" };
   }
   if (q.status === "agreed" || q.approved_at || q.agreed_at) {
-    return { label: "Approved", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" };
+    return { label: "Approved", tone: "bg-success/15 text-success dark:text-success" };
   }
   if (q.status === "declined") {
-    return { label: "Changes requested", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" };
+    return { label: "Changes requested", tone: "bg-warning/15 text-warning dark:text-warning" };
   }
   if (q.status === "revised") {
     return { label: "Superseded", tone: "bg-slate-500/15 text-slate-600 dark:text-slate-400" };
   }
   if (q.viewed_at) {
-    return { label: "Viewed", tone: "bg-blue-500/15 text-blue-700 dark:text-blue-300" };
+    return { label: "Viewed", tone: "bg-info/15 text-info " };
   }
   if (q.status === "sent" || q.sent_at) {
     return { label: "Sent", tone: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300" };

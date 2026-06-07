@@ -70,7 +70,7 @@ export function BookingConfirmationDialog({ open, onOpenChange, bookingId, onSen
       <DialogContent className="max-w-lg p-0 gap-0 max-h-[90vh] flex flex-col">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Send booking confirmation
+            <CheckCircle2 className="h-4 w-4 text-success" /> Send booking confirmation
           </DialogTitle>
         </DialogHeader>
 

@@ -110,12 +110,12 @@ function CalendarPage() {
               onClick={() => setSelectedDate(iso)}
               className={`relative min-h-[68px] md:min-h-[88px] border rounded-md p-1.5 text-left transition-colors
                 ${inMonth ? "bg-card" : "bg-muted/30 text-muted-foreground"}
-                ${conflict ? "border-rose-500 ring-1 ring-rose-500/60" : ""}
+                ${conflict ? "border-destructive ring-1 ring-destructive/60" : ""}
                 ${isSelected ? "border-primary ring-1 ring-primary" : "hover:border-primary/40"}`}
               title={conflict ? `${counts.confirmed} confirmed bookings on this date` : undefined}
             >
               {conflict && (
-                <span className="absolute top-1 right-1 text-[9px] font-bold text-rose-600 bg-rose-100 dark:bg-rose-950 rounded px-1">
+                <span className="absolute top-1 right-1 text-[9px] font-bold text-destructive bg-destructive dark:bg-destructive rounded px-1">
                   ⚠
                 </span>
               )}
@@ -123,8 +123,8 @@ function CalendarPage() {
                 {date.getDate()}
               </div>
               <div className="mt-1 flex flex-wrap gap-0.5">
-                {counts.confirmed > 0 && <Dot tone={conflict ? "bg-rose-600" : "bg-rose-500"} n={counts.confirmed} />}
-                {counts.enquiry > 0 && <Dot tone="bg-amber-500" n={counts.enquiry} />}
+                {counts.confirmed > 0 && <Dot tone={conflict ? "bg-destructive" : "bg-destructive"} n={counts.confirmed} />}
+                {counts.enquiry > 0 && <Dot tone="bg-warning" n={counts.enquiry} />}
               </div>
             </button>
           );
@@ -173,10 +173,10 @@ function CalendarPage() {
 function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> Confirmed</span>
-      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-500" /> Enquiry</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Confirmed</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning" /> Enquiry</span>
       
-      <span className="inline-flex items-center gap-1.5 text-rose-600"><span>⚠</span> Double booking</span>
+      <span className="inline-flex items-center gap-1.5 text-destructive"><span>⚠</span> Double booking</span>
     </div>
   );
 }
@@ -191,8 +191,8 @@ function Dot({ tone, n }: { tone: string; n: number }) {
 
 function StatusDot({ status }: { status: string }) {
   const tone =
-    status === "confirmed" ? "bg-rose-500"
-    : status === "enquiry" ? "bg-amber-500"
+    status === "confirmed" ? "bg-destructive"
+    : status === "enquiry" ? "bg-warning"
     : "bg-muted-foreground";
   return <span className={`h-2 w-2 rounded-full ${tone}`} />;
 }

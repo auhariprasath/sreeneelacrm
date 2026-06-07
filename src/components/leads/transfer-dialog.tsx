@@ -150,7 +150,7 @@ export function TransferDialog({ open, onOpenChange, leadId, fromCompanyId, perf
 
         {step === 1 && (
           <div className="space-y-3">
-            <div className="bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 rounded-md p-3 flex gap-2 text-xs">
+            <div className="bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-md p-3 flex gap-2 text-xs">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>This lead will be locked from edits until the request is approved or rejected.</span>
             </div>

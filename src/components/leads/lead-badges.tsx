@@ -12,19 +12,19 @@ const STATUS_LABEL = LEAD_STATUS_LABEL;
 
 const STATUS_CLASS: Record<Status, string> = {
   new: "bg-primary/15 text-primary border-primary/30",
-  in_progress: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30",
+  in_progress: "bg-info/15 text-info  border-info/30",
   neutral: "bg-muted text-muted-foreground border-border",
-  positive: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  negative: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+  positive: "bg-success/15 text-success dark:text-success border-success/30",
+  negative: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30",
   closed: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
-  unresponsive: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  unresponsive: "bg-warning/15 text-warning dark:text-warning border-warning/30",
   locked: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30",
 };
 
 const SCORE_CLASS: Record<Score, string> = {
-  hot: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  warm: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  cold: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  hot: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30",
+  warm: "bg-warning/15 text-warning dark:text-warning border-warning/30",
+  cold: "bg-info/15 text-info dark:text-sky-300 border-sky-500/30",
 };
 
 const SOURCE_LABEL: Record<Source, string> = {

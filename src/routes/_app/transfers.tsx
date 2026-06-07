@@ -185,7 +185,7 @@ function TransfersPage() {
                 <div><span className="text-muted-foreground">Reason: </span>{t.reason}</div>
                 <div><span className="text-muted-foreground">Requirement: </span>{t.requirement_summary}</div>
                 {t.rejection_reason && (
-                  <div className="text-rose-700 dark:text-rose-300">
+                  <div className="text-destructive dark:text-destructive">
                     <span className="opacity-80">Rejection note: </span>{t.rejection_reason}
                   </div>
                 )}
@@ -227,10 +227,10 @@ function TransfersPage() {
 
 function StatusPill({ status }: { status: Transfer["status"] }) {
   const map: Record<Transfer["status"], string> = {
-    pending: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-    approved: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-    auto_approved: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-    rejected: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+    pending: "bg-warning/15 text-warning dark:text-warning border-warning/30",
+    approved: "bg-success/15 text-success dark:text-success border-success/30",
+    auto_approved: "bg-success/15 text-success dark:text-success border-success/30",
+    rejected: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30",
   };
   return (
     <span className={`text-[10px] px-2 py-0.5 rounded-full border ${map[status]}`}>

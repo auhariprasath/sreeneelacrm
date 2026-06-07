@@ -103,8 +103,8 @@ function CustomersPage() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="p-3"><div className="text-xs text-muted-foreground">Total customers</div><div className="text-xl font-semibold">{stats.total}</div></Card>
         <Card className="p-3"><div className="text-xs text-muted-foreground">Repeat (2+)</div><div className="text-xl font-semibold">{stats.repeat}</div></Card>
-        <Card className="p-3"><div className="text-xs text-muted-foreground">VIP (3+)</div><div className="text-xl font-semibold inline-flex items-center gap-1">{stats.vip} <Diamond className="h-4 w-4 text-amber-500" /></div></Card>
-        <Card className="p-3"><div className="text-xs text-muted-foreground">Promoters (4★+)</div><div className="text-xl font-semibold inline-flex items-center gap-1">{stats.promoters} <Star className="h-4 w-4 text-emerald-500" /></div></Card>
+        <Card className="p-3"><div className="text-xs text-muted-foreground">VIP (3+)</div><div className="text-xl font-semibold inline-flex items-center gap-1">{stats.vip} <Diamond className="h-4 w-4 text-warning" /></div></Card>
+        <Card className="p-3"><div className="text-xs text-muted-foreground">Promoters (4★+)</div><div className="text-xl font-semibold inline-flex items-center gap-1">{stats.promoters} <Star className="h-4 w-4 text-success" /></div></Card>
         <Card className="p-3"><div className="text-xs text-muted-foreground">Total LTV</div><div className="text-xl font-semibold">{formatINR(stats.ltv)}</div></Card>
       </div>
 
@@ -175,9 +175,9 @@ function CustomersPage() {
                 <TableCell className="text-right font-medium">{formatINR(Number(r.lifetime_value || 0))}</TableCell>
                 <TableCell>
                   <div className="flex gap-1 flex-wrap">
-                    {r.tags.includes("vip") && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 inline-flex items-center gap-0.5"><Diamond className="h-2.5 w-2.5" />VIP</span>}
-                    {r.tags.includes("promoter") && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 inline-flex items-center gap-0.5"><Star className="h-2.5 w-2.5" />Promoter</span>}
-                    {r.tags.includes("returning") && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30 inline-flex items-center gap-0.5"><Repeat className="h-2.5 w-2.5" />Returning</span>}
+                    {r.tags.includes("vip") && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-warning/15 text-warning dark:text-warning border-warning/30 inline-flex items-center gap-0.5"><Diamond className="h-2.5 w-2.5" />VIP</span>}
+                    {r.tags.includes("promoter") && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-success/15 text-success dark:text-success border-success/30 inline-flex items-center gap-0.5"><Star className="h-2.5 w-2.5" />Promoter</span>}
+                    {r.tags.includes("returning") && <span className="text-[10px] px-1.5 py-0.5 rounded border bg-info/15 text-info  border-info/30 inline-flex items-center gap-0.5"><Repeat className="h-2.5 w-2.5" />Returning</span>}
                   </div>
                 </TableCell>
                 <TableCell className="text-sm">{r.last_event_date ? formatDateIN(r.last_event_date) : "—"}</TableCell>

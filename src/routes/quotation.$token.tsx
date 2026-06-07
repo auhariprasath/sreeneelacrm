@@ -144,15 +144,15 @@ function PublicQuotationPage() {
 
         <footer className="p-5 border-t bg-muted/20">
           {isExpired ? (
-            <div className="text-sm text-rose-700 dark:text-rose-300 font-medium">
+            <div className="text-sm text-destructive dark:text-destructive font-medium">
               This quotation has expired. Please contact us for a fresh one.
             </div>
           ) : isAgreed ? (
-            <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 text-sm font-medium">
+            <div className="flex items-center gap-2 text-success dark:text-success text-sm font-medium">
               <CheckCircle2 className="h-5 w-5" /> Approved — thank you! The team will be in touch shortly.
             </div>
           ) : isDeclined ? (
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 text-sm font-medium">
+            <div className="flex items-center gap-2 text-warning dark:text-warning text-sm font-medium">
               <MessageSquare className="h-5 w-5" /> We've shared your requested changes with the team — they'll respond shortly.
             </div>
           ) : showChangesForm ? (
@@ -187,7 +187,7 @@ function PublicQuotationPage() {
               <Button
                 onClick={() => approveMut.mutate()}
                 disabled={approveMut.isPending}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white min-h-12 text-base font-medium"
+                className="bg-success hover:bg-success text-white min-h-12 text-base font-medium"
               >
                 {approveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-5 w-5 mr-1.5" /> Approve</>}
               </Button>

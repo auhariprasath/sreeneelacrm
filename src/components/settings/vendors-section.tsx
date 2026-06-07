@@ -132,7 +132,7 @@ export function VendorsSection({ companyId }: { companyId: string | undefined })
                           onClick={() => setEditing({ ...v } as VendorDraft)} aria-label="Edit">
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-rose-600"
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive"
                           onClick={() => remove(v)} aria-label="Remove">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -141,7 +141,7 @@ export function VendorsSection({ companyId }: { companyId: string | undefined })
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {v.standard_rate != null && <span>Rate: <span className="text-foreground font-medium">{formatINR(Number(v.standard_rate))}</span></span>}
                       <span className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        <Star className="h-3 w-3 fill-warning text-warning" />
                         {v.rating ? Number(v.rating).toFixed(1) : "—"}
                         <span className="text-muted-foreground">({v.rating_count})</span>
                       </span>

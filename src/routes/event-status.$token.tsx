@@ -77,12 +77,12 @@ function EventStatusPage() {
                     <Fragment key={s}>
                       <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
                         <div className={`h-10 w-10 rounded-full flex items-center justify-center border-2
-                          ${done ? "bg-emerald-500 border-emerald-500 text-white" :
+                          ${done ? "bg-success border-success text-white" :
                             isCurrent ? "bg-primary border-primary text-primary-foreground ring-4 ring-primary/25" :
                             "bg-muted border-muted text-muted-foreground"}`}>
                           {done ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                         </div>
-                        <div className={`text-[11px] text-center leading-tight px-1 ${done ? "text-emerald-700 dark:text-emerald-400" : isCurrent ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+                        <div className={`text-[11px] text-center leading-tight px-1 ${done ? "text-success dark:text-success" : isCurrent ? "text-primary font-semibold" : "text-muted-foreground"}`}>
                           {STAGE_META[s].short}
                         </div>
                         {done && (
@@ -90,7 +90,7 @@ function EventStatusPage() {
                         )}
                       </div>
                       {i < STAGE_ORDER.length - 1 && (
-                        <div className={`h-0.5 w-6 mt-[-26px] ${i < lastDoneIdx ? "bg-emerald-500" : "bg-muted"}`} />
+                        <div className={`h-0.5 w-6 mt-[-26px] ${i < lastDoneIdx ? "bg-success" : "bg-muted"}`} />
                       )}
                     </Fragment>
                   );

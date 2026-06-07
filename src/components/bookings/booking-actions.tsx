@@ -193,12 +193,12 @@ export function CancelBookingDialog({ open, onOpenChange, booking, onDone }: Bas
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Cancel booking</DialogTitle></DialogHeader>
         <div className="space-y-3 text-sm">
-          <div className="rounded-md border p-3 bg-amber-500/5 border-amber-500/30">
+          <div className="rounded-md border p-3 bg-warning/5 border-warning/30">
             <div className="text-xs text-muted-foreground">Event in</div>
             <div className="font-semibold">{daysOut} days · {tier.label || "—"}</div>
             <div className="mt-1 grid grid-cols-2 gap-2 text-xs">
               <div><div className="text-muted-foreground">Paid</div><div className="font-semibold">{formatINR(Number(booking.amount_paid))}</div></div>
-              <div><div className="text-muted-foreground">Refund ({tier.percent}%)</div><div className="font-semibold text-emerald-700 dark:text-emerald-400">{formatINR(refundAmount)}</div></div>
+              <div><div className="text-muted-foreground">Refund ({tier.percent}%)</div><div className="font-semibold text-success dark:text-success">{formatINR(refundAmount)}</div></div>
             </div>
           </div>
           <div>

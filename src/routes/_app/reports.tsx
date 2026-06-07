@@ -176,7 +176,7 @@ function ReportsPage() {
                     <div className="text-2xl font-semibold mt-1">{data.conversionPct}%</div>
                     <div className="text-xs text-muted-foreground mt-1">{data.won} won · {data.lost} lost</div>
                   </div>
-                  <Trophy className="h-8 w-8 text-emerald-600" />
+                  <Trophy className="h-8 w-8 text-success" />
                 </div>
               </CardContent></Card>
             </Link>
@@ -187,7 +187,7 @@ function ReportsPage() {
                     <div className="text-xs uppercase text-muted-foreground">Won value</div>
                     <div className="text-2xl font-semibold mt-1">{formatINR(data.wonValue)}</div>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-emerald-600" />
+                  <TrendingUp className="h-8 w-8 text-success" />
                 </div>
               </CardContent></Card>
             </Link>
@@ -198,7 +198,7 @@ function ReportsPage() {
                     <div className="text-xs uppercase text-muted-foreground">Lost value</div>
                     <div className="text-2xl font-semibold mt-1">{formatINR(data.lostValue)}</div>
                   </div>
-                  <TrendingDown className="h-8 w-8 text-rose-600" />
+                  <TrendingDown className="h-8 w-8 text-destructive" />
                 </div>
               </CardContent></Card>
             </Link>
@@ -211,7 +211,7 @@ function ReportsPage() {
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">{data.ratingCount} response{data.ratingCount === 1 ? "" : "s"}</div>
                 </div>
-                <Star className="h-8 w-8 text-amber-500" />
+                <Star className="h-8 w-8 text-warning" />
               </div>
             </CardContent></Card>
           </div>
@@ -243,7 +243,7 @@ function ReportsPage() {
                     <div key={r.stars} className="flex items-center gap-3 text-sm">
                       <span className="w-10 text-muted-foreground">{r.stars}★</span>
                       <div className="flex-1 h-2 rounded bg-muted overflow-hidden">
-                        <div className="h-full bg-amber-500 transition-all" style={{ width: `${pct}%` }} />
+                        <div className="h-full bg-warning transition-all" style={{ width: `${pct}%` }} />
                       </div>
                       <span className="w-10 text-right text-xs text-muted-foreground">{r.count}</span>
                     </div>
@@ -409,10 +409,10 @@ function CallOutcomesReport({ from, to, companyId }: { from: string; to: string;
       <CardContent className="space-y-3">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
           <div className="border rounded-md p-2"><div className="text-muted-foreground">Total</div><div className="text-lg font-semibold">{counts.total}</div></div>
-          <div className="border rounded-md p-2"><div className="text-muted-foreground">Interested</div><div className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">{counts.interested}</div></div>
-          <div className="border rounded-md p-2"><div className="text-muted-foreground">Meetings</div><div className="text-lg font-semibold text-blue-700 dark:text-blue-300">{counts.meeting_scheduled}</div></div>
-          <div className="border rounded-md p-2"><div className="text-muted-foreground">Callbacks</div><div className="text-lg font-semibold text-amber-700 dark:text-amber-300">{counts.callback_requested}</div></div>
-          <div className="border rounded-md p-2"><div className="text-muted-foreground">Not interested</div><div className="text-lg font-semibold text-rose-700 dark:text-rose-300">{counts.not_interested}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Interested</div><div className="text-lg font-semibold text-success dark:text-success">{counts.interested}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Meetings</div><div className="text-lg font-semibold text-info ">{counts.meeting_scheduled}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Callbacks</div><div className="text-lg font-semibold text-warning dark:text-warning">{counts.callback_requested}</div></div>
+          <div className="border rounded-md p-2"><div className="text-muted-foreground">Not interested</div><div className="text-lg font-semibold text-destructive dark:text-destructive">{counts.not_interested}</div></div>
         </div>
         <div className="flex gap-2 flex-wrap text-xs">
           {(["all","interested","meeting_scheduled","callback_requested","other","not_interested"]).map((k) => (

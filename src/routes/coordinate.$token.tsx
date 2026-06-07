@@ -82,7 +82,7 @@ function CoordinatePage() {
                 onClick={() => tap(s)}
                 disabled={done || !isNext || saving !== null}
                 className={`w-full min-h-[72px] rounded-lg border-2 p-4 flex items-center gap-3 text-left transition-all
-                  ${done ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300" :
+                  ${done ? "bg-success/10 border-success/40 text-success dark:text-success" :
                     isNext ? "bg-primary border-primary text-primary-foreground hover:opacity-90" :
                     "bg-muted/40 border-muted text-muted-foreground"}`}
               >
