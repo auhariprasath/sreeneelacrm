@@ -39,7 +39,10 @@ type CompanyFormData = Record<string, CompanyDataValue | undefined>;
 
 const COMPANY_TYPE_VALUES = new Set<string>(COMPANY_TYPES.map((type) => type.value));
 
-function normalizeCompanyType(value: unknown): { type: CompanyTypeValue; customType: string | null } {
+function normalizeCompanyType(value: unknown): {
+  type: CompanyTypeValue;
+  customType: string | null;
+} {
   const raw = String(value ?? "").trim();
   const normalized = raw
     .toLowerCase()
@@ -55,7 +58,9 @@ function normalizeCompanyType(value: unknown): { type: CompanyTypeValue; customT
     mandapam: "mandapam",
     other: "other",
   };
-  const mapped = aliases[normalized] ?? (COMPANY_TYPE_VALUES.has(normalized) ? (normalized as CompanyTypeValue) : "other");
+  const mapped =
+    aliases[normalized] ??
+    (COMPANY_TYPE_VALUES.has(normalized) ? (normalized as CompanyTypeValue) : "other");
   return {
     type: mapped,
     customType: mapped === "other" && normalized !== "other" ? raw || null : null,
@@ -63,7 +68,7 @@ function normalizeCompanyType(value: unknown): { type: CompanyTypeValue; customT
 }
 
 function fieldValue(value: CompanyDataValue | undefined): string | number {
-  return typeof value === "boolean" ? "" : value ?? "";
+  return typeof value === "boolean" ? "" : (value ?? "");
 }
 
 interface Props {
@@ -109,12 +114,17 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
         const normalized = normalizeCompanyType(v);
         patch[f.key] = normalized.type;
         patch.custom_type =
-          normalized.type === "other" ? String(data.custom_type || normalized.customType || "").trim() || null : null;
+          normalized.type === "other"
+            ? String(data.custom_type || normalized.customType || "").trim() || null
+            : null;
         return;
       }
       patch[f.key] = v ?? null;
     });
-    const { error } = await supabase.from("companies").update(patch as never).eq("id", companyId);
+    const { error } = await supabase
+      .from("companies")
+      .update(patch as never)
+      .eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Saved ✓");
@@ -126,7 +136,10 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
         const span = f.fullWidth || f.type === "textarea" ? "md:col-span-2" : "";
         if (f.type === "switch") {
           return (
-            <div key={f.key} className={`flex items-start justify-between gap-4 border rounded-md p-3 ${span}`}>
+            <div
+              key={f.key}
+              className={`flex items-start justify-between gap-4 border rounded-md p-3 ${span}`}
+            >
               <div className="space-y-0.5 min-w-0">
                 <Label>{f.label}</Label>
                 {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
@@ -142,12 +155,22 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
               <Label>{f.label}</Label>
               <Select
                 value={normalized.type}
-                onValueChange={(v) => setData({ ...data, [f.key]: v, custom_type: v === "other" ? data.custom_type : null })}
+                onValueChange={(v) =>
+                  setData({
+                    ...data,
+                    [f.key]: v,
+                    custom_type: v === "other" ? data.custom_type : null,
+                  })
+                }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {COMPANY_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
