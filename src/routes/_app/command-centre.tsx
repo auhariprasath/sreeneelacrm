@@ -155,7 +155,7 @@ function CommandCentrePage() {
         return { ...l, full_name: p?.full_name ?? "—", email: p?.email ?? "—" };
       }));
 
-      const allLeads = (allLeadsRes.data ?? []) as Array<{ id: string; full_name: string; referred_by_lead_id: string | null }>;
+      const allLeads = (allLeadsRes.data ?? []) as Array<{ id: string; full_name: string; referred_by_lead_id: string | null; company_id: string | null }>;
       const leadById = new Map(allLeads.map((l) => [l.id, l.full_name]));
       const refCount = new Map<string, number>();
       allLeads.forEach((l) => {
