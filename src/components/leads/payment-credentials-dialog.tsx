@@ -56,7 +56,7 @@ Thank you!`;
   const send = async () => {
     const url = buildWaMeLink(leadPhone, rzpLink ? `${message}\n\nPay online: ${rzpLink}` : message);
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.open(url, "_blank", "noopener");
+    window.location.href = url;
     await supabase.from("activity_logs").insert({
       lead_id: leadId,
       action: rzpLink ? "Payment credentials + Razorpay link sent" : "Payment credentials sent",
