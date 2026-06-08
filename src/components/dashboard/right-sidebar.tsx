@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Phone, ListTodo, FileText, AlertCircle, AlertTriangle } from "lucide-react";
+import { Phone, ListTodo, FileText, AlertCircle, AlertTriangle, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,13 +14,22 @@ interface Data {
   tasks: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string | null }>;
   quotations: Array<{ id: string; lead_id: string; quotation_number: string; total: number }>;
   overdue: Array<{ id: string; booking_id: string; lead_id: string | null; title: string; due_at: string }>;
+  upcomingMeetings: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
+  overdueMeetings: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
   staleCount: number;
+}
+
+function meetingDateTime(date: string, time: string) {
+  // Build a local ISO-like string for consistent display
+  return `${date}T${time}`;
 }
 
 async function load(companyId?: string | null): Promise<Data> {
   const nowIso = new Date().toISOString();
+  const today = new Date().toISOString().slice(0, 10);
   const in3d = new Date(Date.now() + 3 * 86400_000).toISOString();
   const in14d = new Date(Date.now() + 14 * 86400_000).toISOString();
+  const in14dDate = new Date(Date.now() + 14 * 86400_000).toISOString().slice(0, 10);
 
   let followUpsQuery = supabase.from("follow_ups")
     .select("id, lead_id, scheduled_at, leads!inner(full_name, company_id)")
@@ -39,6 +48,14 @@ async function load(companyId?: string | null): Promise<Data> {
     .select("id, booking_id, title, due_at, company_id, bookings(lead_id)")
     .is("deleted_at", null).neq("status", "done")
     .lt("due_at", nowIso).order("due_at", { ascending: true }).limit(15);
+  let meetingsQuery = supabase.from("venue_meetings")
+    .select("id, lead_id, scheduled_date, scheduled_time, company_id, leads!inner(full_name)")
+    .is("deleted_at", null)
+    .in("status", ["scheduled", "reminder_sent", "rescheduled"])
+    .lte("scheduled_date", in14dDate)
+    .order("scheduled_date", { ascending: true })
+    .order("scheduled_time", { ascending: true })
+    .limit(60);
   let companiesQuery = supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null);
 
   if (companyId) {
@@ -46,14 +63,16 @@ async function load(companyId?: string | null): Promise<Data> {
     tasksQuery = tasksQuery.eq("company_id", companyId);
     quotationsQuery = quotationsQuery.eq("company_id", companyId);
     overdueQuery = overdueQuery.eq("company_id", companyId);
+    meetingsQuery = meetingsQuery.eq("company_id", companyId);
     companiesQuery = companiesQuery.eq("id", companyId);
   }
 
-  const [followUps, tasksRes, quots, overdueRes, companiesRes] = await Promise.all([
+  const [followUps, tasksRes, quots, overdueRes, meetingsRes, companiesRes] = await Promise.all([
     followUpsQuery,
     tasksQuery,
     quotationsQuery,
     overdueQuery,
+    meetingsQuery,
     companiesQuery,
   ]);
 
@@ -86,6 +105,12 @@ async function load(companyId?: string | null): Promise<Data> {
   const allFollowUps = ((followUps.data ?? []) as any[]).map((f) => ({
     id: f.id, lead_id: f.lead_id, full_name: f.leads?.full_name ?? "—", scheduled_at: f.scheduled_at,
   }));
+  const allMeetings = ((meetingsRes.data ?? []) as any[]).map((m) => ({
+    id: m.id,
+    lead_id: m.lead_id,
+    full_name: m.leads?.full_name ?? "—",
+    scheduled_at: meetingDateTime(m.scheduled_date, m.scheduled_time),
+  }));
   const nowMsLocal = Date.now();
   return {
     callBacks: allFollowUps.filter((f) => new Date(f.scheduled_at).getTime() >= nowMsLocal),
@@ -97,20 +122,45 @@ async function load(companyId?: string | null): Promise<Data> {
     overdue: ((overdueRes.data ?? []) as any[]).map((t) => ({
       id: t.id, booking_id: t.booking_id, lead_id: t.bookings?.lead_id ?? null, title: t.title, due_at: t.due_at,
     })),
+    upcomingMeetings: allMeetings.filter((m) => new Date(m.scheduled_at).getTime() >= nowMsLocal),
+    overdueMeetings: allMeetings.filter((m) => new Date(m.scheduled_at).getTime() < nowMsLocal),
     staleCount,
   };
 }
 
-function Section({ icon: Icon, title, count, children }: { icon: any; title: string; count: number; children: React.ReactNode }) {
+function SectionCard({
+  icon: Icon,
+  title,
+  count,
+  to,
+  search,
+  children,
+  className,
+  iconClassName,
+  badge,
+}: {
+  icon: any;
+  title: string;
+  count: number;
+  to: string;
+  search?: Record<string, string>;
+  children: React.ReactNode;
+  className?: string;
+  iconClassName?: string;
+  badge?: React.ReactNode;
+}) {
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          {title}
-        </CardTitle>
-        <span className="text-xs text-muted-foreground">{count}</span>
-      </CardHeader>
+    <Card className={className ?? "h-full"}>
+      <Link to={to as any} search={search as any} className="block">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 hover:bg-accent/40 transition rounded-t-xl cursor-pointer">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Icon className={`h-4 w-4 ${iconClassName ?? "text-muted-foreground"}`} />
+            {title}
+            {badge}
+          </CardTitle>
+          <span className="text-xs text-muted-foreground">{count}</span>
+        </CardHeader>
+      </Link>
       <CardContent className="p-0">{children}</CardContent>
     </Card>
   );
@@ -122,9 +172,9 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   const [d, setD] = useState<Data | null>(null);
   const refresh = () => load(companyId).then(setD);
   useEffect(() => { refresh(); }, [companyId]);
-  useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
+  useDashboardRealtime(["follow_ups", "tasks", "quotations", "venue_meetings"], refresh);
 
-  const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
+  const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], upcomingMeetings: [], overdueMeetings: [], staleCount: 0 };
 
   const rowCls = "px-3 py-2 text-sm flex items-center justify-between gap-2 hover:bg-accent/40 transition cursor-pointer";
 
@@ -141,7 +191,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
   );
 
   const callBacks = (
-    <Section icon={Phone} title="Upcoming Follow-ups" count={data.callBacks.length}>
+    <SectionCard icon={Phone} title="Upcoming Follow-ups" count={data.callBacks.length} to="/follow-ups" search={{ filter: "upcoming" }}>
       {data.callBacks.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None scheduled</div>
       ) : (
@@ -161,47 +211,105 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
         </ul>
         </ScrollArea>
       )}
-    </Section>
+    </SectionCard>
   );
 
   const overdueFollowUps = (
-    <Card className={data.overdueFollowUps.length > 0 ? "h-full border-destructive/60 ring-2 ring-destructive/40 animate-pulse" : "h-full"}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <AlertCircle className={`h-4 w-4 ${data.overdueFollowUps.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
-          Overdue Follow-ups
-          {data.overdueFollowUps.length > 0 && (
-            <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">Needs action</span>
-          )}
-        </CardTitle>
-        <span className="text-xs text-muted-foreground">{data.overdueFollowUps.length}</span>
-      </CardHeader>
-      <CardContent className="p-0">
-        {data.overdueFollowUps.length === 0 ? (
-          <div className="text-xs text-muted-foreground p-3">None</div>
-        ) : (
-          <ScrollArea className="max-h-[312px]">
-            <ul className="divide-y">
-              {data.overdueFollowUps.map((c) => (
-                <li key={c.id}>
-                  <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className={rowCls}>
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{c.full_name}</div>
-                      <div className="text-[11px] text-destructive font-medium">Overdue {formatDateTimeIN(c.scheduled_at)}</div>
-                    </div>
-                    <span className="text-xs text-destructive underline shrink-0">Action</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
+    <SectionCard
+      icon={AlertCircle}
+      title="Overdue Follow-ups"
+      count={data.overdueFollowUps.length}
+      to="/follow-ups"
+      search={{ filter: "overdue" }}
+      className={data.overdueFollowUps.length > 0 ? "h-full border-destructive/60 ring-2 ring-destructive/40 animate-pulse" : "h-full"}
+      iconClassName={data.overdueFollowUps.length > 0 ? "text-destructive" : "text-muted-foreground"}
+      badge={data.overdueFollowUps.length > 0 ? (
+        <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">Needs action</span>
+      ) : null}
+    >
+      {data.overdueFollowUps.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None</div>
+      ) : (
+        <ScrollArea className="max-h-[312px]">
+          <ul className="divide-y">
+            {data.overdueFollowUps.map((c) => (
+              <li key={c.id}>
+                <Link to="/leads/$leadId" params={{ leadId: c.lead_id }} className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{c.full_name}</div>
+                    <div className="text-[11px] text-destructive font-medium">Overdue {formatDateTimeIN(c.scheduled_at)}</div>
+                  </div>
+                  <span className="text-xs text-destructive underline shrink-0">Action</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
+      )}
+    </SectionCard>
+  );
+
+  const overdueMeetings = (
+    <SectionCard
+      icon={Building2}
+      title="Overdue Venue Meetings"
+      count={data.overdueMeetings.length}
+      to="/venue-meetings"
+      search={{ filter: "overdue" }}
+      className={data.overdueMeetings.length > 0 ? "h-full border-destructive/60 ring-2 ring-destructive/40 animate-pulse" : "h-full"}
+      iconClassName={data.overdueMeetings.length > 0 ? "text-destructive" : "text-muted-foreground"}
+      badge={data.overdueMeetings.length > 0 ? (
+        <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">Needs action</span>
+      ) : null}
+    >
+      {data.overdueMeetings.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None</div>
+      ) : (
+        <ScrollArea className="max-h-[312px]">
+          <ul className="divide-y">
+            {data.overdueMeetings.map((m) => (
+              <li key={m.id}>
+                <Link to="/leads/$leadId" params={{ leadId: m.lead_id }} className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{m.full_name}</div>
+                    <div className="text-[11px] text-destructive font-medium">Overdue {formatDateTimeIN(m.scheduled_at)}</div>
+                  </div>
+                  <span className="text-xs text-destructive underline shrink-0">Action</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
+      )}
+    </SectionCard>
+  );
+
+  const upcomingMeetings = (
+    <SectionCard icon={Building2} title="Upcoming Venue Meetings" count={data.upcomingMeetings.length} to="/venue-meetings" search={{ filter: "upcoming" }}>
+      {data.upcomingMeetings.length === 0 ? (
+        <div className="text-xs text-muted-foreground p-3">None scheduled</div>
+      ) : (
+        <ScrollArea className="max-h-[312px]">
+          <ul className="divide-y">
+            {data.upcomingMeetings.map((m) => (
+              <li key={m.id}>
+                <Link to="/leads/$leadId" params={{ leadId: m.lead_id }} className={rowCls}>
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{m.full_name}</div>
+                    <div className="text-[11px] text-muted-foreground">{formatDateTimeIN(m.scheduled_at)}</div>
+                  </div>
+                  <span className="text-xs text-primary underline shrink-0">Open</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
+      )}
+    </SectionCard>
   );
 
   const overdue = (
-    <Section icon={AlertCircle} title="Overdue tasks" count={data.overdue.length}>
+    <SectionCard icon={AlertCircle} title="Overdue tasks" count={data.overdue.length} to="/tasks">
       {data.overdue.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None</div>
       ) : (
@@ -230,11 +338,11 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
         </ul>
         </ScrollArea>
       )}
-    </Section>
+    </SectionCard>
   );
 
   const upcoming = (
-    <Section icon={ListTodo} title="Upcoming tasks (3d)" count={data.tasks.length}>
+    <SectionCard icon={ListTodo} title="Upcoming tasks (3d)" count={data.tasks.length} to="/tasks">
       {data.tasks.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None</div>
       ) : (
@@ -263,11 +371,11 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
         </ul>
         </ScrollArea>
       )}
-    </Section>
+    </SectionCard>
   );
 
   const pending = (
-    <Section icon={FileText} title="Pending quotations" count={data.quotations.length}>
+    <SectionCard icon={FileText} title="Pending quotations" count={data.quotations.length} to="/quotations">
       {data.quotations.length === 0 ? (
         <div className="text-xs text-muted-foreground p-3">None</div>
       ) : (
@@ -287,7 +395,7 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
         </ul>
         </ScrollArea>
       )}
-    </Section>
+    </SectionCard>
   );
 
   if (layout === "grid") {
@@ -298,7 +406,9 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {overdueFollowUps}
+          {overdueMeetings}
           {callBacks}
+          {upcomingMeetings}
           {overdue}
           {upcoming}
           {pending}
@@ -311,7 +421,9 @@ export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" }
     <div className="space-y-4">
       {stale}
       {overdueFollowUps}
+      {overdueMeetings}
       {callBacks}
+      {upcomingMeetings}
       {overdue}
       {upcoming}
       {pending}
