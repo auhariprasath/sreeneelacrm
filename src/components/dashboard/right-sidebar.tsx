@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDateIN, formatDateTimeIN, formatINR } from "@/lib/format";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
+import { useAuth } from "@/lib/auth";
 
 interface Data {
   callBacks: Array<{ id: string; lead_id: string; full_name: string; scheduled_at: string }>;
@@ -16,30 +17,44 @@ interface Data {
   staleCount: number;
 }
 
-async function load(): Promise<Data> {
+async function load(companyId?: string | null): Promise<Data> {
   const nowIso = new Date().toISOString();
   const in3d = new Date(Date.now() + 3 * 86400_000).toISOString();
   const in14d = new Date(Date.now() + 14 * 86400_000).toISOString();
 
+  let followUpsQuery = supabase.from("follow_ups")
+    .select("id, lead_id, scheduled_at, leads!inner(full_name, company_id)")
+    .eq("is_sent", false).eq("is_cancelled", false)
+    .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(60);
+  let tasksQuery = supabase.from("tasks")
+    .select("id, booking_id, title, due_at, company_id, bookings(lead_id)")
+    .is("deleted_at", null).neq("status", "done")
+    .gte("due_at", nowIso).lte("due_at", in3d)
+    .order("due_at", { ascending: true }).limit(15);
+  let quotationsQuery = supabase.from("quotations")
+    .select("id, lead_id, quotation_number, total, company_id")
+    .is("deleted_at", null).eq("status", "sent")
+    .order("created_at", { ascending: false }).limit(10);
+  let overdueQuery = supabase.from("tasks")
+    .select("id, booking_id, title, due_at, company_id, bookings(lead_id)")
+    .is("deleted_at", null).neq("status", "done")
+    .lt("due_at", nowIso).order("due_at", { ascending: true }).limit(15);
+  let companiesQuery = supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null);
+
+  if (companyId) {
+    followUpsQuery = followUpsQuery.eq("leads.company_id", companyId);
+    tasksQuery = tasksQuery.eq("company_id", companyId);
+    quotationsQuery = quotationsQuery.eq("company_id", companyId);
+    overdueQuery = overdueQuery.eq("company_id", companyId);
+    companiesQuery = companiesQuery.eq("id", companyId);
+  }
+
   const [followUps, tasksRes, quots, overdueRes, companiesRes] = await Promise.all([
-    supabase.from("follow_ups")
-      .select("id, lead_id, scheduled_at, leads!inner(full_name)")
-      .eq("is_sent", false).eq("is_cancelled", false)
-      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(60),
-    supabase.from("tasks")
-      .select("id, booking_id, title, due_at, bookings(lead_id)")
-      .is("deleted_at", null).neq("status", "done")
-      .gte("due_at", nowIso).lte("due_at", in3d)
-      .order("due_at", { ascending: true }).limit(15),
-    supabase.from("quotations")
-      .select("id, lead_id, quotation_number, total")
-      .is("deleted_at", null).eq("status", "sent")
-      .order("created_at", { ascending: false }).limit(10),
-    supabase.from("tasks")
-      .select("id, booking_id, title, due_at, bookings(lead_id)")
-      .is("deleted_at", null).neq("status", "done")
-      .lt("due_at", nowIso).order("due_at", { ascending: true }).limit(15),
-    supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null),
+    followUpsQuery,
+    tasksQuery,
+    quotationsQuery,
+    overdueQuery,
+    companiesQuery,
   ]);
 
   const statusToKey: Record<string, string> = {
@@ -102,9 +117,11 @@ function Section({ icon: Icon, title, count, children }: { icon: any; title: str
 }
 
 export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" } = {}) {
+  const { role, profile, activeCompanyId, companies } = useAuth();
+  const companyId = role === "super_admin" ? activeCompanyId : (profile?.company_id ?? companies[0]?.id ?? null);
   const [d, setD] = useState<Data | null>(null);
-  const refresh = () => load().then(setD);
-  useEffect(() => { refresh(); }, []);
+  const refresh = () => load(companyId).then(setD);
+  useEffect(() => { refresh(); }, [companyId]);
   useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
   const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
