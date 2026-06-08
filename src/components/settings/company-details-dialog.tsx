@@ -19,12 +19,13 @@ import {
 import { toast } from "sonner";
 import { Loader2, Trash2, Upload } from "lucide-react";
 
-type CompanyType = "banquet" | "garden" | "mandapam" | "party";
+type CompanyType = "garden_venue" | "banquet_hall" | "party_hall" | "mandapam" | "other";
 
 interface Form {
   id: string;
   name: string;
   type: CompanyType;
+  custom_type: string;
   wa_number: string;
   company_phone: string;
   email: string;
@@ -45,7 +46,7 @@ interface Form {
 }
 
 const empty: Form = {
-  id: "", name: "", type: "banquet",
+  id: "", name: "", type: "banquet_hall", custom_type: "",
   wa_number: "", company_phone: "", email: "",
   address: "", full_address: "", google_maps_link: "",
   gstin: "", bank_account: "", ifsc: "", upi_id: "",
@@ -99,7 +100,8 @@ export function CompanyDetailsDialog({
         setForm({
           id: d.id,
           name: d.name ?? "",
-          type: (d.type as CompanyType) ?? "banquet",
+          type: (d.type as CompanyType) ?? "banquet_hall",
+          custom_type: (d as any).custom_type ?? "",
           wa_number: d.wa_number ?? "",
           company_phone: d.company_phone ?? "",
           email: d.email ?? "",
@@ -142,6 +144,7 @@ export function CompanyDetailsDialog({
           id: form.id,
           name: form.name.trim(),
           type: form.type,
+          custom_type: form.type === "other" ? (form.custom_type.trim() || null) : null,
           wa_number: form.wa_number.trim() || null,
           company_phone: form.company_phone.trim() || null,
           email: form.email.trim() || null,
@@ -233,12 +236,21 @@ export function CompanyDetailsDialog({
                   <Select value={form.type} onValueChange={(v) => set("type", v as CompanyType)}>
                     <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="banquet">Banquet</SelectItem>
-                      <SelectItem value="garden">Garden</SelectItem>
+                      <SelectItem value="garden_venue">Garden Venue</SelectItem>
+                      <SelectItem value="banquet_hall">Banquet Hall</SelectItem>
+                      <SelectItem value="party_hall">Party Hall</SelectItem>
                       <SelectItem value="mandapam">Mandapam</SelectItem>
-                      <SelectItem value="party">Party</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  {form.type === "other" && (
+                    <Input
+                      value={form.custom_type}
+                      onChange={(e) => set("custom_type", e.target.value)}
+                      placeholder="Describe the venue type"
+                      className="h-10 mt-2"
+                    />
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label>Max capacity (guests)</Label>
