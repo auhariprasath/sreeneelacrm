@@ -36,7 +36,7 @@ function waSend(num: string | null | undefined, msg: string) {
   if (!num) { toast.error("Vendor has no WhatsApp number on file."); return; }
   const url = buildWaMeLink(num, msg);
   if (!url) { toast.error("Invalid phone number."); return; }
-  window.open(url, "_blank");
+  window.location.href = url;
 }
 
 export function VendorAssignment(props: Props) {
