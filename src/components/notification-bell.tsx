@@ -7,22 +7,24 @@ import { Bell } from "lucide-react";
 import { toast } from "sonner";
 
 export function NotificationBell() {
-  const { user } = useAuth();
+  const { user, role, activeCompanyId } = useAuth();
   const navigate = useNavigate();
   const [count, setCount] = useState(0);
   const mountedAt = useRef(Date.now());
+  const scopeCompanyId = role === "super_admin" ? activeCompanyId : null;
 
   const refresh = async () => {
     if (!user) return;
-    const { count: c } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
+    const base = scopeCompanyId
+      ? supabase.from("notifications")
+          .select("id, leads!inner(company_id)", { count: "exact", head: true })
+          .eq("leads.company_id", scopeCompanyId)
+      : supabase.from("notifications").select("id", { count: "exact", head: true });
+    const { count: c } = await base.eq("user_id", user.id).eq("is_read", false);
     setCount(c ?? 0);
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [user?.id]);
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [user?.id, scopeCompanyId]);
 
   useEffect(() => {
     if (!user) return;
