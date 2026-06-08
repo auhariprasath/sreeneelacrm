@@ -135,9 +135,9 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
       {/* Clock face */}
       <div className="relative bg-muted/40 rounded-full" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="absolute inset-0 pointer-events-none">
-          <circle cx={cx} cy={cy} r={4} fill="hsl(270 70% 50%)" />
-          <line x1={cx} y1={cy} x2={handX} y2={handY} stroke="hsl(270 70% 50%)" strokeWidth={2} />
-          <circle cx={handX} cy={handY} r={3} fill="hsl(270 70% 50%)" />
+          <circle cx={cx} cy={cy} r={4} fill="hsl(var(--primary))" />
+          <line x1={cx} y1={cy} x2={handX} y2={handY} stroke="hsl(var(--primary))" strokeWidth={2} />
+          <circle cx={handX} cy={handY} r={3} fill="hsl(var(--primary))" />
         </svg>
         {renderItems()}
       </div>
