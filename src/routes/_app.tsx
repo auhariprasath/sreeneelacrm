@@ -318,29 +318,42 @@ function AppLayout() {
           </div>
         </header>
 
-        {/* SA company switch on phones only (md+ has it in the header) */}
-        {role === "super_admin" && companies.length > 0 && (
-          <div className="md:hidden border-b bg-card px-3 py-2">
-            <Select
-              value={activeCompanyId ?? "__all"}
-              onValueChange={(v) => {
-                if (v === "__all") {
-                  setActiveCompanyId(null);
-                  navigate({ to: "/dashboard" });
-                } else {
-                  setActiveCompanyId(v);
-                  navigate({ to: "/company-dashboard/$companyId", params: { companyId: v } });
-                }
-              }}
-            >
-              <SelectTrigger className="w-full h-10"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all">All companies</SelectItem>
-                {companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {role === "super_admin" && companies.length > 0 && (() => {
+          const selected = companies.find((c) => c.id === activeCompanyId) || null;
+          return (
+            <div className="md:hidden border-b bg-card px-3 py-2">
+              <Select
+                value={activeCompanyId ?? "__all"}
+                onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
+              >
+                <SelectTrigger className="w-full h-10">
+                  <span className="flex items-center gap-2 min-w-0">
+                    {selected ? (
+                      <span className="h-3 w-3 rounded-full shrink-0 ring-1 ring-border"
+                        style={{ background: selected.brand_color || "#6366f1" }} />
+                    ) : (
+                      <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    )}
+                    <span className="truncate text-sm">{selected ? selected.name : "All companies"}</span>
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all">
+                    <span className="flex items-center gap-2"><Globe className="h-3.5 w-3.5" /> All companies</span>
+                  </SelectItem>
+                  {companies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: c.brand_color || "#6366f1" }} />
+                        {c.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        })()}
 
         <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 md:pb-6">
           <Outlet />
