@@ -20,7 +20,7 @@ const LANGUAGES = ["English", "Tamil", "Hindi", "Telugu", "Malayalam", "Kannada"
 
 export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const { profile, companies, activeCompanyId, role } = useAuth();
-  const targetCompanyId = role === "super_admin" ? activeCompanyId ?? companies[0]?.id ?? null : profile?.company_id ?? null;
+  const targetCompanyId = role === "super_admin" ? activeCompanyId : profile?.company_id ?? null;
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -50,12 +50,14 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     setDuplicate(null);
     const d = normalizedPhone(raw);
     if (!d) return;
-    const { data } = await supabase
+    let q = supabase
       .from("leads")
       .select("id,status,company_id")
       .ilike("phone", `%${d}`)
       .is("deleted_at", null)
       .limit(1);
+    if (targetCompanyId) q = q.eq("company_id", targetCompanyId);
+    const { data } = await q;
     if (data && data[0]) {
       const c = companies.find((c) => c.id === data[0].company_id);
       setDuplicate({ company: c?.name ?? "another company", status: data[0].status });
@@ -107,7 +109,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>New lead</DialogTitle>
-          <DialogDescription>Capture an enquiry. Phone is checked across all companies.</DialogDescription>
+          <DialogDescription>Capture an enquiry for the selected company.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
@@ -192,12 +194,14 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
                   setReferredByName(v);
                   setReferredByLeadId(null);
                   if (v.trim().length < 2) { setRefSearch([]); return; }
-                  const { data } = await supabase
+                  let q = supabase
                     .from("leads")
                     .select("id,full_name,phone")
                     .ilike("full_name", `%${v.trim()}%`)
                     .is("deleted_at", null)
                     .limit(5);
+                  if (targetCompanyId) q = q.eq("company_id", targetCompanyId);
+                  const { data } = await q;
                   setRefSearch((data as any) ?? []);
                 }}
               />
