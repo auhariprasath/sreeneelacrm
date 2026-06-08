@@ -54,13 +54,17 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       setQuote(q as Quotation);
       setLead(l as Lead); setRequirement(r as Requirement); setCompany(c as Company);
 
-      const tmpl = `Namaste {client_name}, here is your quotation from {company_name} for {event_type} on {event_date}.\n\nTotal: {total}\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!`;
+      const publicUrl = (q as any).public_token
+        ? `${window.location.origin}/quotation/${(q as any).public_token}`
+        : "";
+      const tmpl = `Namaste {client_name}, here is your quotation from {company_name} for {event_type} on {event_date}.\n\nTotal: {total}\n\nView & approve online: {link}\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!`;
       const filled = tmpl
         .replace("{client_name}", (l as Lead | null)?.full_name ?? "")
         .replace("{company_name}", (c as Company | null)?.name ?? "")
         .replace("{event_type}", (r as Requirement | null)?.event_type ?? "your event")
         .replace("{event_date}", (r as Requirement | null)?.event_date ? formatDateIN((r as Requirement).event_date as string) : "the planned date")
-        .replace("{total}", formatINR(Number((q as Quotation).total)));
+        .replace("{total}", formatINR(Number((q as Quotation).total)))
+        .replace("{link}", publicUrl);
       setMessage(filled);
       setLoading(false);
     })();
