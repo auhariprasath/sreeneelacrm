@@ -66,7 +66,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
           onClick={() => mode === "hour" ? pickHour(n) : pickMinute(n)}
           className={cn(
             "absolute flex items-center justify-center rounded-full text-base font-semibold transition-colors select-none",
-            selected ? "bg-purple-600 text-white shadow-lg" : "hover:bg-purple-100 text-foreground",
+            selected ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-accent text-foreground",
           )}
           style={{
             left: x - itemR, top: y - itemR,
