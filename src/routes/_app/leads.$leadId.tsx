@@ -265,7 +265,13 @@ function LeadProfile() {
 
   const markFollowUpDone = async (id: string) => {
     const feedback = (fuFeedback[id] || "").trim();
-    const { error } = await supabase.from("follow_ups").update({ is_sent: true }).eq("id", id);
+    const existing = followUps.find((x) => x.id === id);
+    const mergedNote = feedback
+      ? (existing?.note ? `${existing.note}\n— ${feedback}` : feedback)
+      : existing?.note ?? null;
+    const patch: any = { is_sent: true };
+    if (feedback) patch.note = mergedNote;
+    const { error } = await supabase.from("follow_ups").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await supabase.from("activity_logs").insert({
       lead_id: leadId,
@@ -274,6 +280,7 @@ function LeadProfile() {
       action_type: "system",
       performed_by: profile?.id ?? null,
     });
+    setFollowUps((prev) => prev.map((x) => x.id === id ? { ...x, is_sent: true, note: mergedNote } : x));
     setFuFeedback((m) => { const n = { ...m }; delete n[id]; return n; });
     toast.success("Follow-up marked done");
   };
