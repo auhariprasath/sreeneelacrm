@@ -446,6 +446,7 @@ export type Database = {
           bank_account: string | null
           brand_color: string | null
           cancellation_policy: string | null
+          communities: Json
           company_phone: string | null
           confirmation_auto_send: boolean
           confirmation_closing_line: string | null
@@ -536,6 +537,7 @@ export type Database = {
           bank_account?: string | null
           brand_color?: string | null
           cancellation_policy?: string | null
+          communities?: Json
           company_phone?: string | null
           confirmation_auto_send?: boolean
           confirmation_closing_line?: string | null
@@ -626,6 +628,7 @@ export type Database = {
           bank_account?: string | null
           brand_color?: string | null
           cancellation_policy?: string | null
+          communities?: Json
           company_phone?: string | null
           confirmation_auto_send?: boolean
           confirmation_closing_line?: string | null
