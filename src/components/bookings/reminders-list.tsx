@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Bell, X, Loader2 } from "lucide-react";
+import { Bell, MessageSquare, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
-import { WhatsAppSendButton } from "@/components/whatsapp-send-button";
+import { buildWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Reminder = Database["public"]["Tables"]["payment_reminders"]["Row"];
