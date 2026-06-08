@@ -73,7 +73,11 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
 
   useEffect(() => {
     if (!companyId) return;
-    const cols = Array.from(new Set(fields.flatMap((f) => (f.type === "company_type" ? [f.key, "custom_type"] : [f.key])))).join(",");
+    const cols = Array.from(
+      new Set(
+        fields.flatMap((f) => (f.type === "company_type" ? [f.key, "custom_type"] : [f.key])),
+      ),
+    ).join(",");
     supabase
       .from("companies")
       .select(cols)
@@ -81,7 +85,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) toast.error("Couldn't load");
-        setData((data as any) ?? {});
+        setData((data ?? {}) as CompanyFormData);
       });
   }, [companyId, fields]);
 
@@ -89,23 +93,24 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
     return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
   if (!data) return <div className="text-sm text-muted-foreground p-6">Loading…</div>;
 
-  const update = (k: string, v: any) => setData({ ...data, [k]: v });
+  const update = (k: string, v: CompanyDataValue) => setData({ ...data, [k]: v });
 
   const save = async () => {
     setSaving(true);
-    const patch: Record<string, any> = {};
+    const patch: Record<string, CompanyDataValue> = {};
     fields.forEach((f) => {
       let v = data[f.key];
       if (f.type === "number") v = v === "" || v === null ? null : Number(v);
       if (f.type === "company_type") {
         const normalized = normalizeCompanyType(v);
         patch[f.key] = normalized.type;
-        patch.custom_type = normalized.type === "other" ? (data.custom_type || normalized.customType || null) : null;
+        patch.custom_type =
+          normalized.type === "other" ? String(data.custom_type || normalized.customType || "").trim() || null : null;
         return;
       }
       patch[f.key] = v ?? null;
     });
-    const { error } = await supabase.from("companies").update(patch as any).eq("id", companyId);
+    const { error } = await supabase.from("companies").update(patch as never).eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Saved ✓");
