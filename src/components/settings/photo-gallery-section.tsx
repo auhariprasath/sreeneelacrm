@@ -107,7 +107,30 @@ export function PhotoGallerySection({ companyId }: Props) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-muted-foreground">Up to {MAX} venue photos. Used in meeting confirmation WhatsApp messages.</div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div
+        onDragOver={(e) => {
+          if (dragIdx !== null) return;
+          if (Array.from(e.dataTransfer.types).includes("Files")) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+            if (!isDraggingFile) setIsDraggingFile(true);
+          }
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+          setIsDraggingFile(false);
+        }}
+        onDrop={(e) => {
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            e.preventDefault();
+            setIsDraggingFile(false);
+            uploadMany(Array.from(e.dataTransfer.files));
+          }
+        }}
+        className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 rounded-md p-1 transition ${
+          isDraggingFile ? "ring-2 ring-primary ring-offset-2 bg-accent/30" : ""
+        }`}
+      >
         {photos.map((p, i) => (
           <div
             key={p.path}
