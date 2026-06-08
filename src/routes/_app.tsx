@@ -244,7 +244,7 @@ function AppLayout() {
               <div className="hidden md:flex items-center gap-2">
                 <Select
                   value={activeCompanyId ?? "__all"}
-                  onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
+                  onValueChange={handleCompanyChange}
                 >
                   <SelectTrigger className="w-[180px] lg:w-[220px] h-9">
                     <span className="flex items-center gap-2 min-w-0">
@@ -333,7 +333,7 @@ function AppLayout() {
             <div className="md:hidden border-b bg-card px-3 py-2">
               <Select
                 value={activeCompanyId ?? "__all"}
-                onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
+                onValueChange={handleCompanyChange}
               >
                 <SelectTrigger className="w-full h-10">
                   <span className="flex items-center gap-2 min-w-0">
