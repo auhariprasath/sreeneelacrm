@@ -432,12 +432,13 @@ function LeadProfile() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 text-[11px]">
+        <TabsList className="grid w-full grid-cols-7 text-[11px]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="sources">Sources</TabsTrigger>
           <TabsTrigger value="requirements">Reqs</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="followups">Follow-ups</TabsTrigger>
+          <TabsTrigger value="venue">Venue</TabsTrigger>
           <TabsTrigger value="notes">Note</TabsTrigger>
         </TabsList>
 
