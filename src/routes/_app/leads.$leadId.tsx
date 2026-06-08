@@ -260,12 +260,40 @@ function LeadProfile() {
     toast.success("Note added");
   };
 
+  const [fuFeedback, setFuFeedback] = useState<Record<string, string>>({});
+  const [vmFeedback, setVmFeedback] = useState<Record<string, string>>({});
+
   const markFollowUpDone = async (id: string) => {
+    const feedback = (fuFeedback[id] || "").trim();
     const { error } = await supabase.from("follow_ups").update({ is_sent: true }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await supabase.from("activity_logs").insert({
-      lead_id: leadId, action: "Follow-up marked done", action_type: "system", performed_by: profile?.id ?? null,
+      lead_id: leadId,
+      action: "Follow-up marked done",
+      note: feedback || null,
+      action_type: "system",
+      performed_by: profile?.id ?? null,
     });
+    setFuFeedback((m) => { const n = { ...m }; delete n[id]; return n; });
+    toast.success("Follow-up marked done");
+  };
+
+  const markVenueMeetingDone = async (id: string) => {
+    const feedback = (vmFeedback[id] || "").trim();
+    const patch: any = { status: "completed", outcome_recorded: true, updated_at: new Date().toISOString() };
+    if (feedback) patch.notes = feedback;
+    const { error } = await supabase.from("venue_meetings").update(patch).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    await supabase.from("activity_logs").insert({
+      lead_id: leadId,
+      action: "Venue meeting marked done",
+      note: feedback || null,
+      action_type: "system",
+      performed_by: profile?.id ?? null,
+    });
+    setVmFeedback((m) => { const n = { ...m }; delete n[id]; return n; });
+    setVenueMeetings((prev) => prev.map((v) => v.id === id ? { ...v, status: "completed", notes: feedback || v.notes } : v));
+    toast.success("Venue meeting marked done");
   };
 
   if (loading || !lead) {
@@ -880,18 +908,31 @@ function LeadProfile() {
             <div className="text-sm text-muted-foreground py-6 text-center">No follow-ups yet.</div>
           ) : (
             <div className="space-y-2">
-              {followUps.map((f) => (
-                <div key={f.id} className="bg-card border rounded-md p-3 flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium">{formatDateTimeIN(f.scheduled_at)}</div>
-                    {f.note && <div className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{f.note}</div>}
-                    {f.is_sent && <div className="text-[11px] text-success dark:text-success mt-1">✓ Done</div>}
+              {followUps.map((f) => {
+                const active = !f.is_sent && !(f as any).is_cancelled;
+                return (
+                  <div key={f.id} className="bg-card border rounded-md p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">{formatDateTimeIN(f.scheduled_at)}</div>
+                        {f.note && <div className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{f.note}</div>}
+                        {f.is_sent && <div className="text-[11px] text-success dark:text-success mt-1">✓ Done</div>}
+                      </div>
+                    </div>
+                    {active && (
+                      <div className="space-y-1.5">
+                        <Textarea
+                          rows={2}
+                          placeholder="Feedback / outcome (optional)"
+                          value={fuFeedback[f.id] ?? ""}
+                          onChange={(e) => setFuFeedback((m) => ({ ...m, [f.id]: e.target.value }))}
+                        />
+                        <Button size="sm" onClick={() => markFollowUpDone(f.id)}>Mark done</Button>
+                      </div>
+                    )}
                   </div>
-                  {!f.is_sent && (
-                    <Button size="sm" variant="ghost" onClick={() => markFollowUpDone(f.id)}>Mark done</Button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </TabsContent>
@@ -908,7 +949,7 @@ function LeadProfile() {
                 const when = `${m.scheduled_date}T${m.scheduled_time}`;
                 const active = ["scheduled", "reminder_sent", "rescheduled"].includes(m.status);
                 return (
-                  <div key={m.id} className="bg-card border rounded-md p-3 flex items-start justify-between gap-3">
+                  <div key={m.id} className="bg-card border rounded-md p-3 space-y-2">
                     <div className="min-w-0">
                       <div className="text-sm font-medium">{formatDateTimeIN(when)}</div>
                       {m.contact_person_name && <div className="text-xs text-muted-foreground mt-0.5">With {m.contact_person_name}</div>}
@@ -917,6 +958,17 @@ function LeadProfile() {
                         {active ? "Active" : m.status}
                       </div>
                     </div>
+                    {active && (
+                      <div className="space-y-1.5">
+                        <Textarea
+                          rows={2}
+                          placeholder="Feedback / outcome (optional)"
+                          value={vmFeedback[m.id] ?? ""}
+                          onChange={(e) => setVmFeedback((s) => ({ ...s, [m.id]: e.target.value }))}
+                        />
+                        <Button size="sm" onClick={() => markVenueMeetingDone(m.id)}>Mark done</Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
