@@ -377,7 +377,11 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
               <Select value={form.event_type} onValueChange={(v) => setForm({ ...form, event_type: v })}>
                 <SelectTrigger><SelectValue placeholder="Choose event type" /></SelectTrigger>
                 <SelectContent>
-                  {eventTypes.map((t) => <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>)}
+                  {eventTypes.map((t) => {
+                    const v = (t.label ?? t.name ?? "").trim();
+                    if (!v) return null;
+                    return <SelectItem key={v} value={v}>{v}</SelectItem>;
+                  })}
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
