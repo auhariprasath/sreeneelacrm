@@ -150,8 +150,10 @@ export function CallOutcomeDialog({
       lead_id: leadId, action: `Call outcome: Not interested. Reason: ${dropReason}. Lead closed.`,
       action_type: "status_change", performed_by: performedBy,
     });
-    // Schedule 30-day re-engagement
+    // Schedule 30-day re-engagement (single active reminder per lead)
     const at = new Date(Date.now() + 30 * 86400_000).toISOString();
+    const { closeOtherActiveReminders } = await import("@/lib/lead-reminders");
+    await closeOtherActiveReminders(leadId);
     await supabase.from("follow_ups").insert({
       lead_id: leadId,
       scheduled_at: at,
