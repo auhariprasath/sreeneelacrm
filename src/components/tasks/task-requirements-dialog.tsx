@@ -95,13 +95,9 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
           <Button variant="outline" onClick={() => setEditing((v) => !v)} disabled={!ctx || busy}>
             <Pencil className="h-3.5 w-3.5 mr-1" /> {editing ? "Done editing" : "Edit message"}
           </Button>
-          <WhatsAppSendButton
-            phone={ctx?.assigneePhone ?? null}
-            message={message}
-            disabled={!ctx || busy}
-            variant="outline"
-            onSent={() => send("whatsapp")}
-          />
+          <Button variant="outline" onClick={() => send("whatsapp")} disabled={!ctx || busy} title={ctx?.assigneePhone ? "Open WhatsApp" : "No phone on file"}>
+            <MessageCircle className="h-3.5 w-3.5 mr-1" /> WhatsApp
+          </Button>
           <Button onClick={() => send("in_app")} disabled={!ctx || busy}>
             <Send className="h-3.5 w-3.5 mr-1" /> {busy ? "Sending…" : ctx ? `Send to ${ctx.assigneeName}` : "Send"}
           </Button>
