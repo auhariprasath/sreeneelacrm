@@ -19,6 +19,7 @@ function CompanyDashboardPage() {
   const { role, setActiveCompanyId } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newLeadOpen, setNewLeadOpen] = useState(false);
 
   useEffect(() => {
     if (role === "super_admin") setActiveCompanyId(companyId);
