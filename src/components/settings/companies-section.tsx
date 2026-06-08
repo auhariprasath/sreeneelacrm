@@ -172,12 +172,21 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
               <Select value={type} onValueChange={(v) => setType(v as CompanyType)}>
                 <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="banquet">Banquet</SelectItem>
-                  <SelectItem value="garden">Garden</SelectItem>
+                  <SelectItem value="garden_venue">Garden Venue</SelectItem>
+                  <SelectItem value="banquet_hall">Banquet Hall</SelectItem>
+                  <SelectItem value="party_hall">Party Hall</SelectItem>
                   <SelectItem value="mandapam">Mandapam</SelectItem>
-                  <SelectItem value="party">Party</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {type === "other" && (
+                <Input
+                  value={customType}
+                  onChange={(e) => setCustomType(e.target.value)}
+                  placeholder="Describe the venue type"
+                  className="h-11 mt-2"
+                />
+              )}
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-2">
