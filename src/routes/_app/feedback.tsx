@@ -34,7 +34,7 @@ interface Row {
 
 function FeedbackPage() {
   const { role, profile, activeCompanyId } = useAuth();
-  const { rating, company } = Route.useSearch();
+  const { rating } = Route.useSearch();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
