@@ -236,7 +236,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       guest_count: form.guest_count ? Number(form.guest_count) : null,
       budget_range: form.budget_range || null,
       muhurtham_time: form.muhurtham_time || null,
-      community: form.community || null,
+      community: (form.community === "Other" ? communityOther.trim() : form.community) || null,
       notes: form.notes || null,
       created_by: profile?.id ?? null,
     };
