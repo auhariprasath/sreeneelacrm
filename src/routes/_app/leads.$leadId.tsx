@@ -893,6 +893,7 @@ function LeadProfile() {
                 </div>
               ))}
             </div>
+          )}
         </TabsContent>
 
         <TabsContent value="venue" className="pt-3 space-y-2">
