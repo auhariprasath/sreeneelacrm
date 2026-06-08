@@ -23,7 +23,7 @@ interface EnrichedTransfer extends Transfer {
 }
 
 function TransfersPage() {
-  const { profile, role, companies } = useAuth();
+  const { profile, role, companies, activeCompanyId } = useAuth();
   const [items, setItems] = useState<EnrichedTransfer[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"pending" | "all">("pending");
@@ -36,6 +36,7 @@ function TransfersPage() {
     setLoading(true);
     let q = supabase.from("transfer_requests").select("*").order("created_at", { ascending: false });
     if (tab === "pending") q = q.eq("status", "pending");
+    if (role === "super_admin" && activeCompanyId) q = q.or(`from_company_id.eq.${activeCompanyId},to_company_id.eq.${activeCompanyId}`);
     const { data, error } = await q;
     if (error) { setLoading(false); toast.error(error.message); return; }
 
@@ -60,7 +61,7 @@ function TransfersPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [tab, companies.length]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [tab, companies.length, activeCompanyId, role]);
 
   useEffect(() => {
     const ch = supabase.channel("transfers-page")
