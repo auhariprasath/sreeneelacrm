@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
+import { useAuth } from "@/lib/auth";
 
 interface Stats {
   revenue: number;
@@ -20,14 +21,19 @@ function monthRange() {
   return { start, end };
 }
 
-async function loadStats(): Promise<Stats> {
+async function loadStats(companyId?: string | null): Promise<Stats> {
   const { start, end } = monthRange();
-  const [pay, leads, bks, wl] = await Promise.all([
-    supabase.from("payments").select("amount").eq("status", "received").gte("received_at", start).lt("received_at", end),
-    supabase.from("leads").select("id", { count: "exact", head: true }).is("deleted_at", null).gte("created_at", start).lt("created_at", end),
-    supabase.from("bookings").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("status", "confirmed").gte("created_at", start).lt("created_at", end),
-    supabase.from("win_loss_log").select("outcome").gte("closed_at", start).lt("closed_at", end),
-  ]);
+  let payQuery = supabase.from("payments").select("amount").eq("status", "received").gte("received_at", start).lt("received_at", end);
+  let leadsQuery = supabase.from("leads").select("id", { count: "exact", head: true }).is("deleted_at", null).gte("created_at", start).lt("created_at", end);
+  let bookingsQuery = supabase.from("bookings").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("status", "confirmed").gte("created_at", start).lt("created_at", end);
+  let winLossQuery = supabase.from("win_loss_log").select("outcome").gte("closed_at", start).lt("closed_at", end);
+  if (companyId) {
+    payQuery = payQuery.eq("company_id", companyId);
+    leadsQuery = leadsQuery.eq("company_id", companyId);
+    bookingsQuery = bookingsQuery.eq("company_id", companyId);
+    winLossQuery = winLossQuery.eq("company_id", companyId);
+  }
+  const [pay, leads, bks, wl] = await Promise.all([payQuery, leadsQuery, bookingsQuery, winLossQuery]);
   const revenue = (pay.data ?? []).reduce((s, p: any) => s + Number(p.amount ?? 0), 0);
   const wlRows = (wl.data ?? []) as Array<{ outcome: string }>;
   const won = wlRows.filter((r) => r.outcome === "won").length;
@@ -62,9 +68,10 @@ function Tile({ label, value, icon: Icon, to, hint }: { label: string; value: st
 }
 
 export function StatsRow() {
+  const { activeCompanyId } = useAuth();
   const [s, setS] = useState<Stats | null>(null);
-  const refresh = () => loadStats().then(setS);
-  useEffect(() => { refresh(); }, []);
+  const refresh = () => loadStats(activeCompanyId).then(setS);
+  useEffect(() => { refresh(); }, [activeCompanyId]);
   useDashboardRealtime(["payments", "leads", "bookings", "win_loss_log"], refresh);
 
   const v = s ?? { revenue: 0, enquiries: 0, bookings: 0, conversion: 0 };
