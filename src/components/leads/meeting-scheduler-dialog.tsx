@@ -111,10 +111,6 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
 
   const submit = async (send: boolean) => {
     setSaving(true);
-    // Only one active venue meeting at a time — cancel existing scheduled ones for this lead
-    await supabase.from("venue_meetings")
-      .update({ status: "cancelled" })
-      .eq("lead_id", leadId).in("status", ["scheduled", "reminder_sent"]);
     const finalMsg = personalNote ? `${message}\n\n${personalNote}` : message;
     const { data: meeting, error } = await supabase.from("venue_meetings").insert({
       lead_id: leadId,
@@ -129,6 +125,10 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
       created_by: profile?.id ?? null,
     } as any).select("id").single();
     if (error) { setSaving(false); toast.error(error.message); return; }
+
+    // Only one active reminder per lead — close any pending follow-ups or older venue meetings.
+    const { closeOtherActiveReminders } = await import("@/lib/lead-reminders");
+    await closeOtherActiveReminders(leadId, { venueMeetingId: (meeting as any).id });
 
     await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
     await supabase.from("activity_logs").insert({
