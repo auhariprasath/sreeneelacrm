@@ -204,11 +204,11 @@ export function TimeClockField({
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 flex items-start sm:items-center justify-center p-4 overflow-y-auto"
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-popover rounded-lg shadow-xl p-5 max-w-sm w-full"
+            className="bg-popover rounded-lg shadow-xl p-4 max-w-sm w-full my-auto max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <TimeClockPicker
