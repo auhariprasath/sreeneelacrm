@@ -122,24 +122,18 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
   };
 
   const handleWhatsAppSent = async (mode: "device" | "api") => {
-    const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
     await markSent("whatsapp", mode === "api" ? "WhatsApp API" : "WhatsApp");
-    toast.success(
-      mode === "api"
-        ? "WhatsApp sent via API · PDF downloaded for your records"
-        : "Opened WhatsApp · PDF downloaded — attach it in the chat",
-    );
+    toast.success(mode === "api" ? "WhatsApp sent via API" : "Opened WhatsApp");
   };
 
   const sendViaEmail = async () => {
     setSending("email");
     try {
-      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const subject = `Quotation from ${company?.name ?? ""} — v${quote?.version}`;
       const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
       window.location.href = url;
       await markSent("email", "Email");
-      toast.success("Opened email · PDF downloaded — attach it in your message");
+      toast.success("Opened email");
     } finally { setSending(null); }
   };
 
