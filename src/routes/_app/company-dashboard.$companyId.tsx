@@ -5,7 +5,8 @@ import { useAuth } from "@/lib/auth";
 import { CompanyPanel } from "@/components/dashboard/company-panel";
 import { RightSidebar } from "@/components/dashboard/right-sidebar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings } from "lucide-react";
+import { ArrowLeft, Settings, Plus } from "lucide-react";
+import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 
 export const Route = createFileRoute("/_app/company-dashboard/$companyId")({
   component: CompanyDashboardPage,
