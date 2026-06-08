@@ -15,23 +15,30 @@ type Notif = Database["public"]["Tables"]["notifications"]["Row"];
 export const Route = createFileRoute("/_app/notifications")({ component: NotificationsPage });
 
 function NotificationsPage() {
-  const { user } = useAuth();
+  const { user, role, activeCompanyId } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"all" | "unread">("all");
+  const scopeCompanyId = role === "super_admin" ? activeCompanyId : null;
 
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    let q = supabase.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(200);
+    let q = scopeCompanyId
+      ? supabase.from("notifications")
+          .select("*, leads!inner(company_id)")
+          .eq("user_id", user.id)
+          .eq("leads.company_id", scopeCompanyId)
+      : supabase.from("notifications").select("*").eq("user_id", user.id);
+    q = q.order("created_at", { ascending: false }).limit(200);
     if (tab === "unread") q = q.eq("is_read", false);
     const { data } = await q;
     setItems((data as Notif[]) ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.id, tab]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.id, tab, scopeCompanyId]);
 
   useEffect(() => {
     if (!user) return;

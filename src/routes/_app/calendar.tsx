@@ -13,7 +13,10 @@ type Slot = Database["public"]["Tables"]["slots"]["Row"];
 export const Route = createFileRoute("/_app/calendar")({ component: CalendarPage });
 
 function CalendarPage() {
-  const { profile } = useAuth();
+  const { profile, role, activeCompanyId, companies } = useAuth();
+  const companyId = role === "super_admin"
+    ? (activeCompanyId ?? null)
+    : (profile?.company_id ?? companies[0]?.id ?? null);
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,17 +27,15 @@ function CalendarPage() {
   const monthEnd = endOfMonth(cursor);
 
   const load = useCallback(async () => {
-    if (!profile?.company_id) return;
     setLoading(true);
 
-
-
-    const { data } = await supabase
+    let q = supabase
       .from("slots").select("*")
-      .eq("company_id", profile.company_id!)
       .gte("event_date", toISO(monthStart))
       .lte("event_date", toISO(monthEnd))
       .order("event_date").order("start_time");
+    if (companyId) q = q.eq("company_id", companyId);
+    const { data } = await q;
     const list = (data as Slot[]) ?? [];
     setSlots(list);
 
@@ -48,7 +49,7 @@ function CalendarPage() {
       setLeadsById({});
     }
     setLoading(false);
-  }, [profile?.company_id, monthStart, monthEnd]);
+  }, [companyId, monthStart, monthEnd]);
 
   useEffect(() => { load(); }, [load]);
 

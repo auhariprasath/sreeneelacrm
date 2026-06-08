@@ -20,6 +20,7 @@ export interface Company {
   id: string;
   name: string;
   type: string;
+  brand_color?: string | null;
 }
 
 interface AuthState {
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(userRole);
 
     // companies — RLS filters automatically
-    const { data: comps } = await supabase.from("companies").select("id,name,type").order("name");
+    const { data: comps } = await supabase.from("companies").select("id,name,type,brand_color").order("name");
     const list = (comps ?? []) as Company[];
     setCompanies(list);
 

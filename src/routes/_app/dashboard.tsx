@@ -117,9 +117,9 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
 }
 
 function DashboardPage() {
-  const { role, loading } = useAuth();
+  const { role, loading, activeCompanyId } = useAuth();
   if (loading) return <DashboardSkeleton />;
-  if (role === "super_admin") return <SuperAdminDashboard />;
+  if (role === "super_admin" && !activeCompanyId) return <SuperAdminDashboard />;
   return <CompanyDashboard />;
 }
 
@@ -127,7 +127,9 @@ function CompanyDashboard() {
   const { role, companies, profile, activeCompanyId } = useAuth();
   const [stats, setStats] = useState<CompanyStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const companyId = companies[0]?.id ?? null;
+  const companyId = role === "super_admin"
+    ? (activeCompanyId ?? null)
+    : (profile?.company_id ?? companies[0]?.id ?? null);
 
 
 
