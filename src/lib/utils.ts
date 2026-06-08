@@ -17,3 +17,15 @@ export function buildWaMeLink(phone: string | null | undefined, message?: string
   return url;
 }
 
+export function openWaMeLink(url: string) {
+  try {
+    if (window.top && window.top !== window.self) {
+      window.top.location.href = url;
+      return;
+    }
+  } catch {
+    // Fall back to the current window if top navigation is blocked.
+  }
+  window.location.href = url;
+}
+
