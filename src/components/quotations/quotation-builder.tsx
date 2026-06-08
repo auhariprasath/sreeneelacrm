@@ -168,8 +168,13 @@ export function QuotationBuilder({
         setGstPercent(Number(base.gst_percent ?? gp));
       } else {
         setRevisingFromId(null);
-        setAddons(((addOnsRows as any[]) ?? []).map((a) => ({ name: a.addon_name, price: Number(a.addon_price) || 0 })));
-        setServices([]);
+        // Pre-fill requirement add-ons directly into Services so staff can edit/remove inline.
+        setServices(((addOnsRows as any[]) ?? []).map((a) => ({
+          name: a.addon_name,
+          price: Number(a.addon_price) || 0,
+          quantity: 1,
+        })));
+        setAddons([]);
         setBaseVersion((allHistory[0]?.version ?? 0) + 1);
       }
       setStep(0);
