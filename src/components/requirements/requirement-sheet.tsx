@@ -97,7 +97,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       const [{ data: co }, { data: leadRow }] = await Promise.all([
         supabase
           .from("companies")
-          .select("is_mandapam, sessions, event_types, addons_catalog")
+          .select("is_mandapam, sessions, event_types, addons_catalog, communities")
           .eq("id", companyId)
           .maybeSingle(),
         supabase.from("leads").select("email").eq("id", leadId).maybeSingle(),
@@ -107,6 +107,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       setIsMandapam(!!c.is_mandapam);
       setSessions(Array.isArray(c.sessions) ? c.sessions : []);
       setEventTypes(Array.isArray(c.event_types) ? c.event_types : []);
+      setCommunities(Array.isArray(c.communities) ? c.communities : []);
       setAddonsCatalog(Array.isArray(c.addons_catalog) ? c.addons_catalog : []);
 
       if (requirementId) {
