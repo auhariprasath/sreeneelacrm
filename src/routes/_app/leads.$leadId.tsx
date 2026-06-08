@@ -11,7 +11,7 @@ import { ArrowLeft, Phone, MessageSquare, Mail, Eye, EyeOff, Send, CalendarClock
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import { StatusBadge, ScoreBadge } from "@/components/leads/lead-badges";
 
 import { CallOutcomeDialog } from "@/components/leads/call-outcome-dialog";
@@ -367,7 +367,7 @@ function LeadProfile() {
               <button type="button"
                  onClick={() => {
                    const wa = buildWaMeLink(lead.phone);
-                   if (wa) window.location.href = wa;
+                   if (wa) openWaMeLink(wa);
                    supabase.from("activity_logs").insert({
                      lead_id: lead.id,
                      action: `WhatsApp opened by ${profile?.full_name ?? "staff"}`,
@@ -553,7 +553,7 @@ function LeadProfile() {
                     if (!wa) { toast.error("Invalid phone number"); return; }
                     // Also download the PDF so staff can attach it
                     downloadInvoicePdf(q.id).catch(() => {});
-                    window.location.href = wa;
+                    openWaMeLink(wa);
                     await markInvoiceSent(q.id, profile?.id ?? null);
                     toast.success("Invoice sent · WhatsApp opened");
                     loadQuotations();
