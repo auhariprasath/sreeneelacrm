@@ -25,7 +25,7 @@ type Row = {
 type Company = { id: string; name: string };
 
 function CustomersPage() {
-  const { role } = useAuth();
+  const { role, activeCompanyId } = useAuth();
   if (role !== "super_admin") return <Navigate to="/dashboard" />;
 
   const [rows, setRows] = useState<Row[]>([]);
@@ -34,6 +34,11 @@ function CustomersPage() {
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [sort, setSort] = useState<"ltv" | "events" | "recent">("ltv");
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    if (activeCompanyId) setCompanyFilter(activeCompanyId);
+    else setCompanyFilter("all");
+  }, [activeCompanyId]);
 
   useEffect(() => {
     (async () => {
@@ -121,7 +126,7 @@ function CustomersPage() {
       <Card className="p-3">
         <div className="flex flex-wrap gap-2 items-center">
           <Input placeholder="Search name or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
-          <Select value={companyFilter} onValueChange={setCompanyFilter}>
+          <Select value={companyFilter} onValueChange={setCompanyFilter} disabled={!!activeCompanyId}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Company" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All companies</SelectItem>
