@@ -3,9 +3,10 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Pencil, Send } from "lucide-react";
+import { Pencil, Send } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { buildRequirementsMessage, buildTaskWaLink, loadTaskRequirementsContext, sendTaskRequirements, type TaskRequirementsContext } from "@/lib/task-requirements";
+import { buildRequirementsMessage, loadTaskRequirementsContext, sendTaskRequirements, type TaskRequirementsContext } from "@/lib/task-requirements";
+import { WhatsAppSendButton } from "@/components/whatsapp-send-button";
 
 
 interface Props {
