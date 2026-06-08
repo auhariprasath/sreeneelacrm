@@ -29,6 +29,7 @@ type Filters = {
 
 interface CampaignRow {
   id: string;
+  company_id: string;
   name: string;
   channel: "whatsapp" | "sms";
   message: string;
@@ -72,14 +73,14 @@ function CampaignsPage() {
   const [sendOpen, setSendOpen] = useState<CampaignRow | null>(null);
 
   const load = async () => {
-    if (!companyId) return;
     setListLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from("campaigns")
       .select("*")
-      .eq("company_id", companyId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
+    if (companyId) q = q.eq("company_id", companyId);
+    const { data, error } = await q;
     if (error) toast.error(error.message);
     setRows((data ?? []) as any);
     setListLoading(false);
@@ -104,11 +105,7 @@ function CampaignsPage() {
         )}
       </div>
 
-      {role === "super_admin" && !companyId && (
-        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">Pick a company from the top bar to view or create campaigns.</CardContent></Card>
-      )}
-
-      {role === "super_admin" && !companyId ? null : listLoading ? (
+      {listLoading ? (
         <SkeletonList rows={4} />
       ) : rows.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No campaigns yet.</CardContent></Card>
@@ -123,8 +120,8 @@ function CampaignsPage() {
       {open && companyId && (
         <NewCampaignDialog companyId={companyId} onClose={() => setOpen(false)} onCreated={load} />
       )}
-      {sendOpen && companyId && (
-        <SendDialog campaign={sendOpen} companyId={companyId} onClose={() => { setSendOpen(null); load(); }} />
+      {sendOpen && (
+        <SendDialog campaign={sendOpen} companyId={sendOpen.company_id} onClose={() => { setSendOpen(null); load(); }} />
       )}
     </div>
   );
