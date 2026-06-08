@@ -18,6 +18,6 @@ export async function sendWhatsApp(
     toast.error("Invalid phone number");
     return { ok: false, error: "invalid_phone" };
   }
-  window.open(url, "_blank", "noopener");
+  window.location.href = url;
   return { ok: true };
 }
