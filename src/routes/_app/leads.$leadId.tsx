@@ -362,7 +362,10 @@ function LeadProfile() {
                     note: "Auto: post-call safety reminder", created_by: profile?.id ?? null,
                   });
                   toast.info("No WhatsApp API connected. Reminder set for follow-up.");
-                  setTimeout(() => setCallOpen(true), 400);
+                  // Only show "How did the call go?" on the first call (when lead is still new)
+                  if (lead.status === "new") {
+                    setTimeout(() => setCallOpen(true), 400);
+                  }
                 }}
                 className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium"
               >

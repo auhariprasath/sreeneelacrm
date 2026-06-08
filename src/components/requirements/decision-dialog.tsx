@@ -93,7 +93,12 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
           lead_id: leadId, scheduled_at: new Date(followUpAt).toISOString(),
           note: note || "Decision pending", type: "custom", created_by: performed_by,
         });
-        await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
+        // Only move a brand-new lead into "in_progress"; preserve any meaningful
+        // status already set by a prior call outcome / decision.
+        const { data: cur } = await supabase.from("leads").select("status").eq("id", leadId).maybeSingle();
+        if (cur?.status === "new") {
+          await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
+        }
       } else if (decision === "not_interested") {
         await supabase.from("requirements").update({ status: "complete" }).eq("id", requirementId);
         await supabase.from("leads").update({
