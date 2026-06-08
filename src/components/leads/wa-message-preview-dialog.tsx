@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send } from "lucide-react";
 import { WA_TEMPLATES, renderPreview, type WaTemplatesMap } from "@/lib/wa-templates";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Props {
@@ -110,7 +110,7 @@ export function WaMessagePreviewDialog({ open, onOpenChange, companyId, template
     if (!tel) { toast.error("No phone number"); return; }
     const url = buildWaMeLink(leadPhone ?? undefined, merged);
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.location.href = url;
+    openWaMeLink(url);
     onOpenChange(false);
   };
 
