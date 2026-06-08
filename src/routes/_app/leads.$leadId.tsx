@@ -893,6 +893,36 @@ function LeadProfile() {
               ))}
             </div>
           )}
+
+          {/* Venue meetings list for this lead */}
+          <div className="pt-4 border-t mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <div className="text-sm font-medium">Venue meetings</div>
+            </div>
+            {venueMeetings.length === 0 ? (
+              <div className="text-xs text-muted-foreground py-3">No venue meetings yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {venueMeetings.map((m) => {
+                  const when = `${m.scheduled_date}T${m.scheduled_time}`;
+                  const active = ["scheduled", "reminder_sent", "rescheduled"].includes(m.status);
+                  return (
+                    <div key={m.id} className="bg-card border rounded-md p-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">{formatDateTimeIN(when)}</div>
+                        {m.contact_person_name && <div className="text-xs text-muted-foreground mt-0.5">With {m.contact_person_name}</div>}
+                        {m.notes && <div className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{m.notes}</div>}
+                        <div className={`text-[11px] mt-1 ${active ? "text-warning" : "text-muted-foreground"}`}>
+                          {active ? "Active" : m.status}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="notes" className="pt-3 space-y-2">
