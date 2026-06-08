@@ -449,7 +449,7 @@ function NotInterestedSection({ rows }: { rows: NotInterestedRow[] }) {
     }
     const url = buildWaMeLink(row.phone, `Hi ${row.full_name.split(" ")[0] || "there"}, this is from Neela Events. Just checking in — would love another chance to help you plan your event. We have some new options that might work better. Can we share?`);
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.location.href = url;
   };
 
   return (
