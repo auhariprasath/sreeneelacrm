@@ -58,21 +58,24 @@ function ReportsPage() {
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
-    if (!companyId) { setBusy(false); return; }
     let cancelled = false;
     setBusy(true);
     (async () => {
       const fromIso = new Date(from).toISOString();
       const toIso = new Date(new Date(to).getTime() + 86400_000).toISOString();
-      const [wl, fb, bk] = await Promise.all([
-        supabase.from("win_loss_log").select("outcome, amount_value, drop_reason, competitor_name")
-          .eq("company_id", companyId).gte("closed_at", fromIso).lte("closed_at", toIso),
-        supabase.from("feedback").select("rating")
-          .eq("company_id", companyId).gte("submitted_at", fromIso).lte("submitted_at", toIso),
-        supabase.from("bookings").select("total_amount, completed_at")
-          .eq("company_id", companyId).is("deleted_at", null).eq("status", "completed")
-          .gte("completed_at", fromIso).lte("completed_at", toIso),
-      ]);
+      let wlQuery = supabase.from("win_loss_log").select("outcome, amount_value, drop_reason, competitor_name")
+        .gte("closed_at", fromIso).lte("closed_at", toIso);
+      let fbQuery = supabase.from("feedback").select("rating")
+        .gte("submitted_at", fromIso).lte("submitted_at", toIso);
+      let bkQuery = supabase.from("bookings").select("total_amount, completed_at")
+        .is("deleted_at", null).eq("status", "completed")
+        .gte("completed_at", fromIso).lte("completed_at", toIso);
+      if (companyId) {
+        wlQuery = wlQuery.eq("company_id", companyId);
+        fbQuery = fbQuery.eq("company_id", companyId);
+        bkQuery = bkQuery.eq("company_id", companyId);
+      }
+      const [wl, fb, bk] = await Promise.all([wlQuery, fbQuery, bkQuery]);
 
       const wlRows = (wl.data ?? []) as Array<{ outcome: string; amount_value: number | null; drop_reason: string | null; competitor_name: string | null }>;
       const won = wlRows.filter((r) => r.outcome === "won");
@@ -119,15 +122,6 @@ function ReportsPage() {
   }, [companyId, from, to]);
 
   if (loading) return <DashboardSkeleton />;
-
-  if (role === "super_admin" && !activeCompanyId) {
-    return (
-      <div className="max-w-7xl space-y-4">
-        <h1 className="text-2xl font-semibold">Reports</h1>
-        <p className="text-sm text-muted-foreground">Pick a company from the top bar to view its reports.</p>
-      </div>
-    );
-  }
 
   const exportAll = () => {
     if (!data) return;
