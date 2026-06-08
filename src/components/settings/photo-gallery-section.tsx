@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, Trash2, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
+import { ImagePlus, Trash2, ArrowUp, ArrowDown, Loader2, GripVertical } from "lucide-react";
 
 interface Photo { path: string; url: string }
 
