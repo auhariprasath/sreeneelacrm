@@ -118,7 +118,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
             onClick={() => setMeridiem(false)}
             className={cn(
               "px-3 py-1 text-xs font-semibold rounded border min-h-[28px]",
-              !isPM ? "bg-purple-600 text-white border-purple-600" : "bg-background text-muted-foreground",
+              !isPM ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground",
             )}
           >AM</button>
           <button
