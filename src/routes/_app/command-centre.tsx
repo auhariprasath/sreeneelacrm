@@ -166,15 +166,16 @@ function CommandCentrePage() {
       const autoRows: ReferralRow[] = [];
       refCount.forEach((count, leadId) => {
         if (count >= 2 && !flagged.has(leadId)) {
+          const leadCompanyId = allLeads.find((l) => l.id === leadId)?.company_id ?? activeCompanyId ?? null;
           autoRows.push({
-            id: `auto-${leadId}`, referrer_lead_id: leadId,
+            id: `auto-${leadId}`, company_id: leadCompanyId, referrer_lead_id: leadId,
             benefit_sent: false, benefit_sent_at: null, notes: null,
             referrer_name: leadById.get(leadId) ?? "—", refer_count: count,
           });
         }
       });
       const flagRows: ReferralRow[] = (refRes.data ?? []).map((r: any) => ({
-        id: r.id, referrer_lead_id: r.referrer_lead_id,
+        id: r.id, company_id: r.company_id ?? activeCompanyId ?? null, referrer_lead_id: r.referrer_lead_id,
         benefit_sent: r.benefit_sent, benefit_sent_at: r.benefit_sent_at, notes: r.notes,
         referrer_name: leadById.get(r.referrer_lead_id) ?? "—",
         refer_count: refCount.get(r.referrer_lead_id) ?? 0,
@@ -211,6 +212,7 @@ function CommandCentrePage() {
     try {
       if (row.id.startsWith("auto-")) {
         const { error } = await supabase.from("referral_loyalty_flags").insert({
+          company_id: row.company_id,
           referrer_lead_id: row.referrer_lead_id,
           benefit_sent: true,
           benefit_sent_at: new Date().toISOString(),
