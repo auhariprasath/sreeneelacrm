@@ -128,7 +128,7 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
 
     // Only one active reminder per lead — close any pending follow-ups or older venue meetings.
     const { closeOtherActiveReminders } = await import("@/lib/lead-reminders");
-    await closeOtherActiveReminders(leadId, { venueMeetingId: (meeting as any).id });
+    await closeOtherActiveReminders(leadId, { kind: "venue_meeting", venueMeetingId: (meeting as any).id });
 
     await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
     await supabase.from("activity_logs").insert({
