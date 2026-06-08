@@ -54,13 +54,17 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       setQuote(q as Quotation);
       setLead(l as Lead); setRequirement(r as Requirement); setCompany(c as Company);
 
-      const tmpl = `Namaste {client_name}, here is your quotation from {company_name} for {event_type} on {event_date}.\n\nTotal: {total}\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!`;
+      const publicUrl = (q as any).public_token
+        ? `${window.location.origin}/quotation/${(q as any).public_token}`
+        : "";
+      const tmpl = `Namaste {client_name}, here is your quotation from {company_name} for {event_type} on {event_date}.\n\nTotal: {total}\n\nView & approve online: {link}\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!`;
       const filled = tmpl
         .replace("{client_name}", (l as Lead | null)?.full_name ?? "")
         .replace("{company_name}", (c as Company | null)?.name ?? "")
         .replace("{event_type}", (r as Requirement | null)?.event_type ?? "your event")
         .replace("{event_date}", (r as Requirement | null)?.event_date ? formatDateIN((r as Requirement).event_date as string) : "the planned date")
-        .replace("{total}", formatINR(Number((q as Quotation).total)));
+        .replace("{total}", formatINR(Number((q as Quotation).total)))
+        .replace("{link}", publicUrl);
       setMessage(filled);
       setLoading(false);
     })();
@@ -118,24 +122,18 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
   };
 
   const handleWhatsAppSent = async (mode: "device" | "api") => {
-    const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
     await markSent("whatsapp", mode === "api" ? "WhatsApp API" : "WhatsApp");
-    toast.success(
-      mode === "api"
-        ? "WhatsApp sent via API · PDF downloaded for your records"
-        : "Opened WhatsApp · PDF downloaded — attach it in the chat",
-    );
+    toast.success(mode === "api" ? "WhatsApp sent via API" : "Opened WhatsApp");
   };
 
   const sendViaEmail = async () => {
     setSending("email");
     try {
-      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const subject = `Quotation from ${company?.name ?? ""} — v${quote?.version}`;
       const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
       window.location.href = url;
       await markSent("email", "Email");
-      toast.success("Opened email · PDF downloaded — attach it in your message");
+      toast.success("Opened email");
     } finally { setSending(null); }
   };
 
@@ -220,7 +218,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
               <div className="space-y-1.5">
                 <Label className="text-xs">Message</Label>
                 <Textarea rows={6} value={message} onChange={(e) => setMessage(e.target.value)} />
-                <div className="text-[11px] text-muted-foreground">PDF is downloaded automatically — attach it manually in WhatsApp or email.</div>
+                <div className="text-[11px] text-muted-foreground">The message includes a link your client can open to view & approve the quotation online. Use the PDF button only if you want a copy.</div>
               </div>
 
               <div className="grid grid-cols-[1fr_auto_auto] gap-2 pt-1 items-stretch">
