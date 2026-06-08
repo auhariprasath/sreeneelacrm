@@ -6,17 +6,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type CompanyField = {
   key: string;
   label: string;
-  type?: "text" | "number" | "textarea" | "switch";
+  type?: "text" | "number" | "textarea" | "switch" | "company_type";
   placeholder?: string;
   description?: string;
   suffix?: string;
   rows?: number;
   fullWidth?: boolean;
 };
+
+const COMPANY_TYPES = [
+  { value: "garden_venue", label: "Garden Venue" },
+  { value: "banquet_hall", label: "Banquet Hall" },
+  { value: "party_hall", label: "Party Hall" },
+  { value: "mandapam", label: "Mandapam" },
+  { value: "other", label: "Other" },
+] as const;
+
+const COMPANY_TYPE_VALUES = new Set(COMPANY_TYPES.map((type) => type.value));
+
+function normalizeCompanyType(value: unknown): { type: string; customType: string | null } {
+  const raw = String(value ?? "").trim();
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const aliases: Record<string, string> = {
+    garden: "garden_venue",
+    garden_venue: "garden_venue",
+    banquet: "banquet_hall",
+    banquet_hall: "banquet_hall",
+    party: "party_hall",
+    party_hall: "party_hall",
+    mandapam: "mandapam",
+    other: "other",
+  };
+  const mapped = aliases[normalized] ?? (COMPANY_TYPE_VALUES.has(normalized as never) ? normalized : "other");
+  return { type: mapped, customType: mapped === "other" && normalized !== "other" ? raw || null : null };
+}
 
 interface Props {
   companyId: string | undefined;
@@ -29,7 +57,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
 
   useEffect(() => {
     if (!companyId) return;
-    const cols = fields.map((f) => f.key).join(",");
+    const cols = Array.from(new Set(fields.flatMap((f) => (f.type === "company_type" ? [f.key, "custom_type"] : [f.key])))).join(",");
     supabase
       .from("companies")
       .select(cols)
@@ -53,6 +81,12 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
     fields.forEach((f) => {
       let v = data[f.key];
       if (f.type === "number") v = v === "" || v === null ? null : Number(v);
+      if (f.type === "company_type") {
+        const normalized = normalizeCompanyType(v);
+        patch[f.key] = normalized.type;
+        patch.custom_type = normalized.type === "other" ? (data.custom_type || normalized.customType || null) : null;
+        return;
+      }
       patch[f.key] = v ?? null;
     });
     const { error } = await supabase.from("companies").update(patch as any).eq("id", companyId);
