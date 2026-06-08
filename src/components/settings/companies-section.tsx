@@ -17,7 +17,7 @@ import { Plus, Archive, ArchiveRestore, Pencil, Settings2, ArrowRight, Building2
 import { SkeletonList } from "@/components/skeleton-list";
 import { CompanyDetailsDialog } from "@/components/settings/company-details-dialog";
 
-type CompanyType = "banquet" | "garden" | "mandapam" | "party";
+type CompanyType = "garden_venue" | "banquet_hall" | "party_hall" | "mandapam" | "other";
 interface Row {
   id: string;
   name: string;
@@ -36,7 +36,8 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState<CompanyType>("banquet");
+  const [type, setType] = useState<CompanyType>("banquet_hall");
+  const [customType, setCustomType] = useState("");
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
