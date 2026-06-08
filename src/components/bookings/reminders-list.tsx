@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Bell, MessageSquare, X, Loader2 } from "lucide-react";
+import { Bell, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { WhatsAppSendButton } from "@/components/whatsapp-send-button";
 import type { Database } from "@/integrations/supabase/types";
 
 type Reminder = Database["public"]["Tables"]["payment_reminders"]["Row"];
@@ -24,14 +24,9 @@ export function RemindersList({ bookingId, phone, onChange }: { bookingId: strin
   };
   useEffect(() => { load(); }, [bookingId]);
 
-  const sendWA = async (r: Reminder) => {
+  const markSent = async (r: Reminder) => {
     setBusy(r.id);
     try {
-      const msg = r.message_template ?? "Friendly reminder about your upcoming payment.";
-      if (phone) {
-        const url = buildWaMeLink(phone, msg);
-        if (url) window.open(url, "_blank");
-      }
       await supabase.from("payment_reminders").update({ is_sent: true, sent_at: new Date().toISOString() }).eq("id", r.id);
       toast.success("Marked as sent");
       load(); onChange?.();
