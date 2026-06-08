@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageCircle, Mail, Copy, Download, FileText, CheckCircle2, AlertTriangle, XCircle, RotateCcw, Loader2 } from "lucide-react";
+import { Mail, Copy, Download, FileText, CheckCircle2, AlertTriangle, XCircle, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { WhatsAppSendButton } from "@/components/whatsapp-send-button";
 import { generateQuotationPdf, downloadBlob, type QuotationPdfInput } from "@/lib/quotation-pdf";
 import type { Database } from "@/integrations/supabase/types";
 
