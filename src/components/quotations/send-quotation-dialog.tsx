@@ -218,7 +218,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
               <div className="space-y-1.5">
                 <Label className="text-xs">Message</Label>
                 <Textarea rows={6} value={message} onChange={(e) => setMessage(e.target.value)} />
-                <div className="text-[11px] text-muted-foreground">PDF is downloaded automatically — attach it manually in WhatsApp or email.</div>
+                <div className="text-[11px] text-muted-foreground">The message includes a link your client can open to view & approve the quotation online. Use the PDF button only if you want a copy.</div>
               </div>
 
               <div className="grid grid-cols-[1fr_auto_auto] gap-2 pt-1 items-stretch">
