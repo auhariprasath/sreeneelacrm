@@ -451,6 +451,7 @@ export type Database = {
           confirmation_closing_line: string | null
           confirmation_reminder_lines: Json
           created_at: string
+          custom_type: string | null
           default_callback_time: string
           default_follow_up_minutes: number
           deleted_at: string | null
@@ -540,6 +541,7 @@ export type Database = {
           confirmation_closing_line?: string | null
           confirmation_reminder_lines?: Json
           created_at?: string
+          custom_type?: string | null
           default_callback_time?: string
           default_follow_up_minutes?: number
           deleted_at?: string | null
@@ -591,7 +593,7 @@ export type Database = {
           task_reminder_at_due?: boolean
           task_reminder_on_booking?: boolean
           task_templates?: Json
-          type: Database["public"]["Enums"]["company_type"]
+          type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           vendor_status_reminder_hours?: number
           venue_photos?: Json
@@ -629,6 +631,7 @@ export type Database = {
           confirmation_closing_line?: string | null
           confirmation_reminder_lines?: Json
           created_at?: string
+          custom_type?: string | null
           default_callback_time?: string
           default_follow_up_minutes?: number
           deleted_at?: string | null
@@ -2129,7 +2132,12 @@ export type Database = {
       campaign_lead_channel: "whatsapp" | "sms"
       campaign_lead_status: "pending" | "sent" | "delivered" | "failed"
       campaign_status: "draft" | "sent" | "completed"
-      company_type: "garden" | "banquet" | "party" | "mandapam"
+      company_type:
+        | "garden_venue"
+        | "banquet_hall"
+        | "party_hall"
+        | "mandapam"
+        | "other"
       coordination_stage:
         | "coordinator_assigned"
         | "requirements_reviewed"
@@ -2371,7 +2379,13 @@ export const Constants = {
       campaign_lead_channel: ["whatsapp", "sms"],
       campaign_lead_status: ["pending", "sent", "delivered", "failed"],
       campaign_status: ["draft", "sent", "completed"],
-      company_type: ["garden", "banquet", "party", "mandapam"],
+      company_type: [
+        "garden_venue",
+        "banquet_hall",
+        "party_hall",
+        "mandapam",
+        "other",
+      ],
       coordination_stage: [
         "coordinator_assigned",
         "requirements_reviewed",
