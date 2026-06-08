@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (userRole === "super_admin") {
       const stored = typeof window !== "undefined" ? localStorage.getItem("neela-active-company") : null;
-      _setActiveCompanyId(stored);
+      _setActiveCompanyId(stored && list.some((c) => c.id === stored) ? stored : null);
     } else {
       _setActiveCompanyId(prof?.company_id ?? null);
     }
