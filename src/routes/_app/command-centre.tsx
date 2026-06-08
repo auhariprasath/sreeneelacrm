@@ -43,6 +43,7 @@ interface LoginRow {
 
 interface ReferralRow {
   id: string;
+  company_id: string | null;
   referrer_lead_id: string;
   benefit_sent: boolean;
   benefit_sent_at: string | null;
@@ -62,7 +63,7 @@ interface NotInterestedRow {
 }
 
 function CommandCentrePage() {
-  const { role, loading } = useAuth();
+  const { role, loading, activeCompanyId } = useAuth();
   const [companyStats, setCompanyStats] = useState<CompanyRow[] | null>(null);
   const [logins, setLogins] = useState<LoginRow[] | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[] | null>(null);
@@ -76,23 +77,36 @@ function CommandCentrePage() {
     setBusy(true);
     (async () => {
       const since30 = new Date(Date.now() - 30 * 86400_000).toISOString();
+      let companiesQuery = supabase.from("companies").select("id, name").is("deleted_at", null).order("name");
+      let leadsQuery = supabase.from("leads").select("company_id").is("deleted_at", null);
+      let bookingsQuery = supabase.from("bookings").select("company_id, total_amount, status").is("deleted_at", null);
+      let wlQuery = supabase.from("win_loss_log").select("company_id, outcome");
+      let fbQuery = supabase.from("feedback").select("company_id, rating");
+      let loginQuery = supabase.from("login_log").select("id, user_id, login_at, logout_at, device_type")
+        .gte("login_at", since30).order("login_at", { ascending: false }).limit(100);
+      let profilesQuery = supabase.from("profiles").select("id, full_name, email, company_id");
+      let refQuery = supabase.from("referral_loyalty_flags").select("id, company_id, referrer_lead_id, benefit_sent, benefit_sent_at, notes, flagged_by, created_at")
+        .order("created_at", { ascending: false });
+      let allLeadsQuery = supabase.from("leads").select("id, full_name, referred_by_lead_id, company_id").is("deleted_at", null);
+      let lostQuery = supabase.from("win_loss_log")
+        .select("lead_id, company_id, drop_reason, created_at, lead:leads(full_name, phone)")
+        .eq("outcome", "lost")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (activeCompanyId) {
+        companiesQuery = companiesQuery.eq("id", activeCompanyId);
+        leadsQuery = leadsQuery.eq("company_id", activeCompanyId);
+        bookingsQuery = bookingsQuery.eq("company_id", activeCompanyId);
+        wlQuery = wlQuery.eq("company_id", activeCompanyId);
+        fbQuery = fbQuery.eq("company_id", activeCompanyId);
+        loginQuery = loginQuery.eq("company_id", activeCompanyId);
+        profilesQuery = profilesQuery.eq("company_id", activeCompanyId);
+        refQuery = refQuery.eq("company_id", activeCompanyId);
+        allLeadsQuery = allLeadsQuery.eq("company_id", activeCompanyId);
+        lostQuery = lostQuery.eq("company_id", activeCompanyId);
+      }
       const [companiesRes, leadsRes, bookingsRes, wlRes, fbRes, loginRes, profilesRes, refRes, allLeadsRes, lostRes] = await Promise.all([
-        supabase.from("companies").select("id, name").is("deleted_at", null).order("name"),
-        supabase.from("leads").select("company_id").is("deleted_at", null),
-        supabase.from("bookings").select("company_id, total_amount, status").is("deleted_at", null),
-        supabase.from("win_loss_log").select("company_id, outcome"),
-        supabase.from("feedback").select("company_id, rating"),
-        supabase.from("login_log").select("id, user_id, login_at, logout_at, device_type")
-          .gte("login_at", since30).order("login_at", { ascending: false }).limit(100),
-        supabase.from("profiles").select("id, full_name, email"),
-        supabase.from("referral_loyalty_flags").select("id, referrer_lead_id, benefit_sent, benefit_sent_at, notes, flagged_by, created_at")
-          .order("created_at", { ascending: false }),
-        supabase.from("leads").select("id, full_name, referred_by_lead_id").is("deleted_at", null),
-        supabase.from("win_loss_log")
-          .select("lead_id, company_id, drop_reason, created_at, lead:leads(full_name, phone)")
-          .eq("outcome", "lost")
-          .order("created_at", { ascending: false })
-          .limit(200),
+        companiesQuery, leadsQuery, bookingsQuery, wlQuery, fbQuery, loginQuery, profilesQuery, refQuery, allLeadsQuery, lostQuery,
       ]);
       if (cancelled) return;
 
@@ -181,7 +195,7 @@ function CommandCentrePage() {
       setBusy(false);
     })();
     return () => { cancelled = true; };
-  }, [role, loading]);
+  }, [role, loading, activeCompanyId]);
 
   if (loading) return <DashboardSkeleton />;
   if (role !== "super_admin") {
