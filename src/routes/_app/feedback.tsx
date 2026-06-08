@@ -34,15 +34,14 @@ interface Row {
 
 function FeedbackPage() {
   const { role, profile, activeCompanyId } = useAuth();
-  const { rating, company } = Route.useSearch();
+  const { rating } = Route.useSearch();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
   const companyFilter = useMemo(() => {
-    if (company) return company;
     if (role === "super_admin") return activeCompanyId;
     return profile?.company_id ?? null;
-  }, [company, role, activeCompanyId, profile]);
+  }, [role, activeCompanyId, profile]);
 
   const load = async () => {
     setLoading(true);
