@@ -65,6 +65,7 @@ function LeadProfile() {
   const [unmasked, setUnmasked] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
+  const [venueMeetings, setVenueMeetings] = useState<Array<{ id: string; scheduled_date: string; scheduled_time: string; status: string; contact_person_name: string | null; notes: string | null }>>([]);
   const [referrer, setReferrer] = useState<{ id: string; full_name: string } | null>(null);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
