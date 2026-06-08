@@ -110,6 +110,33 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
             </div>
           );
         }
+        if (f.type === "company_type") {
+          const normalized = normalizeCompanyType(data[f.key]);
+          return (
+            <div key={f.key} className={`space-y-1.5 ${span}`}>
+              <Label>{f.label}</Label>
+              <Select
+                value={normalized.type}
+                onValueChange={(v) => setData({ ...data, [f.key]: v, custom_type: v === "other" ? data.custom_type : null })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {COMPANY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {normalized.type === "other" && (
+                <Input
+                  value={data.custom_type ?? normalized.customType ?? ""}
+                  placeholder="Describe the venue type"
+                  onChange={(e) => update("custom_type", e.target.value)}
+                />
+              )}
+              {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
+            </div>
+          );
+        }
         return (
           <div key={f.key} className={`space-y-1.5 ${span}`}>
             <Label>{f.label}</Label>
