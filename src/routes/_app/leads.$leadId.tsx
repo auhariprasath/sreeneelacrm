@@ -219,7 +219,14 @@ function LeadProfile() {
       .on("postgres_changes", { event: "*", schema: "public", table: "follow_ups", filter: `lead_id=eq.${leadId}` },
         async () => {
           const { data: fus } = await supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true });
-          setFollowUps((fus as FollowUp[]) ?? []);
+          const sorted = ((fus as FollowUp[]) ?? []).slice().sort((a, b) => {
+            const aActive = !a.is_sent && !(a as any).is_cancelled;
+            const bActive = !b.is_sent && !(b as any).is_cancelled;
+            if (aActive !== bActive) return aActive ? -1 : 1;
+            if (aActive) return new Date(b.created_at as any).getTime() - new Date(a.created_at as any).getTime();
+            return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+          });
+          setFollowUps(sorted);
         })
       .on("postgres_changes", { event: "*", schema: "public", table: "quotations", filter: `lead_id=eq.${leadId}` }, () => reloadList("quotations"))
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `lead_id=eq.${leadId}` }, () => reloadList("bookings"))
