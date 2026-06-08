@@ -58,14 +58,13 @@ function BookingsIndex() {
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<"upcoming" | "month" | "past" | "all">(initialSearch.month ? "all" : "upcoming");
   const monthFilter = initialSearch.month;
-  
+  const companyOverride = initialSearch.company;
 
-  // Super-admin: activeCompanyId from the top-bar switcher always wins so the
-  // page re-fetches the moment the switcher changes, regardless of URL params.
   const companyFilter = useMemo(() => {
+    if (companyOverride) return companyOverride;
     if (role === "super_admin") return activeCompanyId;
     return profile?.company_id ?? null;
-  }, [role, activeCompanyId, profile]);
+  }, [role, activeCompanyId, profile, companyOverride]);
 
   const load = async () => {
     setLoading(true);
