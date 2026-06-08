@@ -3,9 +3,10 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Pencil, Send } from "lucide-react";
+import { Pencil, Send } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { buildRequirementsMessage, buildTaskWaLink, loadTaskRequirementsContext, sendTaskRequirements, type TaskRequirementsContext } from "@/lib/task-requirements";
+import { buildRequirementsMessage, loadTaskRequirementsContext, sendTaskRequirements, type TaskRequirementsContext } from "@/lib/task-requirements";
+import { WhatsAppSendButton } from "@/components/whatsapp-send-button";
 
 
 interface Props {
@@ -47,11 +48,6 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
 
   const send = async (channel: "in_app" | "whatsapp" = "in_app") => {
     if (!ctx || !taskId) return;
-    if (channel === "whatsapp") {
-      const link = buildTaskWaLink(ctx.assigneePhone, message);
-      if (!link) { toast.error(`${ctx.assigneeName} has no phone number on file`); return; }
-      window.open(link, "_blank", "noopener");
-    }
     setBusy(true);
     const { error } = await sendTaskRequirements({
       taskId,
@@ -65,11 +61,9 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
     });
     setBusy(false);
     if (error) { toast.error(error); return; }
-    toast.success(
-      channel === "whatsapp"
-        ? `WhatsApp opened for ${ctx.assigneeName} ✓`
-        : `Requirements sent to ${ctx.assigneeName} ✓`,
-    );
+    if (channel === "in_app") {
+      toast.success(`Requirements sent to ${ctx.assigneeName} ✓`);
+    }
     onSent?.();
     onOpenChange(false);
   };
@@ -95,9 +89,13 @@ export function TaskRequirementsDialog({ taskId, open, onOpenChange, onSent }: P
           <Button variant="outline" onClick={() => setEditing((v) => !v)} disabled={!ctx || busy}>
             <Pencil className="h-3.5 w-3.5 mr-1" /> {editing ? "Done editing" : "Edit message"}
           </Button>
-          <Button variant="outline" onClick={() => send("whatsapp")} disabled={!ctx || busy} title={ctx?.assigneePhone ? "Open WhatsApp" : "No phone on file"}>
-            <MessageCircle className="h-3.5 w-3.5 mr-1" /> WhatsApp
-          </Button>
+          <WhatsAppSendButton
+            phone={ctx?.assigneePhone ?? null}
+            message={message}
+            disabled={!ctx || busy}
+            variant="outline"
+            onSent={() => send("whatsapp")}
+          />
           <Button onClick={() => send("in_app")} disabled={!ctx || busy}>
             <Send className="h-3.5 w-3.5 mr-1" /> {busy ? "Sending…" : ctx ? `Send to ${ctx.assigneeName}` : "Send"}
           </Button>
