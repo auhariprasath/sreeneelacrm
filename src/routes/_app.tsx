@@ -66,6 +66,15 @@ function AppLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const handleCompanyChange = (v: string) => {
+    const nextId = v === "__all" ? null : v;
+    setActiveCompanyId(nextId);
+    if (pathname.startsWith("/company-dashboard/") || pathname.startsWith("/company-settings/")) {
+      if (nextId) navigate({ to: "/company-dashboard/$companyId", params: { companyId: nextId } });
+      else navigate({ to: "/dashboard" });
+    }
+  };
+
   const [tabletNavOpen, setTabletNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -235,7 +244,7 @@ function AppLayout() {
               <div className="hidden md:flex items-center gap-2">
                 <Select
                   value={activeCompanyId ?? "__all"}
-                  onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
+                  onValueChange={handleCompanyChange}
                 >
                   <SelectTrigger className="w-[180px] lg:w-[220px] h-9">
                     <span className="flex items-center gap-2 min-w-0">
@@ -324,7 +333,7 @@ function AppLayout() {
             <div className="md:hidden border-b bg-card px-3 py-2">
               <Select
                 value={activeCompanyId ?? "__all"}
-                onValueChange={(v) => setActiveCompanyId(v === "__all" ? null : v)}
+                onValueChange={handleCompanyChange}
               >
                 <SelectTrigger className="w-full h-10">
                   <span className="flex items-center gap-2 min-w-0">
