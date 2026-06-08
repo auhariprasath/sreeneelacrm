@@ -11,10 +11,10 @@ export async function closeOtherActiveReminders(
   leadId: string,
   keep?: { followUpId?: string; venueMeetingId?: string },
 ): Promise<void> {
-  // Cancel pending follow-ups (replace, not stack).
+  // Mark other pending follow-ups as done (only one active reminder per lead).
   let followUps = supabase
     .from("follow_ups")
-    .update({ is_cancelled: true })
+    .update({ is_sent: true, sent_at: new Date().toISOString() })
     .eq("lead_id", leadId)
     .eq("is_sent", false)
     .eq("is_cancelled", false);
