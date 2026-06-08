@@ -63,8 +63,8 @@ function buildLeadQuery(companyId: string, f: Filters, opts?: { count?: boolean 
 }
 
 function CampaignsPage() {
-  const { profile, role, loading } = useAuth();
-  const companyId = profile?.company_id ?? null;
+  const { profile, role, loading, activeCompanyId } = useAuth();
+  const companyId = role === "super_admin" ? activeCompanyId : profile?.company_id ?? null;
 
   const [rows, setRows] = useState<CampaignRow[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -99,12 +99,16 @@ function CampaignsPage() {
           <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2"><Megaphone className="h-5 w-5" /> Campaigns</h1>
           <p className="text-sm text-muted-foreground">Bulk WhatsApp/SMS to a segment of your leads.</p>
         </div>
-        {canManage && (
+        {canManage && companyId && (
           <Button onClick={() => setOpen(true)} className="min-h-11"><Plus className="h-4 w-4 mr-1" /> New campaign</Button>
         )}
       </div>
 
-      {listLoading ? (
+      {role === "super_admin" && !companyId && (
+        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">Pick a company from the top bar to view or create campaigns.</CardContent></Card>
+      )}
+
+      {role === "super_admin" && !companyId ? null : listLoading ? (
         <SkeletonList rows={4} />
       ) : rows.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No campaigns yet.</CardContent></Card>
