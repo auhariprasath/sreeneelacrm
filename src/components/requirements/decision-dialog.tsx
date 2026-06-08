@@ -89,6 +89,8 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
           closed_by: performed_by, closed_at: new Date().toISOString(),
         });
       } else if (decision === "needs_time") {
+        const { closeOtherActiveReminders } = await import("@/lib/lead-reminders");
+        await closeOtherActiveReminders(leadId);
         await supabase.from("follow_ups").insert({
           lead_id: leadId, scheduled_at: new Date(followUpAt).toISOString(),
           note: note || "Decision pending", type: "custom", created_by: performed_by,
