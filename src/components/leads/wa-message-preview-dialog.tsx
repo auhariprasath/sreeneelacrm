@@ -110,7 +110,7 @@ export function WaMessagePreviewDialog({ open, onOpenChange, companyId, template
     if (!tel) { toast.error("No phone number"); return; }
     const url = buildWaMeLink(leadPhone ?? undefined, merged);
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.open(url, "_blank", "noreferrer");
+    window.location.href = url;
     onOpenChange(false);
   };
 

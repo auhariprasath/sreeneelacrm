@@ -551,7 +551,7 @@ function LeadProfile() {
                     if (!wa) { toast.error("Invalid phone number"); return; }
                     // Also download the PDF so staff can attach it
                     downloadInvoicePdf(q.id).catch(() => {});
-                    window.open(wa, "_blank", "noopener");
+                    window.location.href = wa;
                     await markInvoiceSent(q.id, profile?.id ?? null);
                     toast.success("Invoice sent · WhatsApp opened");
                     loadQuotations();

@@ -152,7 +152,7 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
 
     if (send) {
       const url = buildWaMeLink(leadPhone, finalMsg + (selectedPhotoUrls.length ? `\n\n${selectedPhotoUrls.map((p) => p.url).join("\n")}` : ""));
-      if (url) window.open(url, "_blank", "noopener");
+      if (url) window.location.href = url;
     }
 
     toast.success(send ? "Meeting scheduled & WhatsApp opened ✓" : "Meeting scheduled ✓");

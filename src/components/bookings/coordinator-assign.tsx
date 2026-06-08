@@ -111,7 +111,7 @@ export function CoordinatorAssign(props: Props) {
         (venue ? `Venue: ${venue}\n` : "") +
         `\nYour coordination link (update stages here):\n${coordUrl}\n\n— ${companyName}`;
       const url = buildWaMeLink(chosen.phone, msg);
-      if (url) window.open(url, "_blank");
+      if (url) window.location.href = url;
     } else {
       toast.message("Coordinator has no phone on file — copy link manually", { description: coordUrl });
     }
@@ -123,7 +123,7 @@ export function CoordinatorAssign(props: Props) {
           `Hi ${leadName}, your event coordinator has been assigned.\n\n` +
           `Track preparations live here:\n${clientUrl}\n\n— ${companyName}`;
         const url = buildWaMeLink(leadPhone, msg);
-        if (url) window.open(url, "_blank");
+        if (url) window.location.href = url;
       }, 600);
     }
   };

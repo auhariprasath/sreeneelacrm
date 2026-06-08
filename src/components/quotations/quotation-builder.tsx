@@ -379,7 +379,7 @@ export function QuotationBuilder({
       const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const url = buildWaMeLink(lead.phone, message);
       if (!url) { toast.error("Invalid phone number"); return; }
-      window.open(url, "_blank", "noopener");
+      window.location.href = url;
       await markSent("whatsapp", "WhatsApp", id);
       onContinueToSend?.(id); onSaved?.();
       toast.success("WhatsApp opened · PDF downloaded — attach it in the chat");

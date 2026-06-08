@@ -417,7 +417,7 @@ function SendDialog({ campaign, companyId, onClose }: { campaign: CampaignRow; c
     if (!current) return;
     const url = buildWaMeLink(current.phone, personalise(current));
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.location.href = url;
   };
 
   const openSms = () => {
