@@ -337,17 +337,17 @@ function CallOutcomesReport({ from, to, companyId }: { from: string; to: string;
   const [filterOutcome, setFilterOutcome] = useState<string>("all");
 
   useEffect(() => {
-    if (!companyId) { setLoading(false); return; }
     let cancelled = false;
     (async () => {
       setLoading(true);
       const fromIso = new Date(from).toISOString();
       const toIso = new Date(new Date(to).getTime() + 86400_000).toISOString();
-      const { data } = await supabase.from("call_outcomes" as any)
+      let callQuery = supabase.from("call_outcomes" as any)
         .select("id,lead_id,outcome,notes,created_at,drop_reason,performed_by")
-        .eq("company_id", companyId)
         .gte("created_at", fromIso).lte("created_at", toIso)
         .order("created_at", { ascending: false }).limit(500);
+      if (companyId) callQuery = callQuery.eq("company_id", companyId);
+      const { data } = await callQuery;
       const base = (data as any[]) ?? [];
       const leadIds = [...new Set(base.map((r) => r.lead_id))];
       const perfIds = [...new Set(base.map((r) => r.performed_by).filter(Boolean))];
