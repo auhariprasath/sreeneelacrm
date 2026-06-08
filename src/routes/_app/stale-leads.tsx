@@ -21,15 +21,17 @@ const STATUS_TO_KEY: Record<string, string> = {
 };
 
 function StaleLeadsPage() {
-  const { role } = useAuth();
+  const { role, activeCompanyId } = useAuth();
   if (role !== "super_admin") return <Navigate to="/dashboard" />;
   const [rows, setRows] = useState<Row[]>([]);
   const [companyFilter, setCompanyFilter] = useState<string>("all");
 
   useEffect(() => {
     (async () => {
-      const { data: cos } = await supabase.from("companies")
+      let companyQuery = supabase.from("companies")
         .select("id, name, stale_alerts_enabled, stale_thresholds").is("deleted_at", null);
+      if (activeCompanyId) companyQuery = companyQuery.eq("id", activeCompanyId);
+      const { data: cos } = await companyQuery;
       const result: Row[] = [];
       for (const co of cos ?? []) {
         if (!(co as any).stale_alerts_enabled) continue;
@@ -60,7 +62,11 @@ function StaleLeadsPage() {
       result.sort((a, b) => b.days_overdue - a.days_overdue);
       setRows(result);
     })();
-  }, []);
+  }, [activeCompanyId]);
+
+  useEffect(() => {
+    setCompanyFilter(activeCompanyId ?? "all");
+  }, [activeCompanyId]);
 
   const companies = useMemo(() => {
     const set = new Map<string, string>();
@@ -80,6 +86,7 @@ function StaleLeadsPage() {
       </div>
       <div className="flex items-center gap-2">
         <select className="h-9 rounded-md border bg-background px-2 text-sm"
+          disabled={!!activeCompanyId}
           value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)}>
           <option value="all">All companies</option>
           {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
