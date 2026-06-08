@@ -290,16 +290,18 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
               >
                 <Phone className="h-4 w-4 text-primary" />
               </a>
-              <a
-                href={buildWaMeLink(lead.phone) ?? undefined}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const wa = buildWaMeLink(lead.phone);
+                  if (wa) window.location.href = wa;
+                }}
                 className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-accent"
                 aria-label="WhatsApp"
               >
                 <MessageSquare className="h-4 w-4 text-success" />
-              </a>
+              </button>
             </div>
           </div>
         </div>

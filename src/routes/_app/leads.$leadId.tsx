@@ -364,8 +364,10 @@ function LeadProfile() {
               >
                 <Phone className="h-4 w-4" /> Call
               </a>
-              <a href={buildWaMeLink(lead.phone) ?? undefined} target="_blank" rel="noreferrer"
+              <button type="button"
                  onClick={() => {
+                   const wa = buildWaMeLink(lead.phone);
+                   if (wa) window.location.href = wa;
                    supabase.from("activity_logs").insert({
                      lead_id: lead.id,
                      action: `WhatsApp opened by ${profile?.full_name ?? "staff"}`,
@@ -375,7 +377,7 @@ function LeadProfile() {
                  }}
                  className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-success text-white text-sm font-medium">
                 <MessageSquare className="h-4 w-4" /> WhatsApp
-              </a>
+              </button>
               <Button variant="outline" className="h-11" onClick={() => setFuOpen(true)}>
                 <CalendarClock className="h-4 w-4 mr-1.5" /> Follow-up
               </Button>
