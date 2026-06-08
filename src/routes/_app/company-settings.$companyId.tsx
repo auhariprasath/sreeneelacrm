@@ -122,7 +122,7 @@ function CompanyFullSettings() {
   // ---- Field configs ----
   const companyDetailsFields: CompanyField[] = [
     { key: "name", label: "Company name" },
-    { key: "type", label: "Type", placeholder: "banquet, garden, mandapam, party or other" },
+    { key: "type", label: "Type", type: "company_type" },
     { key: "full_address", label: "Full address", type: "textarea", rows: 3, fullWidth: true },
     { key: "company_phone", label: "Phone number" },
     { key: "wa_number", label: "WhatsApp Business number" },

@@ -6,11 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type CompanyField = {
   key: string;
   label: string;
-  type?: "text" | "number" | "textarea" | "switch";
+  type?: "text" | "number" | "textarea" | "switch" | "company_type";
   placeholder?: string;
   description?: string;
   suffix?: string;
@@ -18,18 +25,68 @@ export type CompanyField = {
   fullWidth?: boolean;
 };
 
+const COMPANY_TYPES = [
+  { value: "garden_venue", label: "Garden Venue" },
+  { value: "banquet_hall", label: "Banquet Hall" },
+  { value: "party_hall", label: "Party Hall" },
+  { value: "mandapam", label: "Mandapam" },
+  { value: "other", label: "Other" },
+] as const;
+
+type CompanyTypeValue = (typeof COMPANY_TYPES)[number]["value"];
+type CompanyDataValue = string | number | boolean | null;
+type CompanyFormData = Record<string, CompanyDataValue | undefined>;
+
+const COMPANY_TYPE_VALUES = new Set<string>(COMPANY_TYPES.map((type) => type.value));
+
+function normalizeCompanyType(value: unknown): {
+  type: CompanyTypeValue;
+  customType: string | null;
+} {
+  const raw = String(value ?? "").trim();
+  const normalized = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const aliases: Record<string, CompanyTypeValue> = {
+    garden: "garden_venue",
+    garden_venue: "garden_venue",
+    banquet: "banquet_hall",
+    banquet_hall: "banquet_hall",
+    party: "party_hall",
+    party_hall: "party_hall",
+    mandapam: "mandapam",
+    other: "other",
+  };
+  const mapped =
+    aliases[normalized] ??
+    (COMPANY_TYPE_VALUES.has(normalized) ? (normalized as CompanyTypeValue) : "other");
+  return {
+    type: mapped,
+    customType: mapped === "other" && normalized !== "other" ? raw || null : null,
+  };
+}
+
+function fieldValue(value: CompanyDataValue | undefined): string | number {
+  return typeof value === "boolean" ? "" : (value ?? "");
+}
+
 interface Props {
   companyId: string | undefined;
   fields: CompanyField[];
 }
 
 export function CompanyFieldsSection({ companyId, fields }: Props) {
-  const [data, setData] = useState<Record<string, any> | null>(null);
+  const [data, setData] = useState<CompanyFormData | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!companyId) return;
-    const cols = fields.map((f) => f.key).join(",");
+    const cols = Array.from(
+      new Set(
+        fields.flatMap((f) => (f.type === "company_type" ? [f.key, "custom_type"] : [f.key])),
+      ),
+    ).join(",");
     supabase
       .from("companies")
       .select(cols)
@@ -37,7 +94,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) toast.error("Couldn't load");
-        setData((data as any) ?? {});
+        setData((data ?? {}) as CompanyFormData);
       });
   }, [companyId, fields]);
 
@@ -45,17 +102,29 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
     return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
   if (!data) return <div className="text-sm text-muted-foreground p-6">Loading…</div>;
 
-  const update = (k: string, v: any) => setData({ ...data, [k]: v });
+  const update = (k: string, v: CompanyDataValue) => setData({ ...data, [k]: v });
 
   const save = async () => {
     setSaving(true);
-    const patch: Record<string, any> = {};
+    const patch: Record<string, CompanyDataValue> = {};
     fields.forEach((f) => {
       let v = data[f.key];
       if (f.type === "number") v = v === "" || v === null ? null : Number(v);
+      if (f.type === "company_type") {
+        const normalized = normalizeCompanyType(v);
+        patch[f.key] = normalized.type;
+        patch.custom_type =
+          normalized.type === "other"
+            ? String(data.custom_type || normalized.customType || "").trim() || null
+            : null;
+        return;
+      }
       patch[f.key] = v ?? null;
     });
-    const { error } = await supabase.from("companies").update(patch as any).eq("id", companyId);
+    const { error } = await supabase
+      .from("companies")
+      .update(patch as never)
+      .eq("id", companyId);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Saved ✓");
@@ -67,12 +136,52 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
         const span = f.fullWidth || f.type === "textarea" ? "md:col-span-2" : "";
         if (f.type === "switch") {
           return (
-            <div key={f.key} className={`flex items-start justify-between gap-4 border rounded-md p-3 ${span}`}>
+            <div
+              key={f.key}
+              className={`flex items-start justify-between gap-4 border rounded-md p-3 ${span}`}
+            >
               <div className="space-y-0.5 min-w-0">
                 <Label>{f.label}</Label>
                 {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
               </div>
               <Switch checked={!!data[f.key]} onCheckedChange={(v) => update(f.key, v)} />
+            </div>
+          );
+        }
+        if (f.type === "company_type") {
+          const normalized = normalizeCompanyType(data[f.key]);
+          return (
+            <div key={f.key} className={`space-y-1.5 ${span}`}>
+              <Label>{f.label}</Label>
+              <Select
+                value={normalized.type}
+                onValueChange={(v) =>
+                  setData({
+                    ...data,
+                    [f.key]: v,
+                    custom_type: v === "other" ? data.custom_type : null,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMPANY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {normalized.type === "other" && (
+                <Input
+                  value={fieldValue(data.custom_type) || normalized.customType || ""}
+                  placeholder="Describe the venue type"
+                  onChange={(e) => update("custom_type", e.target.value)}
+                />
+              )}
+              {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
             </div>
           );
         }
@@ -82,7 +191,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
             {f.type === "textarea" ? (
               <Textarea
                 rows={f.rows ?? 4}
-                value={data[f.key] ?? ""}
+                value={fieldValue(data[f.key])}
                 placeholder={f.placeholder}
                 onChange={(e) => update(f.key, e.target.value)}
               />
@@ -90,7 +199,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
               <div className="relative">
                 <Input
                   type={f.type === "number" ? "number" : "text"}
-                  value={data[f.key] ?? ""}
+                  value={fieldValue(data[f.key])}
                   placeholder={f.placeholder}
                   onChange={(e) => update(f.key, e.target.value)}
                 />
