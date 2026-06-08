@@ -112,13 +112,21 @@ async function loadPending(companyId: string): Promise<Pending> {
   };
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border p-3">
+function StatTile({ label, value, to, search }: { label: string; value: string; to?: string; search?: Record<string, any> }) {
+  const inner = (
+    <>
       <div className="text-[11px] uppercase tracking-wide text-muted-foreground truncate">{label}</div>
       <div className="text-lg font-semibold mt-1 truncate">{value}</div>
-    </div>
+    </>
   );
+  if (to) {
+    return (
+      <Link to={to as any} search={search as any} className="rounded-lg border p-3 block hover:bg-accent/40 transition cursor-pointer">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="rounded-lg border p-3">{inner}</div>;
 }
 
 function Column({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
@@ -177,10 +185,10 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <StatTile label="Revenue (mo)" value={formatINR(overview.revenue)} />
-                <StatTile label="New leads" value={String(overview.newLeads)} />
-                <StatTile label="Bookings" value={String(overview.bookings)} />
-                <StatTile label="Conversion" value={`${overview.conversion}%`} />
+                <StatTile label="Revenue (mo)" value={formatINR(overview.revenue)} to="/bookings" search={{ month: monthStr, company: companyId }} />
+                <StatTile label="New leads" value={String(overview.newLeads)} to="/leads" search={{ company: companyId }} />
+                <StatTile label="Bookings" value={String(overview.bookings)} to="/bookings" search={{ company: companyId }} />
+                <StatTile label="Conversion" value={`${overview.conversion}%`} to="/reports" search={{ company: companyId }} />
               </div>
               <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
