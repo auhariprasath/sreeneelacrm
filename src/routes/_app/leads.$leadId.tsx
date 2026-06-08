@@ -65,6 +65,7 @@ function LeadProfile() {
   const [unmasked, setUnmasked] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
+  const [venueMeetings, setVenueMeetings] = useState<Array<{ id: string; scheduled_date: string; scheduled_time: string; status: string; contact_person_name: string | null; notes: string | null }>>([]);
   const [referrer, setReferrer] = useState<{ id: string; full_name: string } | null>(null);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -146,7 +147,23 @@ function LeadProfile() {
       supabase.from("win_loss_log").select("outcome, drop_reason, competitor_name, amount_value, closed_at").eq("lead_id", leadId).order("closed_at", { ascending: false }),
     ]);
     setActivities((acts as Activity[]) ?? []);
-    setFollowUps((fus as FollowUp[]) ?? []);
+    // Sort: active (not sent, not cancelled) first — most recently created at top — then completed/cancelled by date.
+    const sortedFus = ((fus as FollowUp[]) ?? []).slice().sort((a, b) => {
+      const aActive = !a.is_sent && !(a as any).is_cancelled;
+      const bActive = !b.is_sent && !(b as any).is_cancelled;
+      if (aActive !== bActive) return aActive ? -1 : 1;
+      if (aActive) return new Date(b.created_at as any).getTime() - new Date(a.created_at as any).getTime();
+      return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+    });
+    setFollowUps(sortedFus);
+    const { data: vms } = await supabase
+      .from("venue_meetings")
+      .select("id, scheduled_date, scheduled_time, status, contact_person_name, notes")
+      .eq("lead_id", leadId)
+      .is("deleted_at", null)
+      .order("scheduled_date", { ascending: false })
+      .order("scheduled_time", { ascending: false });
+    setVenueMeetings((vms as any[]) ?? []);
     setRequirements((reqs as Requirement[]) ?? []);
     setQuotations((quotes as Quotation[]) ?? []);
     setBookings((bks as Booking[]) ?? []);
@@ -211,7 +228,14 @@ function LeadProfile() {
       .on("postgres_changes", { event: "*", schema: "public", table: "follow_ups", filter: `lead_id=eq.${leadId}` },
         async () => {
           const { data: fus } = await supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true });
-          setFollowUps((fus as FollowUp[]) ?? []);
+          const sorted = ((fus as FollowUp[]) ?? []).slice().sort((a, b) => {
+            const aActive = !a.is_sent && !(a as any).is_cancelled;
+            const bActive = !b.is_sent && !(b as any).is_cancelled;
+            if (aActive !== bActive) return aActive ? -1 : 1;
+            if (aActive) return new Date(b.created_at as any).getTime() - new Date(a.created_at as any).getTime();
+            return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+          });
+          setFollowUps(sorted);
         })
       .on("postgres_changes", { event: "*", schema: "public", table: "quotations", filter: `lead_id=eq.${leadId}` }, () => reloadList("quotations"))
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: `lead_id=eq.${leadId}` }, () => reloadList("bookings"))
@@ -869,6 +893,36 @@ function LeadProfile() {
               ))}
             </div>
           )}
+
+          {/* Venue meetings list for this lead */}
+          <div className="pt-4 border-t mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <div className="text-sm font-medium">Venue meetings</div>
+            </div>
+            {venueMeetings.length === 0 ? (
+              <div className="text-xs text-muted-foreground py-3">No venue meetings yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {venueMeetings.map((m) => {
+                  const when = `${m.scheduled_date}T${m.scheduled_time}`;
+                  const active = ["scheduled", "reminder_sent", "rescheduled"].includes(m.status);
+                  return (
+                    <div key={m.id} className="bg-card border rounded-md p-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">{formatDateTimeIN(when)}</div>
+                        {m.contact_person_name && <div className="text-xs text-muted-foreground mt-0.5">With {m.contact_person_name}</div>}
+                        {m.notes && <div className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{m.notes}</div>}
+                        <div className={`text-[11px] mt-1 ${active ? "text-warning" : "text-muted-foreground"}`}>
+                          {active ? "Active" : m.status}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="notes" className="pt-3 space-y-2">
