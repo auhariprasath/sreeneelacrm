@@ -26,7 +26,7 @@ interface Row {
 }
 
 function NotInterestedPage() {
-  const { role } = useAuth();
+  const { role, activeCompanyId } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
@@ -40,12 +40,14 @@ function NotInterestedPage() {
   const load = async () => {
     setLoading(true);
     const since = new Date(Date.now() - 365 * 86400_000).toISOString();
-    const { data } = await supabase
+    let q = supabase
       .from("win_loss_log")
       .select("lead_id, drop_reason, closed_at, closed_by, company_id, outcome")
       .eq("outcome", "lost" as any)
       .gte("closed_at", since)
       .order("closed_at", { ascending: false });
+    if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+    const { data } = await q;
 
     const leadIds = Array.from(new Set((data ?? []).map((r) => r.lead_id)));
     const companyIds = Array.from(new Set((data ?? []).map((r) => r.company_id)));
@@ -90,7 +92,7 @@ function NotInterestedPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [activeCompanyId]);
 
   // Summary metrics
   const monthStart = useMemo(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); }, []);
