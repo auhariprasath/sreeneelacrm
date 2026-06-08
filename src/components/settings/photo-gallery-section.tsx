@@ -21,6 +21,7 @@ export function PhotoGallerySection({ companyId }: Props) {
   const [loading, setLoading] = useState(true);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   useEffect(() => {
     if (!companyId) return;
@@ -55,6 +56,28 @@ export function PhotoGallerySection({ companyId }: Props) {
     toast.success("Photo added ✓");
   };
 
+  const uploadMany = async (files: File[]) => {
+    if (!companyId) return;
+    const images = files.filter((f) => f.type.startsWith("image/"));
+    if (images.length === 0) { toast.error("Only image files are supported"); return; }
+    let current = [...photos];
+    setBusy(true);
+    let added = 0;
+    for (const file of images) {
+      if (current.length >= MAX) { toast.error(`Max ${MAX} photos`); break; }
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${companyId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("venue-photos").upload(path, file, { upsert: false, contentType: file.type });
+      if (error) { toast.error(error.message); continue; }
+      const url = await signedUrl(path);
+      current = [...current, { path, url }];
+      await persist(current);
+      added++;
+    }
+    setBusy(false);
+    if (added > 0) toast.success(`${added} photo${added > 1 ? "s" : ""} added ✓`);
+  };
+
   const remove = async (idx: number) => {
     const p = photos[idx];
     await supabase.storage.from("venue-photos").remove([p.path]);
@@ -84,7 +107,30 @@ export function PhotoGallerySection({ companyId }: Props) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-muted-foreground">Up to {MAX} venue photos. Used in meeting confirmation WhatsApp messages.</div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div
+        onDragOver={(e) => {
+          if (dragIdx !== null) return;
+          if (Array.from(e.dataTransfer.types).includes("Files")) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+            if (!isDraggingFile) setIsDraggingFile(true);
+          }
+        }}
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+          setIsDraggingFile(false);
+        }}
+        onDrop={(e) => {
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            e.preventDefault();
+            setIsDraggingFile(false);
+            uploadMany(Array.from(e.dataTransfer.files));
+          }
+        }}
+        className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 rounded-md p-1 transition ${
+          isDraggingFile ? "ring-2 ring-primary ring-offset-2 bg-accent/30" : ""
+        }`}
+      >
         {photos.map((p, i) => (
           <div
             key={p.path}
