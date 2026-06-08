@@ -86,10 +86,24 @@ export function PhotoGallerySection({ companyId }: Props) {
       <div className="text-xs text-muted-foreground">Up to {MAX} venue photos. Used in meeting confirmation WhatsApp messages.</div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {photos.map((p, i) => (
-          <div key={p.path} className="relative group border rounded-md overflow-hidden bg-muted aspect-square">
-            <img src={p.url} alt={`Photo ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-x-1 top-1 flex justify-between">
+          <div
+            key={p.path}
+            draggable
+            onDragStart={(e) => { setDragIdx(i); e.dataTransfer.effectAllowed = "move"; }}
+            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (overIdx !== i) setOverIdx(i); }}
+            onDragLeave={() => { if (overIdx === i) setOverIdx(null); }}
+            onDrop={(e) => { e.preventDefault(); if (dragIdx !== null) reorder(dragIdx, i); setDragIdx(null); setOverIdx(null); }}
+            onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+            className={`relative group border rounded-md overflow-hidden bg-muted aspect-square cursor-grab active:cursor-grabbing transition ${
+              dragIdx === i ? "opacity-50" : ""
+            } ${overIdx === i && dragIdx !== null && dragIdx !== i ? "ring-2 ring-primary" : ""}`}
+          >
+            <img src={p.url} alt={`Photo ${i + 1}`} draggable={false} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+            <div className="absolute inset-x-1 top-1 flex justify-between items-center">
               <span className="bg-background/80 rounded px-1.5 py-0.5 text-[10px] font-medium">#{i + 1}</span>
+              <span className="bg-background/80 rounded p-0.5 opacity-0 group-hover:opacity-100 transition">
+                <GripVertical className="h-3 w-3 text-muted-foreground" />
+              </span>
             </div>
             <div className="absolute inset-x-1 bottom-1 flex gap-1 opacity-0 group-hover:opacity-100 transition">
               <Button size="icon" variant="secondary" className="h-7 w-7" onClick={() => move(i, -1)} disabled={i === 0}>
