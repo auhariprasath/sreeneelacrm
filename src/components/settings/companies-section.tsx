@@ -61,9 +61,9 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
     try {
-      await create({ data: { name: name.trim(), type } });
+      await create({ data: { name: name.trim(), type, custom_type: type === "other" ? customType.trim() || null : null } });
       toast.success("Company added");
-      setOpen(false); setName(""); setType("banquet");
+      setOpen(false); setName(""); setType("banquet_hall"); setCustomType("");
       await load(); onChange?.();
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
     finally { setBusy(false); }
