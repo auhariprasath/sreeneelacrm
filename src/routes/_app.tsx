@@ -70,7 +70,7 @@ function AppLayout() {
     const nextId = v === "__all" ? null : v;
     setActiveCompanyId(nextId);
     // Keep the global filter on list/report pages; only rewrite company-specific URLs.
-    if (nextId && pathname.startsWith("/company-dashboard/")) {
+    if (nextId && (pathname === "/dashboard" || pathname.startsWith("/company-dashboard/"))) {
       navigate({ to: "/company-dashboard/$companyId", params: { companyId: nextId } });
     } else if (nextId && pathname.startsWith("/company-settings/")) {
       navigate({ to: "/company-settings/$companyId", params: { companyId: nextId } });
