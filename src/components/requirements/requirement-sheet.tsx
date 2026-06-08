@@ -401,7 +401,47 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
               </div>
               <div className="space-y-1.5">
                 <Label>Community (optional)</Label>
-                <Input value={form.community} onChange={(e) => setForm({ ...form, community: e.target.value })} />
+                {(() => {
+                  const list = communities
+                    .map((t) => (t.label ?? t.name ?? "").trim())
+                    .filter(Boolean);
+                  const isOther = !!form.community && form.community === "Other";
+                  const selectVal = !form.community
+                    ? ""
+                    : list.includes(form.community)
+                      ? form.community
+                      : (form.community === "Other" ? "Other" : "Other");
+                  // If existing value is not in list and not empty, treat as Other and seed text
+                  if (form.community && !list.includes(form.community) && form.community !== "Other" && communityOther === "") {
+                    // seed once
+                    setTimeout(() => setCommunityOther(form.community), 0);
+                    setTimeout(() => setForm((f) => ({ ...f, community: "Other" })), 0);
+                  }
+                  return (
+                    <>
+                      <Select
+                        value={selectVal}
+                        onValueChange={(v) => {
+                          if (v === "Other") setForm({ ...form, community: "Other" });
+                          else setForm({ ...form, community: v });
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Pick community" /></SelectTrigger>
+                        <SelectContent>
+                          {list.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {(form.community === "Other" || isOther) && (
+                        <Input
+                          placeholder="Describe the community"
+                          value={communityOther}
+                          onChange={(e) => setCommunityOther(e.target.value)}
+                        />
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
