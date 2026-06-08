@@ -31,7 +31,7 @@ interface Props {
 }
 
 type Session = { name: string; start_time: string; end_time: string };
-type EventType = { name: string };
+type EventType = { label?: string; name?: string };
 type AddonCat = { name: string; price: number };
 
 type FormState = {
