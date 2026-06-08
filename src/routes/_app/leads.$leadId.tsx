@@ -354,14 +354,7 @@ function LeadProfile() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <a
                 href={`tel:+91${tel}`}
-                onClick={async () => {
-                  // No call-tracking API → set a safety 2h reminder + open post-call popup on return
-                  const due = new Date(Date.now() + 2 * 60 * 60_000);
-                  await supabase.from("follow_ups").insert({
-                    lead_id: lead.id, scheduled_at: due.toISOString(),
-                    note: "Auto: post-call safety reminder", created_by: profile?.id ?? null,
-                  });
-                  toast.info("No WhatsApp API connected. Reminder set for follow-up.");
+                onClick={() => {
                   // Only show "How did the call go?" on the first call (when lead is still new)
                   if (lead.status === "new") {
                     setTimeout(() => setCallOpen(true), 400);
