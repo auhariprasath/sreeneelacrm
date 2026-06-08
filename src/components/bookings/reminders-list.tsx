@@ -24,9 +24,14 @@ export function RemindersList({ bookingId, phone, onChange }: { bookingId: strin
   };
   useEffect(() => { load(); }, [bookingId]);
 
-  const markSent = async (r: Reminder) => {
+  const sendWA = async (r: Reminder) => {
     setBusy(r.id);
     try {
+      const msg = r.message_template ?? "Friendly reminder about your upcoming payment.";
+      if (phone) {
+        const url = buildWaMeLink(phone, msg);
+        if (url) window.open(url, "_blank", "noopener");
+      }
       await supabase.from("payment_reminders").update({ is_sent: true, sent_at: new Date().toISOString() }).eq("id", r.id);
       toast.success("Marked as sent");
       load(); onChange?.();
@@ -58,15 +63,10 @@ export function RemindersList({ bookingId, phone, onChange }: { bookingId: strin
             <div className="font-medium">{r.trigger_percent ? `${r.trigger_percent}% trigger` : "Reminder"}</div>
             <div className="text-muted-foreground">{formatDateTimeIN(r.scheduled_at)}</div>
           </div>
-          <div className="flex gap-1 shrink-0 items-center">
-            <WhatsAppSendButton
-              phone={phone ?? null}
-              message={r.message_template ?? "Friendly reminder about your upcoming payment."}
-              disabled={busy === r.id || !phone}
-              variant="outline"
-              label="Send"
-              onSent={() => markSent(r)}
-            />
+          <div className="flex gap-1 shrink-0">
+            <Button size="sm" variant="outline" className="h-7 px-2" disabled={busy === r.id || !phone} onClick={() => sendWA(r)}>
+              {busy === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <MessageSquare className="h-3 w-3" />}
+            </Button>
             <Button size="sm" variant="ghost" className="h-7 w-7 p-0" disabled={busy === r.id} onClick={() => cancel(r)}>
               <X className="h-3 w-3" />
             </Button>
