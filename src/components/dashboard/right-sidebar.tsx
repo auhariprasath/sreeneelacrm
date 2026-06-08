@@ -16,41 +16,30 @@ interface Data {
   staleCount: number;
 }
 
-async function load(companyId?: string | null): Promise<Data> {
+async function load(): Promise<Data> {
   const nowIso = new Date().toISOString();
   const in3d = new Date(Date.now() + 3 * 86400_000).toISOString();
   const in14d = new Date(Date.now() + 14 * 86400_000).toISOString();
 
-  let followUpsQ = supabase.from("follow_ups")
-    .select("id, lead_id, scheduled_at, leads!inner(full_name, company_id)")
-    .eq("is_sent", false).eq("is_cancelled", false)
-    .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(60);
-  if (companyId) followUpsQ = followUpsQ.eq("leads.company_id", companyId);
-
-  let tasksQ = supabase.from("tasks")
-    .select("id, booking_id, title, due_at, bookings(lead_id)")
-    .is("deleted_at", null).neq("status", "done")
-    .gte("due_at", nowIso).lte("due_at", in3d)
-    .order("due_at", { ascending: true }).limit(15);
-  if (companyId) tasksQ = tasksQ.eq("company_id", companyId);
-
-  let quotsQ = supabase.from("quotations")
-    .select("id, lead_id, quotation_number, total")
-    .is("deleted_at", null).eq("status", "sent")
-    .order("created_at", { ascending: false }).limit(10);
-  if (companyId) quotsQ = quotsQ.eq("company_id", companyId);
-
-  let overdueQ = supabase.from("tasks")
-    .select("id, booking_id, title, due_at, bookings(lead_id)")
-    .is("deleted_at", null).neq("status", "done")
-    .lt("due_at", nowIso).order("due_at", { ascending: true }).limit(15);
-  if (companyId) overdueQ = overdueQ.eq("company_id", companyId);
-
-  let companiesQ = supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null);
-  if (companyId) companiesQ = companiesQ.eq("id", companyId);
-
   const [followUps, tasksRes, quots, overdueRes, companiesRes] = await Promise.all([
-    followUpsQ, tasksQ, quotsQ, overdueQ, companiesQ,
+    supabase.from("follow_ups")
+      .select("id, lead_id, scheduled_at, leads!inner(full_name)")
+      .eq("is_sent", false).eq("is_cancelled", false)
+      .lte("scheduled_at", in14d).order("scheduled_at", { ascending: true }).limit(60),
+    supabase.from("tasks")
+      .select("id, booking_id, title, due_at, bookings(lead_id)")
+      .is("deleted_at", null).neq("status", "done")
+      .gte("due_at", nowIso).lte("due_at", in3d)
+      .order("due_at", { ascending: true }).limit(15),
+    supabase.from("quotations")
+      .select("id, lead_id, quotation_number, total")
+      .is("deleted_at", null).eq("status", "sent")
+      .order("created_at", { ascending: false }).limit(10),
+    supabase.from("tasks")
+      .select("id, booking_id, title, due_at, bookings(lead_id)")
+      .is("deleted_at", null).neq("status", "done")
+      .lt("due_at", nowIso).order("due_at", { ascending: true }).limit(15),
+    supabase.from("companies").select("id, stale_alerts_enabled, stale_thresholds").is("deleted_at", null),
   ]);
 
   const statusToKey: Record<string, string> = {
@@ -97,7 +86,6 @@ async function load(companyId?: string | null): Promise<Data> {
   };
 }
 
-
 function Section({ icon: Icon, title, count, children }: { icon: any; title: string; count: number; children: React.ReactNode }) {
   return (
     <Card className="h-full">
@@ -113,10 +101,10 @@ function Section({ icon: Icon, title, count, children }: { icon: any; title: str
   );
 }
 
-export function RightSidebar({ layout = "stack", companyId }: { layout?: "stack" | "grid"; companyId?: string | null } = {}) {
+export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" } = {}) {
   const [d, setD] = useState<Data | null>(null);
-  const refresh = () => load(companyId).then(setD);
-  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [companyId]);
+  const refresh = () => load().then(setD);
+  useEffect(() => { refresh(); }, []);
   useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
   const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
