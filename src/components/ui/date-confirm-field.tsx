@@ -72,7 +72,7 @@ export function DateConfirmField({
               }
             }}
             disabled={!draft}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-10"
+            className="w-full font-semibold h-10"
           >
             <Check className="h-4 w-4 mr-2" /> Confirm date
           </Button>

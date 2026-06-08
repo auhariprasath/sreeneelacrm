@@ -66,7 +66,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
           onClick={() => mode === "hour" ? pickHour(n) : pickMinute(n)}
           className={cn(
             "absolute flex items-center justify-center rounded-full text-base font-semibold transition-colors select-none",
-            selected ? "bg-purple-600 text-white shadow-lg" : "hover:bg-purple-100 text-foreground",
+            selected ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-accent text-foreground",
           )}
           style={{
             left: x - itemR, top: y - itemR,
@@ -96,7 +96,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
           onClick={() => setMode("hour")}
           className={cn(
             "px-3 py-2 rounded-md text-3xl font-bold tabular-nums tracking-tight transition-colors",
-            mode === "hour" ? "bg-purple-100 text-purple-700" : "text-muted-foreground hover:text-foreground",
+            mode === "hour" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >
           {String(hour12).padStart(2, "0")}
@@ -107,7 +107,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
           onClick={() => setMode("minute")}
           className={cn(
             "px-3 py-2 rounded-md text-3xl font-bold tabular-nums tracking-tight transition-colors",
-            mode === "minute" ? "bg-purple-100 text-purple-700" : "text-muted-foreground hover:text-foreground",
+            mode === "minute" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >
           {String(minute).padStart(2, "0")}
@@ -118,7 +118,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
             onClick={() => setMeridiem(false)}
             className={cn(
               "px-3 py-1 text-xs font-semibold rounded border min-h-[28px]",
-              !isPM ? "bg-purple-600 text-white border-purple-600" : "bg-background text-muted-foreground",
+              !isPM ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground",
             )}
           >AM</button>
           <button
@@ -126,7 +126,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
             onClick={() => setMeridiem(true)}
             className={cn(
               "px-3 py-1 text-xs font-semibold rounded border min-h-[28px]",
-              isPM ? "bg-purple-600 text-white border-purple-600" : "bg-background text-muted-foreground",
+              isPM ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground",
             )}
           >PM</button>
         </div>
@@ -135,9 +135,9 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
       {/* Clock face */}
       <div className="relative bg-muted/40 rounded-full" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="absolute inset-0 pointer-events-none">
-          <circle cx={cx} cy={cy} r={4} fill="hsl(270 70% 50%)" />
-          <line x1={cx} y1={cy} x2={handX} y2={handY} stroke="hsl(270 70% 50%)" strokeWidth={2} />
-          <circle cx={handX} cy={handY} r={3} fill="hsl(270 70% 50%)" />
+          <circle cx={cx} cy={cy} r={4} fill="var(--primary)" />
+          <line x1={cx} y1={cy} x2={handX} y2={handY} stroke="var(--primary)" strokeWidth={2} />
+          <circle cx={handX} cy={handY} r={3} fill="var(--primary)" />
         </svg>
         {renderItems()}
       </div>
@@ -150,7 +150,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
         <Button
           type="button"
           onClick={() => onConfirm(value)}
-          className="w-full h-11 bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+          className="w-full h-11 font-semibold"
         >
           <Check className="h-4 w-4 mr-2" /> Confirm time
         </Button>
@@ -204,11 +204,11 @@ export function TimeClockField({
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 flex items-start sm:items-center justify-center p-4 overflow-y-auto"
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-popover rounded-lg shadow-xl p-5 max-w-sm w-full"
+            className="bg-popover rounded-lg shadow-xl p-4 max-w-sm w-full my-auto max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <TimeClockPicker
