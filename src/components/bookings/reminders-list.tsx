@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Bell, MessageSquare, X, Loader2 } from "lucide-react";
+import { Bell, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTimeIN } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { WhatsAppSendButton } from "@/components/whatsapp-send-button";
 import type { Database } from "@/integrations/supabase/types";
 
 type Reminder = Database["public"]["Tables"]["payment_reminders"]["Row"];
@@ -24,14 +24,9 @@ export function RemindersList({ bookingId, phone, onChange }: { bookingId: strin
   };
   useEffect(() => { load(); }, [bookingId]);
 
-  const sendWA = async (r: Reminder) => {
+  const markSent = async (r: Reminder) => {
     setBusy(r.id);
     try {
-      const msg = r.message_template ?? "Friendly reminder about your upcoming payment.";
-      if (phone) {
-        const url = buildWaMeLink(phone, msg);
-        if (url) window.open(url, "_blank", "noopener");
-      }
       await supabase.from("payment_reminders").update({ is_sent: true, sent_at: new Date().toISOString() }).eq("id", r.id);
       toast.success("Marked as sent");
       load(); onChange?.();
@@ -63,10 +58,15 @@ export function RemindersList({ bookingId, phone, onChange }: { bookingId: strin
             <div className="font-medium">{r.trigger_percent ? `${r.trigger_percent}% trigger` : "Reminder"}</div>
             <div className="text-muted-foreground">{formatDateTimeIN(r.scheduled_at)}</div>
           </div>
-          <div className="flex gap-1 shrink-0">
-            <Button size="sm" variant="outline" className="h-7 px-2" disabled={busy === r.id || !phone} onClick={() => sendWA(r)}>
-              {busy === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <MessageSquare className="h-3 w-3" />}
-            </Button>
+          <div className="flex gap-1 shrink-0 items-center">
+            <WhatsAppSendButton
+              phone={phone ?? null}
+              message={r.message_template ?? "Friendly reminder about your upcoming payment."}
+              disabled={busy === r.id || !phone}
+              variant="outline"
+              label="Send"
+              onSent={() => markSent(r)}
+            />
             <Button size="sm" variant="ghost" className="h-7 w-7 p-0" disabled={busy === r.id} onClick={() => cancel(r)}>
               <X className="h-3 w-3" />
             </Button>
