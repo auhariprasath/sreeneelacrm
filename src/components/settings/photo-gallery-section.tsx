@@ -69,6 +69,15 @@ export function PhotoGallerySection({ companyId }: Props) {
     await persist(next);
   };
 
+  const reorder = async (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= photos.length || to >= photos.length) return;
+    const next = [...photos];
+    const [m] = next.splice(from, 1);
+    next.splice(to, 0, m);
+    await persist(next);
+  };
+
+
   if (!companyId) return <div className="text-sm text-muted-foreground p-6">Select a company first.</div>;
   if (loading) return <div className="text-sm text-muted-foreground p-6">Loading…</div>;
 
