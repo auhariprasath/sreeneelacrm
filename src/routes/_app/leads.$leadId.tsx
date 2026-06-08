@@ -250,7 +250,7 @@ function LeadProfile() {
 
   const masked = (profile?.phone_masked ?? false) && !unmasked;
   const tel = (lead.phone || "").replace(/\D/g, "").slice(-10);
-  const upcomingFu = followUps.find((f) => !f.is_sent);
+  const upcomingFu = followUps.find((f) => !f.is_sent && !(f as any).is_cancelled);
 
   return (
     <div className="space-y-4 max-w-3xl mx-auto">
