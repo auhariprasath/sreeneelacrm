@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
@@ -48,13 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [activeCompanyId, _setActiveCompanyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const setActiveCompanyId = (id: string | null) => {
+  const setActiveCompanyId = useCallback((id: string | null) => {
     _setActiveCompanyId(id);
     if (typeof window !== "undefined") {
       if (id) localStorage.setItem("neela-active-company", id);
       else localStorage.removeItem("neela-active-company");
     }
-  };
+  }, []);
 
   const loadProfile = async (uid: string) => {
     const [{ data: prof }, { data: roles }] = await Promise.all([
