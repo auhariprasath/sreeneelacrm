@@ -6,7 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type CompanyField = {
   key: string;
@@ -27,12 +33,19 @@ const COMPANY_TYPES = [
   { value: "other", label: "Other" },
 ] as const;
 
-const COMPANY_TYPE_VALUES = new Set(COMPANY_TYPES.map((type) => type.value));
+type CompanyTypeValue = (typeof COMPANY_TYPES)[number]["value"];
+type CompanyDataValue = string | number | boolean | null;
+type CompanyFormData = Record<string, CompanyDataValue | undefined>;
 
-function normalizeCompanyType(value: unknown): { type: string; customType: string | null } {
+const COMPANY_TYPE_VALUES = new Set<string>(COMPANY_TYPES.map((type) => type.value));
+
+function normalizeCompanyType(value: unknown): { type: CompanyTypeValue; customType: string | null } {
   const raw = String(value ?? "").trim();
-  const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-  const aliases: Record<string, string> = {
+  const normalized = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const aliases: Record<string, CompanyTypeValue> = {
     garden: "garden_venue",
     garden_venue: "garden_venue",
     banquet: "banquet_hall",
@@ -42,8 +55,11 @@ function normalizeCompanyType(value: unknown): { type: string; customType: strin
     mandapam: "mandapam",
     other: "other",
   };
-  const mapped = aliases[normalized] ?? (COMPANY_TYPE_VALUES.has(normalized as never) ? normalized : "other");
-  return { type: mapped, customType: mapped === "other" && normalized !== "other" ? raw || null : null };
+  const mapped = aliases[normalized] ?? (COMPANY_TYPE_VALUES.has(normalized) ? (normalized as CompanyTypeValue) : "other");
+  return {
+    type: mapped,
+    customType: mapped === "other" && normalized !== "other" ? raw || null : null,
+  };
 }
 
 interface Props {
@@ -52,7 +68,7 @@ interface Props {
 }
 
 export function CompanyFieldsSection({ companyId, fields }: Props) {
-  const [data, setData] = useState<Record<string, any> | null>(null);
+  const [data, setData] = useState<CompanyFormData | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
