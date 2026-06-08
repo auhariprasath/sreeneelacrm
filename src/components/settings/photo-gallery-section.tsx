@@ -56,6 +56,28 @@ export function PhotoGallerySection({ companyId }: Props) {
     toast.success("Photo added ✓");
   };
 
+  const uploadMany = async (files: File[]) => {
+    if (!companyId) return;
+    const images = files.filter((f) => f.type.startsWith("image/"));
+    if (images.length === 0) { toast.error("Only image files are supported"); return; }
+    let current = [...photos];
+    setBusy(true);
+    let added = 0;
+    for (const file of images) {
+      if (current.length >= MAX) { toast.error(`Max ${MAX} photos`); break; }
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${companyId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("venue-photos").upload(path, file, { upsert: false, contentType: file.type });
+      if (error) { toast.error(error.message); continue; }
+      const url = await signedUrl(path);
+      current = [...current, { path, url }];
+      await persist(current);
+      added++;
+    }
+    setBusy(false);
+    if (added > 0) toast.success(`${added} photo${added > 1 ? "s" : ""} added ✓`);
+  };
+
   const remove = async (idx: number) => {
     const p = photos[idx];
     await supabase.storage.from("venue-photos").remove([p.path]);
