@@ -14,7 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay, addHoursToTime } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 import { generateQuotationPdf, downloadBlob, type QuotationPdfInput } from "@/lib/quotation-pdf";
 import type { Database } from "@/integrations/supabase/types";
@@ -379,7 +379,7 @@ export function QuotationBuilder({
       const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
       const url = buildWaMeLink(lead.phone, message);
       if (!url) { toast.error("Invalid phone number"); return; }
-      window.location.href = url;
+      openWaMeLink(url);
       await markSent("whatsapp", "WhatsApp", id);
       onContinueToSend?.(id); onSaved?.();
       toast.success("WhatsApp opened · PDF downloaded — attach it in the chat");

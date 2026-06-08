@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Calendar, Send, MapPin, Loader2 } from "lucide-react";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -152,7 +152,7 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
 
     if (send) {
       const url = buildWaMeLink(leadPhone, finalMsg + (selectedPhotoUrls.length ? `\n\n${selectedPhotoUrls.map((p) => p.url).join("\n")}` : ""));
-      if (url) window.location.href = url;
+      if (url) openWaMeLink(url);
     }
 
     toast.success(send ? "Meeting scheduled & WhatsApp opened ✓" : "Meeting scheduled ✓");
