@@ -53,7 +53,7 @@ export function BookingConfirmationDialog({ open, onOpenChange, bookingId, onSen
     setSending(true);
     try {
       const url = buildWaLink(ctx.lead.phone, message);
-      window.open(url, "_blank", "noopener,noreferrer");
+      window.location.href = url;
       await markConfirmationSent({ ctx, message, performedBy: profile?.id ?? null });
       toast.success("Marked as sent · WhatsApp opened");
       onSent?.();
