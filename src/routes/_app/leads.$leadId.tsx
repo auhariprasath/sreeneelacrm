@@ -575,12 +575,72 @@ function LeadProfile() {
             </div>
           )}
 
-          {/* Quotations card */}
-          {quotations.length > 0 && (
-            <div className="mt-4">
-              <div className="text-xs font-semibold text-muted-foreground mb-2">Quotations</div>
-              <div className="space-y-2">
-                {quotations.map((q) => {
+          {/* Quotations card — one active draft per requirement; sent history below */}
+          {quotations.length > 0 && (() => {
+            // Latest draft per requirement (older drafts are hidden but not deleted)
+            const draftsByReq = new Map<string, Quotation>();
+            for (const q of quotations) {
+              if (q.status !== "draft") continue;
+              const cur = draftsByReq.get(q.requirement_id);
+              if (!cur || q.version > cur.version || (q.version === cur.version && new Date(q.updated_at) > new Date(cur.updated_at))) {
+                draftsByReq.set(q.requirement_id, q);
+              }
+            }
+            const activeDrafts = Array.from(draftsByReq.values());
+            const sent = quotations.filter((q) => q.status !== "draft");
+            return (
+            <div className="mt-4 space-y-4">
+              {activeDrafts.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground mb-2">Draft{activeDrafts.length > 1 ? "s" : ""} — not sent yet</div>
+                  <div className="space-y-2">
+                    {activeDrafts.map((q) => {
+                      const openBuilder = () => { setQuoteReqId(q.requirement_id); setEditQuoteId(q.id); setReviseQuoteId(null); setQuoteOpen(true); };
+                      return (
+                        <div
+                          key={q.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={openBuilder}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBuilder(); } }}
+                          className="bg-card border border-dashed rounded-md p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium flex items-center gap-2">
+                              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                              Draft v{q.version} · {formatINR(Number(q.total))}
+                              <QuotationStatusBadge quotation={q} />
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">Updated {relativeTime(q.updated_at)}</div>
+                          </div>
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button size="sm" variant="outline" onClick={openBuilder}>Edit</Button>
+                            <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
+                              <Send className="h-3.5 w-3.5 mr-1" /> Send
+                            </Button>
+                            <InvoiceRowMenu
+                              quotationId={q.id}
+                              leadId={leadId}
+                              pdfUrl={q.pdf_url}
+                              versionLabel={`v${q.version}`}
+                              onView={openBuilder}
+                              onResend={() => setSendQuoteId(q.id)}
+                              onDeleted={loadQuotations}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {sent.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground mb-2">Sent quotations</div>
+                  <div className="space-y-2">
+                {sent.map((q) => {
+
                   const hasBooking = bookings.some((b) => b.quotation_id === q.id);
                   const approved = q.status === "agreed";
                   const invoiceGenerated = !!q.invoice_generated_at;
@@ -707,10 +767,6 @@ function LeadProfile() {
                             <Button size="sm" onClick={handleSendInvoice} className="bg-success hover:bg-success text-white">
                               <Send className="h-3.5 w-3.5 mr-1" /> Send invoice
                             </Button>
-                          ) : !invoiceGenerated ? (
-                            <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
-                              <Send className="h-3.5 w-3.5 mr-1" /> Send
-                            </Button>
                           ) : null}
                           <InvoiceRowMenu
                             quotationId={q.id}
@@ -736,9 +792,14 @@ function LeadProfile() {
                     </div>
                   );
                 })}
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
+
+
 
           {/* Bookings card */}
           {bookings.length > 0 && (
