@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -117,8 +117,11 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
 }
 
 function DashboardPage() {
-  const { role, loading } = useAuth();
+  const { role, loading, activeCompanyId } = useAuth();
   if (loading) return <DashboardSkeleton />;
+  if (role === "super_admin" && activeCompanyId) {
+    return <Navigate to="/company-dashboard/$companyId" params={{ companyId: activeCompanyId }} replace />;
+  }
   if (role === "super_admin") return <SuperAdminDashboard />;
   return <CompanyDashboard />;
 }

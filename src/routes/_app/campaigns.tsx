@@ -29,6 +29,7 @@ type Filters = {
 
 interface CampaignRow {
   id: string;
+  company_id: string;
   name: string;
   channel: "whatsapp" | "sms";
   message: string;
@@ -63,8 +64,8 @@ function buildLeadQuery(companyId: string, f: Filters, opts?: { count?: boolean 
 }
 
 function CampaignsPage() {
-  const { profile, role, loading } = useAuth();
-  const companyId = profile?.company_id ?? null;
+  const { profile, role, loading, activeCompanyId } = useAuth();
+  const companyId = role === "super_admin" ? activeCompanyId : profile?.company_id ?? null;
 
   const [rows, setRows] = useState<CampaignRow[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -72,14 +73,14 @@ function CampaignsPage() {
   const [sendOpen, setSendOpen] = useState<CampaignRow | null>(null);
 
   const load = async () => {
-    if (!companyId) return;
     setListLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from("campaigns")
       .select("*")
-      .eq("company_id", companyId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
+    if (companyId) q = q.eq("company_id", companyId);
+    const { data, error } = await q;
     if (error) toast.error(error.message);
     setRows((data ?? []) as any);
     setListLoading(false);
@@ -99,7 +100,7 @@ function CampaignsPage() {
           <h1 className="text-xl md:text-2xl font-semibold flex items-center gap-2"><Megaphone className="h-5 w-5" /> Campaigns</h1>
           <p className="text-sm text-muted-foreground">Bulk WhatsApp/SMS to a segment of your leads.</p>
         </div>
-        {canManage && (
+        {canManage && companyId && (
           <Button onClick={() => setOpen(true)} className="min-h-11"><Plus className="h-4 w-4 mr-1" /> New campaign</Button>
         )}
       </div>
@@ -119,8 +120,8 @@ function CampaignsPage() {
       {open && companyId && (
         <NewCampaignDialog companyId={companyId} onClose={() => setOpen(false)} onCreated={load} />
       )}
-      {sendOpen && companyId && (
-        <SendDialog campaign={sendOpen} companyId={companyId} onClose={() => { setSendOpen(null); load(); }} />
+      {sendOpen && (
+        <SendDialog campaign={sendOpen} companyId={sendOpen.company_id} onClose={() => { setSendOpen(null); load(); }} />
       )}
     </div>
   );

@@ -25,7 +25,7 @@ type Row = {
 type Company = { id: string; name: string };
 
 function CustomersPage() {
-  const { role } = useAuth();
+  const { role, activeCompanyId } = useAuth();
   if (role !== "super_admin") return <Navigate to="/dashboard" />;
 
   const [rows, setRows] = useState<Row[]>([]);
@@ -34,6 +34,11 @@ function CustomersPage() {
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [sort, setSort] = useState<"ltv" | "events" | "recent">("ltv");
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    if (activeCompanyId) setCompanyFilter(activeCompanyId);
+    else setCompanyFilter("all");
+  }, [activeCompanyId]);
 
   useEffect(() => {
     (async () => {
@@ -65,17 +70,22 @@ function CustomersPage() {
     return r;
   }, [rows, companyFilter, tagFilter, q, sort]);
 
+  const scopedRows = useMemo(
+    () => companyFilter === "all" ? rows : rows.filter((x) => x.company_id === companyFilter),
+    [rows, companyFilter],
+  );
+
   const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? "—";
 
   const stats = useMemo(() => {
-    const total = rows.length;
-    const repeat = rows.filter((r) => r.total_events >= 2).length;
-    const vip = rows.filter((r) => r.tags.includes("vip")).length;
-    const promoters = rows.filter((r) => r.tags.includes("promoter")).length;
-    const ltv = rows.reduce((s, r) => s + Number(r.lifetime_value || 0), 0);
-    const top = [...rows].sort((a, b) => Number(b.lifetime_value) - Number(a.lifetime_value))[0];
+    const total = scopedRows.length;
+    const repeat = scopedRows.filter((r) => r.total_events >= 2).length;
+    const vip = scopedRows.filter((r) => r.tags.includes("vip")).length;
+    const promoters = scopedRows.filter((r) => r.tags.includes("promoter")).length;
+    const ltv = scopedRows.reduce((s, r) => s + Number(r.lifetime_value || 0), 0);
+    const top = [...scopedRows].sort((a, b) => Number(b.lifetime_value) - Number(a.lifetime_value))[0];
     return { total, repeat, vip, promoters, ltv, top };
-  }, [rows]);
+  }, [scopedRows]);
 
   const exportCsv = () => {
     const header = ["Name", "Phone", "Company", "Total events", "LTV", "Tags", "First event", "Last event", "Avg rating"];
@@ -121,7 +131,7 @@ function CustomersPage() {
       <Card className="p-3">
         <div className="flex flex-wrap gap-2 items-center">
           <Input placeholder="Search name or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
-          <Select value={companyFilter} onValueChange={setCompanyFilter}>
+          <Select value={companyFilter} onValueChange={setCompanyFilter} disabled={!!activeCompanyId}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Company" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All companies</SelectItem>

@@ -69,11 +69,12 @@ function AppLayout() {
   const handleCompanyChange = (v: string) => {
     const nextId = v === "__all" ? null : v;
     setActiveCompanyId(nextId);
-    // Always route to the rich per-company dashboard when a company is selected,
-    // and back to the super-admin overview when "All companies" is selected.
-    if (nextId) {
+    // Keep the global filter on list/report pages; only rewrite company-specific URLs.
+    if (nextId && (pathname === "/dashboard" || pathname.startsWith("/company-dashboard/"))) {
       navigate({ to: "/company-dashboard/$companyId", params: { companyId: nextId } });
-    } else if (pathname.startsWith("/company-dashboard/") || pathname.startsWith("/company-settings/")) {
+    } else if (nextId && pathname.startsWith("/company-settings/")) {
+      navigate({ to: "/company-settings/$companyId", params: { companyId: nextId } });
+    } else if (!nextId && (pathname.startsWith("/company-dashboard/") || pathname.startsWith("/company-settings/"))) {
       navigate({ to: "/dashboard" });
     }
   };

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -72,6 +72,9 @@ export function useDashboardRealtime(
   tables: DashboardTable[] | "*",
   onChange: () => void,
 ) {
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
   useEffect(() => {
     refCount++;
     ensureChannel();
@@ -81,7 +84,7 @@ export function useDashboardRealtime(
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        onChange();
+        onChangeRef.current();
       });
     };
 

@@ -4,6 +4,7 @@ import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateIN } from "@/lib/format";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
+import { useAuth } from "@/lib/auth";
 
 interface AlertRow {
   id: string;
@@ -15,11 +16,12 @@ interface AlertRow {
 }
 
 export function EmergencyAlerts() {
+  const { activeCompanyId } = useAuth();
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
 
   const load = useCallback(async () => {
     const cutoff = new Date(Date.now() - 24 * 3600_000).toISOString();
-    const { data } = await supabase
+    let q = supabase
       .from("bookings")
       .select("id, lead_id, event_date, assigned_to, created_at, companies(name, brand_color), leads(full_name)")
       .is("deleted_at", null)
@@ -29,13 +31,15 @@ export function EmergencyAlerts() {
       .gte("event_date", new Date().toISOString().slice(0, 10))
       .order("event_date", { ascending: true })
       .limit(20);
+    if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+    const { data } = await q;
     setAlerts((data ?? []).map((b: any) => ({
       id: b.id, lead_id: b.lead_id, event_date: b.event_date,
       full_name: b.leads?.full_name ?? "—",
       company_name: b.companies?.name ?? "—",
       brand_color: b.companies?.brand_color ?? "#ef4444",
     })));
-  }, []);
+  }, [activeCompanyId]);
 
   useEffect(() => {
     load();

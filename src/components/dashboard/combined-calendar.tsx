@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
+import { useAuth } from "@/lib/auth";
 
 interface CalBooking {
   id: string;
@@ -31,6 +32,7 @@ function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 
 function endOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth() + 1, 0); }
 
 export function CombinedCalendar() {
+  const { activeCompanyId } = useAuth();
   const [cursor, setCursor] = useState(() => new Date());
   const [bookings, setBookings] = useState<CalBooking[]>([]);
   const [openDate, setOpenDate] = useState<string | null>(null);
@@ -40,13 +42,15 @@ export function CombinedCalendar() {
   const endStr = endOfMonth(cursor).toISOString().slice(0, 10);
 
   const load = useCallback(async () => {
-    const { data } = await supabase
+    let q = supabase
       .from("bookings")
       .select("id, lead_id, event_date, start_time, end_time, venue, company_id, companies(name, brand_color), leads(full_name)")
       .is("deleted_at", null)
       .in("status", ["confirmed", "completed", "rescheduled"])
       .gte("event_date", startStr)
       .lte("event_date", endStr);
+    if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+    const { data } = await q;
     setBookings((data ?? []).map((b: any) => ({
       id: b.id, lead_id: b.lead_id, event_date: b.event_date,
       start_time: b.start_time, end_time: b.end_time, venue: b.venue,
@@ -55,7 +59,7 @@ export function CombinedCalendar() {
       brand_color: b.companies?.brand_color ?? "#6366f1",
       full_name: b.leads?.full_name ?? "—",
     })));
-  }, [startStr, endStr]);
+  }, [startStr, endStr, activeCompanyId]);
 
   useEffect(() => { load(); }, [load]);
   useDashboardRealtime(["bookings"], load);
@@ -90,7 +94,7 @@ export function CombinedCalendar() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base">All bookings · {monthLabel}</CardTitle>
+        <CardTitle className="text-base">Bookings · {monthLabel}</CardTitle>
         <div className="flex items-center gap-1">
           <Button size="icon" variant="ghost" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}>
             <ChevronLeft className="h-4 w-4" />

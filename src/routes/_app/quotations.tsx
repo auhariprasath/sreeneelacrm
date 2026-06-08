@@ -70,6 +70,10 @@ function QuotationsPage() {
     : companies[0]?.id ?? null;
 
   useEffect(() => {
+    if (role === "super_admin") setCompanyId(activeCompanyId ?? "all");
+  }, [role, activeCompanyId]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       setBusy(true);
@@ -174,7 +178,7 @@ function QuotationsPage() {
               <SelectItem value="declined">Declined</SelectItem>
             </SelectContent>
           </Select>
-          {role === "super_admin" && (
+          {role === "super_admin" && !activeCompanyId && (
             <Select value={companyId} onValueChange={setCompanyId}>
               <SelectTrigger><SelectValue placeholder="Company" /></SelectTrigger>
               <SelectContent>

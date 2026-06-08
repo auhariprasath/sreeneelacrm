@@ -56,12 +56,14 @@ function TasksPage() {
   const [items, setItems] = useState<EnrichedTask[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [reminderTaskId, setReminderTaskId] = useState<string | null>(null);
+  const effectiveCompanyId = role === "super_admin"
+    ? (companyFilter || activeCompanyId || null)
+    : (profile?.company_id ?? activeCompanyId ?? companies[0]?.id ?? null);
 
   const load = async () => {
     setItems(null);
     let q = supabase.from("tasks").select("*").is("deleted_at", null).order("due_at", { ascending: true });
-    if (role !== "super_admin" && activeCompanyId) q = q.eq("company_id", activeCompanyId);
-    else if (companyFilter) q = q.eq("company_id", companyFilter);
+    if (effectiveCompanyId) q = q.eq("company_id", effectiveCompanyId);
     const { data, error } = await q;
     if (error) { toast.error(error.message); setItems([]); return; }
     const tasks = (data as TaskRow[]) ?? [];
@@ -108,7 +110,11 @@ function TasksPage() {
   };
 
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeCompanyId, companyFilter, role]);
+  useEffect(() => {
+    if (role === "super_admin") setCompanyFilter(activeCompanyId ?? "");
+  }, [role, activeCompanyId]);
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [effectiveCompanyId, role]);
   useDashboardRealtime(["tasks", "bookings", "leads"], load);
 
   const filtered = useMemo(() => {
@@ -145,7 +151,7 @@ function TasksPage() {
           <p className="text-xs text-muted-foreground">Tasks auto-generated from booking templates</p>
         </div>
         <div className="flex items-center gap-2">
-          {role === "super_admin" && companies.length > 1 && (
+          {role === "super_admin" && !activeCompanyId && companies.length > 1 && (
             <select
               className="h-10 w-full sm:w-56 rounded-md border border-input bg-background px-3 text-sm"
               value={companyFilter}
@@ -155,7 +161,7 @@ function TasksPage() {
               {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           )}
-          {(activeCompanyId || companies[0]?.id) && (
+          {effectiveCompanyId && (
             <Button size="sm" onClick={() => setAddOpen(true)}>
               <Plus className="h-4 w-4 mr-1" /> Add task
             </Button>
@@ -207,11 +213,11 @@ function TasksPage() {
         </div>
       )}
 
-      {(activeCompanyId || companies[0]?.id) && (
+      {effectiveCompanyId && (
         <AddTaskDialog
           open={addOpen}
           onOpenChange={setAddOpen}
-          companyId={(role === "super_admin" ? (companyFilter || activeCompanyId || companies[0]?.id) : (activeCompanyId || companies[0]?.id)) as string}
+          companyId={effectiveCompanyId}
           onCreated={load}
         />
       )}
