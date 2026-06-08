@@ -767,10 +767,6 @@ function LeadProfile() {
                             <Button size="sm" onClick={handleSendInvoice} className="bg-success hover:bg-success text-white">
                               <Send className="h-3.5 w-3.5 mr-1" /> Send invoice
                             </Button>
-                          ) : !invoiceGenerated ? (
-                            <Button size="sm" onClick={() => setSendQuoteId(q.id)}>
-                              <Send className="h-3.5 w-3.5 mr-1" /> Send
-                            </Button>
                           ) : null}
                           <InvoiceRowMenu
                             quotationId={q.id}
@@ -796,9 +792,14 @@ function LeadProfile() {
                     </div>
                   );
                 })}
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
+
+
 
           {/* Bookings card */}
           {bookings.length > 0 && (
