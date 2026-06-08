@@ -56,10 +56,9 @@ function LeadsInbox() {
   const followupDue = searchParams.filter === "followup_due";
 
   const companyFilter = useMemo(() => {
-    if (searchParams.company) return searchParams.company;
     if (role === "super_admin") return activeCompanyId;
     return profile?.company_id ?? null;
-  }, [role, activeCompanyId, profile, searchParams.company]);
+  }, [role, activeCompanyId, profile]);
 
   // Fetch lead IDs with follow-ups due today (pending, scheduled for today or earlier)
   useEffect(() => {
