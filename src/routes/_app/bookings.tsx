@@ -58,7 +58,7 @@ function BookingsIndex() {
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<"upcoming" | "month" | "past" | "all">(initialSearch.month ? "all" : "upcoming");
   const monthFilter = initialSearch.month;
-  const companyOverride = initialSearch.company;
+  
 
   // Super-admin: activeCompanyId from the top-bar switcher always wins so the
   // page re-fetches the moment the switcher changes, regardless of URL params.
