@@ -107,7 +107,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
           onClick={() => setMode("minute")}
           className={cn(
             "px-3 py-2 rounded-md text-3xl font-bold tabular-nums tracking-tight transition-colors",
-            mode === "minute" ? "bg-purple-100 text-purple-700" : "text-muted-foreground hover:text-foreground",
+            mode === "minute" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >
           {String(minute).padStart(2, "0")}
