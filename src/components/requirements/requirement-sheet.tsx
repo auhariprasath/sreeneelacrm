@@ -75,6 +75,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
   const [isMandapam, setIsMandapam] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [communities, setCommunities] = useState<{ label?: string; name?: string }[]>([]);
+  const [communityOther, setCommunityOther] = useState("");
   const [addonsCatalog, setAddonsCatalog] = useState<AddonCat[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<{ addon_name: string; addon_price: number; is_custom: boolean }[]>([]);
   const [customAddon, setCustomAddon] = useState({ name: "", price: "" });
@@ -95,7 +97,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       const [{ data: co }, { data: leadRow }] = await Promise.all([
         supabase
           .from("companies")
-          .select("is_mandapam, sessions, event_types, addons_catalog")
+          .select("is_mandapam, sessions, event_types, addons_catalog, communities")
           .eq("id", companyId)
           .maybeSingle(),
         supabase.from("leads").select("email").eq("id", leadId).maybeSingle(),
@@ -105,6 +107,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       setIsMandapam(!!c.is_mandapam);
       setSessions(Array.isArray(c.sessions) ? c.sessions : []);
       setEventTypes(Array.isArray(c.event_types) ? c.event_types : []);
+      setCommunities(Array.isArray(c.communities) ? c.communities : []);
       setAddonsCatalog(Array.isArray(c.addons_catalog) ? c.addons_catalog : []);
 
       if (requirementId) {
@@ -233,7 +236,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
       guest_count: form.guest_count ? Number(form.guest_count) : null,
       budget_range: form.budget_range || null,
       muhurtham_time: form.muhurtham_time || null,
-      community: form.community || null,
+      community: (form.community === "Other" ? communityOther.trim() : form.community) || null,
       notes: form.notes || null,
       created_by: profile?.id ?? null,
     };
@@ -398,7 +401,47 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
               </div>
               <div className="space-y-1.5">
                 <Label>Community (optional)</Label>
-                <Input value={form.community} onChange={(e) => setForm({ ...form, community: e.target.value })} />
+                {(() => {
+                  const list = communities
+                    .map((t) => (t.label ?? t.name ?? "").trim())
+                    .filter(Boolean);
+                  const isOther = !!form.community && form.community === "Other";
+                  const selectVal = !form.community
+                    ? ""
+                    : list.includes(form.community)
+                      ? form.community
+                      : (form.community === "Other" ? "Other" : "Other");
+                  // If existing value is not in list and not empty, treat as Other and seed text
+                  if (form.community && !list.includes(form.community) && form.community !== "Other" && communityOther === "") {
+                    // seed once
+                    setTimeout(() => setCommunityOther(form.community), 0);
+                    setTimeout(() => setForm((f) => ({ ...f, community: "Other" })), 0);
+                  }
+                  return (
+                    <>
+                      <Select
+                        value={selectVal}
+                        onValueChange={(v) => {
+                          if (v === "Other") setForm({ ...form, community: "Other" });
+                          else setForm({ ...form, community: v });
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Pick community" /></SelectTrigger>
+                        <SelectContent>
+                          {list.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {(form.community === "Other" || isOther) && (
+                        <Input
+                          placeholder="Describe the community"
+                          value={communityOther}
+                          onChange={(e) => setCommunityOther(e.target.value)}
+                        />
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

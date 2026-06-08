@@ -199,6 +199,15 @@ function CompanyFullSettings() {
         />
       </SectionShell>
 
+      <SectionShell id="communities" title="Communities" description='"Other — describe" is always available at the end.'>
+        <JsonListSection
+          companyId={companyId}
+          column="communities"
+          addLabel="Add community"
+          fields={[{ key: "label", label: "Label", placeholder: "e.g. Tamil Brahmin" }]}
+        />
+      </SectionShell>
+
       <SectionShell id="sessions" title="Sessions" description="Populates the start-time dropdown in the intake form.">
         <JsonListSection
           companyId={companyId}
