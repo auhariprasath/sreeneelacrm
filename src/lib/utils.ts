@@ -13,7 +13,7 @@ export function buildWaMeLink(phone: string | null | undefined, message?: string
   // If exactly 10 digits, assume Indian mobile and prefix 91
   const intl = digits.length === 10 ? `91${digits}` : digits;
   const url = `whatsapp://send?phone=${intl}`;
-  if (message) return `${url}?text=${encodeURIComponent(message)}`;
+  if (message) return `${url}&text=${encodeURIComponent(message)}`;
   return url;
 }
 
