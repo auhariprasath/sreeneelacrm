@@ -62,6 +62,10 @@ function normalizeCompanyType(value: unknown): { type: CompanyTypeValue; customT
   };
 }
 
+function fieldValue(value: CompanyDataValue | undefined): string | number {
+  return typeof value === "boolean" ? "" : value ?? "";
+}
+
 interface Props {
   companyId: string | undefined;
   fields: CompanyField[];
@@ -149,7 +153,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
               </Select>
               {normalized.type === "other" && (
                 <Input
-                  value={data.custom_type ?? normalized.customType ?? ""}
+                  value={fieldValue(data.custom_type) || normalized.customType || ""}
                   placeholder="Describe the venue type"
                   onChange={(e) => update("custom_type", e.target.value)}
                 />
@@ -164,7 +168,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
             {f.type === "textarea" ? (
               <Textarea
                 rows={f.rows ?? 4}
-                value={data[f.key] ?? ""}
+                value={fieldValue(data[f.key])}
                 placeholder={f.placeholder}
                 onChange={(e) => update(f.key, e.target.value)}
               />
@@ -172,7 +176,7 @@ export function CompanyFieldsSection({ companyId, fields }: Props) {
               <div className="relative">
                 <Input
                   type={f.type === "number" ? "number" : "text"}
-                  value={data[f.key] ?? ""}
+                  value={fieldValue(data[f.key])}
                   placeholder={f.placeholder}
                   onChange={(e) => update(f.key, e.target.value)}
                 />
