@@ -130,7 +130,7 @@ export const getCompanyDetails = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("companies")
       .select(
-        "id,name,type,wa_number,company_phone,email,address,full_address,google_maps_link,gstin,bank_account,ifsc,upi_id,logo_url,brand_color,max_capacity,venue_photos,cancellation_policy,portfolio_url,video_url,include_photos_in_requirements,include_portfolio_in_day5",
+        "id,name,type,custom_type,wa_number,company_phone,email,address,full_address,google_maps_link,gstin,bank_account,ifsc,upi_id,logo_url,brand_color,max_capacity,venue_photos,cancellation_policy,portfolio_url,video_url,include_photos_in_requirements,include_portfolio_in_day5",
       )
       .eq("id", data.id)
       .maybeSingle();
@@ -153,7 +153,8 @@ export const getCompanyDetails = createServerFn({ method: "POST" })
 const updateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(120),
-  type: z.enum(["banquet", "garden", "mandapam", "party"]),
+  type: z.enum(["garden_venue", "banquet_hall", "party_hall", "mandapam", "other"]),
+  custom_type: z.string().max(120).nullable().optional(),
   wa_number: z.string().max(20).nullable().optional(),
   company_phone: z.string().max(20).nullable().optional(),
   email: z.union([z.string().email().max(255), z.literal("")]).nullable().optional(),
