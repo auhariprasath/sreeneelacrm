@@ -70,7 +70,7 @@ function CompanyDashboardPage() {
         companyName={company.name}
         brandColor={company.brand_color || "#6366f1"}
       />
-      <RightSidebar layout="grid" />
+      <RightSidebar layout="grid" companyId={company.id} />
     </div>
   );
 }
