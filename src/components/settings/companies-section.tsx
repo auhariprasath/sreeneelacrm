@@ -17,7 +17,7 @@ import { Plus, Archive, ArchiveRestore, Pencil, Settings2, ArrowRight, Building2
 import { SkeletonList } from "@/components/skeleton-list";
 import { CompanyDetailsDialog } from "@/components/settings/company-details-dialog";
 
-type CompanyType = "banquet" | "garden" | "mandapam" | "party";
+type CompanyType = "garden_venue" | "banquet_hall" | "party_hall" | "mandapam" | "other";
 interface Row {
   id: string;
   name: string;
@@ -36,7 +36,8 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState<CompanyType>("banquet");
+  const [type, setType] = useState<CompanyType>("banquet_hall");
+  const [customType, setCustomType] = useState("");
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
@@ -60,9 +61,9 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
     try {
-      await create({ data: { name: name.trim(), type } });
+      await create({ data: { name: name.trim(), type, custom_type: type === "other" ? customType.trim() || null : null } });
       toast.success("Company added");
-      setOpen(false); setName(""); setType("banquet");
+      setOpen(false); setName(""); setType("banquet_hall"); setCustomType("");
       await load(); onChange?.();
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
     finally { setBusy(false); }
@@ -171,12 +172,21 @@ export function CompaniesSection({ onChange }: { onChange?: () => void }) {
               <Select value={type} onValueChange={(v) => setType(v as CompanyType)}>
                 <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="banquet">Banquet</SelectItem>
-                  <SelectItem value="garden">Garden</SelectItem>
+                  <SelectItem value="garden_venue">Garden Venue</SelectItem>
+                  <SelectItem value="banquet_hall">Banquet Hall</SelectItem>
+                  <SelectItem value="party_hall">Party Hall</SelectItem>
                   <SelectItem value="mandapam">Mandapam</SelectItem>
-                  <SelectItem value="party">Party</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {type === "other" && (
+                <Input
+                  value={customType}
+                  onChange={(e) => setCustomType(e.target.value)}
+                  placeholder="Describe the venue type"
+                  className="h-11 mt-2"
+                />
+              )}
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-2">
