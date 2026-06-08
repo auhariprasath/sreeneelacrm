@@ -20,6 +20,7 @@ export interface Company {
   id: string;
   name: string;
   type: string;
+  brand_color?: string | null;
 }
 
 interface AuthState {
