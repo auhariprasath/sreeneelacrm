@@ -75,6 +75,8 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
   const [isMandapam, setIsMandapam] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [communities, setCommunities] = useState<{ label?: string; name?: string }[]>([]);
+  const [communityOther, setCommunityOther] = useState("");
   const [addonsCatalog, setAddonsCatalog] = useState<AddonCat[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<{ addon_name: string; addon_price: number; is_custom: boolean }[]>([]);
   const [customAddon, setCustomAddon] = useState({ name: "", price: "" });
