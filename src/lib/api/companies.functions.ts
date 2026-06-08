@@ -37,7 +37,7 @@ export const createCompany = createServerFn({ method: "POST" })
     await assertSuperAdmin(context.userId);
     const { data: row, error } = await supabaseAdmin
       .from("companies")
-      .insert({ name: data.name.trim(), type: data.type })
+      .insert({ name: data.name.trim(), type: data.type, custom_type: data.custom_type ?? null })
       .select("id,name,type")
       .single();
     if (error) throw new Error(error.message);
