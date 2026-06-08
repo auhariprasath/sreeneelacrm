@@ -117,9 +117,9 @@ async function loadCompanyStats(companyId: string): Promise<CompanyStats> {
 }
 
 function DashboardPage() {
-  const { role, loading, activeCompanyId } = useAuth();
+  const { role, loading } = useAuth();
   if (loading) return <DashboardSkeleton />;
-  if (role === "super_admin" && !activeCompanyId) return <SuperAdminDashboard />;
+  if (role === "super_admin") return <SuperAdminDashboard />;
   return <CompanyDashboard />;
 }
 
