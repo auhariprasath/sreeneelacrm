@@ -361,7 +361,7 @@ function LeadProfile() {
                     lead_id: lead.id, scheduled_at: due.toISOString(),
                     note: "Auto: post-call safety reminder", created_by: profile?.id ?? null,
                   });
-                  toast.info("No WhatsApp API connected. Reminder set for follow-up.");
+                  toast.info("Safety follow-up reminder set for 2h from now.");
                   // Only show "How did the call go?" on the first call (when lead is still new)
                   if (lead.status === "new") {
                     setTimeout(() => setCallOpen(true), 400);
