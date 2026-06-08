@@ -150,7 +150,7 @@ export function TimeClockPicker({ value, onChange, onConfirm, className }: Props
         <Button
           type="button"
           onClick={() => onConfirm(value)}
-          className="w-full h-11 bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+          className="w-full h-11 font-semibold"
         >
           <Check className="h-4 w-4 mr-2" /> Confirm time
         </Button>
