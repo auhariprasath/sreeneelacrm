@@ -185,10 +185,10 @@ export function CompanyPanel({ companyId, companyName, brandColor }: Props) {
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <StatTile label="Revenue (mo)" value={formatINR(overview.revenue)} />
-                <StatTile label="New leads" value={String(overview.newLeads)} />
-                <StatTile label="Bookings" value={String(overview.bookings)} />
-                <StatTile label="Conversion" value={`${overview.conversion}%`} />
+                <StatTile label="Revenue (mo)" value={formatINR(overview.revenue)} to="/bookings" search={{ month: monthStr, company: companyId }} />
+                <StatTile label="New leads" value={String(overview.newLeads)} to="/leads" search={{ company: companyId }} />
+                <StatTile label="Bookings" value={String(overview.bookings)} to="/bookings" search={{ company: companyId }} />
+                <StatTile label="Conversion" value={`${overview.conversion}%`} to="/reports" search={{ company: companyId }} />
               </div>
               <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
