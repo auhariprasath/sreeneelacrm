@@ -156,6 +156,14 @@ function LeadProfile() {
       return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
     });
     setFollowUps(sortedFus);
+    const { data: vms } = await supabase
+      .from("venue_meetings")
+      .select("id, scheduled_date, scheduled_time, status, contact_person_name, notes")
+      .eq("lead_id", leadId)
+      .is("deleted_at", null)
+      .order("scheduled_date", { ascending: false })
+      .order("scheduled_time", { ascending: false });
+    setVenueMeetings((vms as any[]) ?? []);
     setRequirements((reqs as Requirement[]) ?? []);
     setQuotations((quotes as Quotation[]) ?? []);
     setBookings((bks as Booking[]) ?? []);
