@@ -14,7 +14,7 @@ export async function closeOtherActiveReminders(
   // Mark other pending follow-ups as done (only one active reminder per lead).
   let followUps = supabase
     .from("follow_ups")
-    .update({ is_sent: true, sent_at: new Date().toISOString() })
+    .update({ is_sent: true })
     .eq("lead_id", leadId)
     .eq("is_sent", false)
     .eq("is_cancelled", false);
