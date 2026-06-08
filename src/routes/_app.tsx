@@ -66,6 +66,15 @@ function AppLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const handleCompanyChange = (v: string) => {
+    const nextId = v === "__all" ? null : v;
+    setActiveCompanyId(nextId);
+    if (pathname.startsWith("/company-dashboard/") || pathname.startsWith("/company-settings/")) {
+      if (nextId) navigate({ to: "/company-dashboard/$companyId", params: { companyId: nextId } });
+      else navigate({ to: "/dashboard" });
+    }
+  };
+
   const [tabletNavOpen, setTabletNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
