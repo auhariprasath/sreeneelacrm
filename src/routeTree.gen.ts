@@ -22,6 +22,7 @@ import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
 import { Route as FeedbackBookingIdRouteImport } from './routes/feedback.$bookingId'
 import { Route as EventStatusTokenRouteImport } from './routes/event-status.$token'
 import { Route as CoordinateTokenRouteImport } from './routes/coordinate.$token'
+import { Route as AppVenueMeetingsRouteImport } from './routes/_app/venue-meetings'
 import { Route as AppTransfersRouteImport } from './routes/_app/transfers'
 import { Route as AppTasksRouteImport } from './routes/_app/tasks'
 import { Route as AppStaleLeadsRouteImport } from './routes/_app/stale-leads'
@@ -32,6 +33,7 @@ import { Route as AppNotificationsRouteImport } from './routes/_app/notification
 import { Route as AppNotInterestedRouteImport } from './routes/_app/not-interested'
 import { Route as AppMoreRouteImport } from './routes/_app/more'
 import { Route as AppLeadsRouteImport } from './routes/_app/leads'
+import { Route as AppFollowUpsRouteImport } from './routes/_app/follow-ups'
 import { Route as AppFeedbackRouteImport } from './routes/_app/feedback'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
@@ -117,6 +119,11 @@ const CoordinateTokenRoute = CoordinateTokenRouteImport.update({
   path: '/coordinate/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppVenueMeetingsRoute = AppVenueMeetingsRouteImport.update({
+  id: '/venue-meetings',
+  path: '/venue-meetings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTransfersRoute = AppTransfersRouteImport.update({
   id: '/transfers',
   path: '/transfers',
@@ -165,6 +172,11 @@ const AppMoreRoute = AppMoreRouteImport.update({
 const AppLeadsRoute = AppLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFollowUpsRoute = AppFollowUpsRouteImport.update({
+  id: '/follow-ups',
+  path: '/follow-ups',
   getParentRoute: () => AppRoute,
 } as any)
 const AppFeedbackRoute = AppFeedbackRouteImport.update({
@@ -290,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/customers': typeof AppCustomersRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
   '/feedback': typeof AppFeedbackRoute
+  '/follow-ups': typeof AppFollowUpsRoute
   '/leads': typeof AppLeadsRouteWithChildren
   '/more': typeof AppMoreRoute
   '/not-interested': typeof AppNotInterestedRoute
@@ -300,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/stale-leads': typeof AppStaleLeadsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
+  '/venue-meetings': typeof AppVenueMeetingsRoute
   '/coordinate/$token': typeof CoordinateTokenRoute
   '/event-status/$token': typeof EventStatusTokenRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
@@ -334,6 +348,7 @@ export interface FileRoutesByTo {
   '/customers': typeof AppCustomersRouteWithChildren
   '/dashboard': typeof AppDashboardRoute
   '/feedback': typeof AppFeedbackRoute
+  '/follow-ups': typeof AppFollowUpsRoute
   '/more': typeof AppMoreRoute
   '/not-interested': typeof AppNotInterestedRoute
   '/notifications': typeof AppNotificationsRoute
@@ -343,6 +358,7 @@ export interface FileRoutesByTo {
   '/stale-leads': typeof AppStaleLeadsRoute
   '/tasks': typeof AppTasksRoute
   '/transfers': typeof AppTransfersRoute
+  '/venue-meetings': typeof AppVenueMeetingsRoute
   '/coordinate/$token': typeof CoordinateTokenRoute
   '/event-status/$token': typeof EventStatusTokenRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
@@ -379,6 +395,7 @@ export interface FileRoutesById {
   '/_app/customers': typeof AppCustomersRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/feedback': typeof AppFeedbackRoute
+  '/_app/follow-ups': typeof AppFollowUpsRoute
   '/_app/leads': typeof AppLeadsRouteWithChildren
   '/_app/more': typeof AppMoreRoute
   '/_app/not-interested': typeof AppNotInterestedRoute
@@ -389,6 +406,7 @@ export interface FileRoutesById {
   '/_app/stale-leads': typeof AppStaleLeadsRoute
   '/_app/tasks': typeof AppTasksRoute
   '/_app/transfers': typeof AppTransfersRoute
+  '/_app/venue-meetings': typeof AppVenueMeetingsRoute
   '/coordinate/$token': typeof CoordinateTokenRoute
   '/event-status/$token': typeof EventStatusTokenRoute
   '/feedback/$bookingId': typeof FeedbackBookingIdRoute
@@ -425,6 +443,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/dashboard'
     | '/feedback'
+    | '/follow-ups'
     | '/leads'
     | '/more'
     | '/not-interested'
@@ -435,6 +454,7 @@ export interface FileRouteTypes {
     | '/stale-leads'
     | '/tasks'
     | '/transfers'
+    | '/venue-meetings'
     | '/coordinate/$token'
     | '/event-status/$token'
     | '/feedback/$bookingId'
@@ -469,6 +489,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/dashboard'
     | '/feedback'
+    | '/follow-ups'
     | '/more'
     | '/not-interested'
     | '/notifications'
@@ -478,6 +499,7 @@ export interface FileRouteTypes {
     | '/stale-leads'
     | '/tasks'
     | '/transfers'
+    | '/venue-meetings'
     | '/coordinate/$token'
     | '/event-status/$token'
     | '/feedback/$bookingId'
@@ -513,6 +535,7 @@ export interface FileRouteTypes {
     | '/_app/customers'
     | '/_app/dashboard'
     | '/_app/feedback'
+    | '/_app/follow-ups'
     | '/_app/leads'
     | '/_app/more'
     | '/_app/not-interested'
@@ -523,6 +546,7 @@ export interface FileRouteTypes {
     | '/_app/stale-leads'
     | '/_app/tasks'
     | '/_app/transfers'
+    | '/_app/venue-meetings'
     | '/coordinate/$token'
     | '/event-status/$token'
     | '/feedback/$bookingId'
@@ -662,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoordinateTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/venue-meetings': {
+      id: '/_app/venue-meetings'
+      path: '/venue-meetings'
+      fullPath: '/venue-meetings'
+      preLoaderRoute: typeof AppVenueMeetingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/transfers': {
       id: '/_app/transfers'
       path: '/transfers'
@@ -730,6 +761,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/leads'
       preLoaderRoute: typeof AppLeadsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/follow-ups': {
+      id: '/_app/follow-ups'
+      path: '/follow-ups'
+      fullPath: '/follow-ups'
+      preLoaderRoute: typeof AppFollowUpsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/feedback': {
@@ -909,6 +947,7 @@ interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppFeedbackRoute: typeof AppFeedbackRoute
+  AppFollowUpsRoute: typeof AppFollowUpsRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMoreRoute: typeof AppMoreRoute
   AppNotInterestedRoute: typeof AppNotInterestedRoute
@@ -919,6 +958,7 @@ interface AppRouteChildren {
   AppStaleLeadsRoute: typeof AppStaleLeadsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppTransfersRoute: typeof AppTransfersRoute
+  AppVenueMeetingsRoute: typeof AppVenueMeetingsRoute
   AppCompanyDashboardCompanyIdRoute: typeof AppCompanyDashboardCompanyIdRoute
   AppCompanySettingsCompanyIdRoute: typeof AppCompanySettingsCompanyIdRoute
 }
@@ -931,6 +971,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppFeedbackRoute: AppFeedbackRoute,
+  AppFollowUpsRoute: AppFollowUpsRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMoreRoute: AppMoreRoute,
   AppNotInterestedRoute: AppNotInterestedRoute,
@@ -941,6 +982,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppStaleLeadsRoute: AppStaleLeadsRoute,
   AppTasksRoute: AppTasksRoute,
   AppTransfersRoute: AppTransfersRoute,
+  AppVenueMeetingsRoute: AppVenueMeetingsRoute,
   AppCompanyDashboardCompanyIdRoute: AppCompanyDashboardCompanyIdRoute,
   AppCompanySettingsCompanyIdRoute: AppCompanySettingsCompanyIdRoute,
 }

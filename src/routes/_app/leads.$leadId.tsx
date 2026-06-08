@@ -146,7 +146,15 @@ function LeadProfile() {
       supabase.from("win_loss_log").select("outcome, drop_reason, competitor_name, amount_value, closed_at").eq("lead_id", leadId).order("closed_at", { ascending: false }),
     ]);
     setActivities((acts as Activity[]) ?? []);
-    setFollowUps((fus as FollowUp[]) ?? []);
+    // Sort: active (not sent, not cancelled) first — most recently created at top — then completed/cancelled by date.
+    const sortedFus = ((fus as FollowUp[]) ?? []).slice().sort((a, b) => {
+      const aActive = !a.is_sent && !(a as any).is_cancelled;
+      const bActive = !b.is_sent && !(b as any).is_cancelled;
+      if (aActive !== bActive) return aActive ? -1 : 1;
+      if (aActive) return new Date(b.created_at as any).getTime() - new Date(a.created_at as any).getTime();
+      return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+    });
+    setFollowUps(sortedFus);
     setRequirements((reqs as Requirement[]) ?? []);
     setQuotations((quotes as Quotation[]) ?? []);
     setBookings((bks as Booking[]) ?? []);
