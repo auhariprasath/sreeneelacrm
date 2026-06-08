@@ -113,10 +113,10 @@ function Section({ icon: Icon, title, count, children }: { icon: any; title: str
   );
 }
 
-export function RightSidebar({ layout = "stack" }: { layout?: "stack" | "grid" } = {}) {
+export function RightSidebar({ layout = "stack", companyId }: { layout?: "stack" | "grid"; companyId?: string | null } = {}) {
   const [d, setD] = useState<Data | null>(null);
-  const refresh = () => load().then(setD);
-  useEffect(() => { refresh(); }, []);
+  const refresh = () => load(companyId).then(setD);
+  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [companyId]);
   useDashboardRealtime(["follow_ups", "tasks", "quotations"], refresh);
 
   const data = d ?? { callBacks: [], overdueFollowUps: [], tasks: [], quotations: [], overdue: [], staleCount: 0 };
