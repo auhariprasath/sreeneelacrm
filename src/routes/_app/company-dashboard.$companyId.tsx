@@ -55,10 +55,16 @@ function CompanyDashboardPage() {
           </Link>
           <h1 className="text-xl sm:text-2xl font-semibold truncate">{company.name}</h1>
         </div>
-        <Link to="/company-settings/$companyId" params={{ companyId: company.id }}>
-          <Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" /> Company settings</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setNewLeadOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> New lead
+          </Button>
+          <Link to="/company-settings/$companyId" params={{ companyId: company.id }}>
+            <Button variant="outline" size="sm"><Settings className="h-4 w-4 mr-1" /> Company settings</Button>
+          </Link>
+        </div>
       </div>
+      <NewLeadDialog open={newLeadOpen} onOpenChange={setNewLeadOpen} />
       <CompanyPanel
         companyId={company.id}
         companyName={company.name}
