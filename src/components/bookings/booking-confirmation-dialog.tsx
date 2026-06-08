@@ -14,6 +14,7 @@ import {
   markConfirmationSent,
   type BookingConfirmationContext,
 } from "@/lib/booking-confirmation";
+import { openWaMeLink } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -53,7 +54,7 @@ export function BookingConfirmationDialog({ open, onOpenChange, bookingId, onSen
     setSending(true);
     try {
       const url = buildWaLink(ctx.lead.phone, message);
-      window.location.href = url;
+      openWaMeLink(url);
       await markConfirmationSent({ ctx, message, performedBy: profile?.id ?? null });
       toast.success("Marked as sent · WhatsApp opened");
       onSent?.();

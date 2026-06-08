@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateIN, formatINR } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Booking = Database["public"]["Tables"]["bookings"]["Row"];
@@ -99,13 +99,16 @@ export function EventCompleteDialog({ open, onOpenChange, booking, leadId, leadP
               </Button>
             </div>
             {leadPhone && (
-              <a
-                href={buildWaMeLink(leadPhone, `Thanks for choosing us! We'd love your feedback: ${feedbackUrl}`) ?? undefined}
-                target="_blank" rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => {
+                  const wa = buildWaMeLink(leadPhone, `Thanks for choosing us! We'd love your feedback: ${feedbackUrl}`);
+                  if (wa) openWaMeLink(wa);
+                }}
                 className="inline-flex h-9 items-center justify-center rounded-md bg-success px-3 text-sm text-white hover:bg-success w-full"
               >
                 Send via WhatsApp
-              </a>
+              </button>
             )}
             <Button variant="outline" className="w-full" onClick={close}>Done</Button>
           </div>

@@ -11,7 +11,7 @@ import { formatPhoneIN, relativeTime, initialsOf } from "@/lib/format";
 import { StatusBadge, ScoreBadge, STATUS_LABELS } from "@/components/leads/lead-badges";
 import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn, buildWaMeLink } from "@/lib/utils";
+import { cn, buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -290,16 +290,18 @@ function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: 
               >
                 <Phone className="h-4 w-4 text-primary" />
               </a>
-              <a
-                href={buildWaMeLink(lead.phone) ?? undefined}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const wa = buildWaMeLink(lead.phone);
+                  if (wa) openWaMeLink(wa);
+                }}
                 className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-accent"
                 aria-label="WhatsApp"
               >
                 <MessageSquare className="h-4 w-4 text-success" />
-              </a>
+              </button>
             </div>
           </div>
         </div>

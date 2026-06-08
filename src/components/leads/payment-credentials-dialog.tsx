@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Send, IndianRupee, Link as LinkIcon, Loader2, Copy } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -56,7 +56,7 @@ Thank you!`;
   const send = async () => {
     const url = buildWaMeLink(leadPhone, rzpLink ? `${message}\n\nPay online: ${rzpLink}` : message);
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.location.href = url;
+    openWaMeLink(url);
     await supabase.from("activity_logs").insert({
       lead_id: leadId,
       action: rzpLink ? "Payment credentials + Razorpay link sent" : "Payment credentials sent",

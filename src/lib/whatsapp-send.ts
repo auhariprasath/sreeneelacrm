@@ -1,4 +1,4 @@
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 
 export type WhatsAppMode = "device";
@@ -18,6 +18,6 @@ export async function sendWhatsApp(
     toast.error("Invalid phone number");
     return { ok: false, error: "invalid_phone" };
   }
-  window.location.href = url;
+  openWaMeLink(url);
   return { ok: true };
 }

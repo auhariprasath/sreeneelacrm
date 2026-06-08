@@ -10,7 +10,7 @@ import {
 import { UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 
 type Staff = { id: string; full_name: string; phone: string | null };
 
@@ -111,7 +111,7 @@ export function CoordinatorAssign(props: Props) {
         (venue ? `Venue: ${venue}\n` : "") +
         `\nYour coordination link (update stages here):\n${coordUrl}\n\n— ${companyName}`;
       const url = buildWaMeLink(chosen.phone, msg);
-      if (url) window.location.href = url;
+      if (url) openWaMeLink(url);
     } else {
       toast.message("Coordinator has no phone on file — copy link manually", { description: coordUrl });
     }
@@ -123,7 +123,7 @@ export function CoordinatorAssign(props: Props) {
           `Hi ${leadName}, your event coordinator has been assigned.\n\n` +
           `Track preparations live here:\n${clientUrl}\n\n— ${companyName}`;
         const url = buildWaMeLink(leadPhone, msg);
-        if (url) window.location.href = url;
+        if (url) openWaMeLink(url);
       }, 600);
     }
   };

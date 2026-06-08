@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR, formatDateIN } from "@/lib/format";
-import { buildWaMeLink } from "@/lib/utils";
+import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
 import { toast } from "sonner";
 import { Building2, Gift, Activity, Users, XCircle, Lightbulb, MessageCircle } from "lucide-react";
 
@@ -449,7 +449,7 @@ function NotInterestedSection({ rows }: { rows: NotInterestedRow[] }) {
     }
     const url = buildWaMeLink(row.phone, `Hi ${row.full_name.split(" ")[0] || "there"}, this is from Neela Events. Just checking in — would love another chance to help you plan your event. We have some new options that might work better. Can we share?`);
     if (!url) { toast.error("Invalid phone number"); return; }
-    window.location.href = url;
+    openWaMeLink(url);
   };
 
   return (
