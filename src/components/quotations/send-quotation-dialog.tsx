@@ -117,17 +117,14 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
     onResponded?.();
   };
 
-  const sendViaWhatsApp = async () => {
-    if (!lead?.phone) { toast.error("Lead has no phone number"); return; }
-    setSending("whatsapp");
-    try {
-      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
-      const url = buildWaMeLink(lead.phone, message);
-      if (!url) { toast.error("Invalid phone number"); return; }
-      window.open(url, "_blank", "noopener");
-      await markSent("whatsapp", "WhatsApp");
-      toast.success("Opened WhatsApp · PDF downloaded — attach it in the chat");
-    } finally { setSending(null); }
+  const handleWhatsAppSent = async (mode: "device" | "api") => {
+    const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+    await markSent("whatsapp", mode === "api" ? "WhatsApp API" : "WhatsApp");
+    toast.success(
+      mode === "api"
+        ? "WhatsApp sent via API · PDF downloaded for your records"
+        : "Opened WhatsApp · PDF downloaded — attach it in the chat",
+    );
   };
 
   const sendViaEmail = async () => {
@@ -226,11 +223,13 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
                 <div className="text-[11px] text-muted-foreground">PDF is downloaded automatically — attach it manually in WhatsApp or email.</div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                <Button onClick={sendViaWhatsApp} disabled={!!sending} className="bg-success hover:bg-success text-white">
-                  {sending === "whatsapp" ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4 mr-1" />}
-                  WhatsApp
-                </Button>
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2 pt-1 items-stretch">
+                <WhatsAppSendButton
+                  phone={lead?.phone}
+                  message={message}
+                  disabled={!!sending}
+                  onSent={handleWhatsAppSent}
+                />
                 <Button variant="outline" onClick={sendViaEmail} disabled={!!sending}>
                   <Mail className="h-4 w-4 mr-1" /> Email
                 </Button>
