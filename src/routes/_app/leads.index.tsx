@@ -235,7 +235,7 @@ function LeadsInbox() {
           onAction={() => setOpen(true)}
         />
       ) : (
-        <div className="rounded-lg border overflow-x-auto">
+        <div className="rounded-lg border bg-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">

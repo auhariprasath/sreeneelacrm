@@ -140,7 +140,7 @@ export function IntegrationsSection({ companyId }: Props) {
                   className={`h-6 w-11 rounded-full transition-colors ${it.enabled ? "bg-primary" : "bg-muted"} relative`}
                   title={it.enabled ? "Enabled" : "Disabled"}
                 >
-                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${it.enabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-card dark:bg-foreground shadow transition-transform ${it.enabled ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
                   onClick={() => setItems((prev) => prev.filter((x) => x.id !== it.id))}>

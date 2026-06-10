@@ -73,7 +73,7 @@ function FollowUpsPage() {
       ) : rows.length === 0 ? (
         <Card className="p-6 text-sm text-muted-foreground text-center">No follow-ups in this view.</Card>
       ) : (
-        <div className="rounded-lg border overflow-x-auto">
+        <div className="rounded-lg border bg-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">

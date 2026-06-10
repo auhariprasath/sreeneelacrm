@@ -204,8 +204,9 @@
   /* Native form controls inherit the primary accent (checkboxes, radios,
      time-picker scrollers, date pickers, range thumbs) so the system
      clock/date UI matches the theme. */
-  :root, html, body { accent-color: var(--primary); color-scheme: light; }
-  .dark, .dark html, .dark body { color-scheme: dark; }
+  :root { accent-color: var(--primary); }
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
 }
 
 @utility safe-bottom {
