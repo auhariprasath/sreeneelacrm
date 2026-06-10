@@ -48,28 +48,5 @@ $$;
 ALTER TYPE lead_status ADD VALUE IF NOT EXISTS 'follow_up';
 ALTER TYPE lead_status ADD VALUE IF NOT EXISTS 'venue_meeting';
 
--- 3. Fix corrupted emoji in meeting_confirmed WhatsApp template for all companies
-UPDATE public.companies
-SET wa_templates = jsonb_set(
-  COALESCE(wa_templates, '{}'),
-  '{meeting_confirmed,body}',
-  to_jsonb(
-    'Hello [Name]! 🙏' || E'\n\n' ||
-    'Thank you for your interest in *[Company]*.' || E'\n' ||
-    'We are pleased to invite you for a venue visit.' || E'\n\n' ||
-    '*Visit Details*' || E'\n' ||
-    '📅 Date: [Meeting date]' || E'\n' ||
-    '⏰ Time: [Meeting time]' || E'\n' ||
-    '⏳ Duration: ~[Duration] min' || E'\n\n' ||
-    '*Venue*' || E'\n' ||
-    '🏛 [Company]' || E'\n' ||
-    '📍 [Address]' || E'\n' ||
-    '🗺 Directions: [Maps link]' || E'\n\n' ||
-    '*Your Point of Contact*' || E'\n' ||
-    '👤 [Contact person]' || E'\n' ||
-    '📞 [Contact phone]' || E'\n\n' ||
-    'We look forward to welcoming you.' || E'\n' ||
-    'Please confirm your visit by replying *YES* or call us if you need to reschedule.'
-  )
-)
-WHERE wa_templates IS NOT NULL;
+-- 3. Emoji template fix moved to migration 20260610000005_fix_emoji_template.sql
+SELECT 1;
