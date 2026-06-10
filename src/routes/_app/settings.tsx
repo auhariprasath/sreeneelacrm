@@ -21,6 +21,7 @@ import { VendorsSection } from "@/components/settings/vendors-section";
 import { CompaniesSection } from "@/components/settings/companies-section";
 import { ReminderTimingSection } from "@/components/settings/reminder-timing-section";
 import { IntegrationsSection } from "@/components/settings/integrations-section";
+import { SidebarOrderSection } from "@/components/settings/sidebar-order-section";
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
@@ -35,6 +36,7 @@ const SECTIONS = [
   { id: "payment", label: "Payment gateway", icon: CreditCard, superOnly: false },
   { id: "discounts", label: "Discount rules", icon: Percent, superOnly: false },
   { id: "integrations", label: "Integrations", icon: Globe, superOnly: false },
+  { id: "sidebar-order", label: "Sidebar Order", icon: ListChecks, superOnly: false },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -266,6 +268,19 @@ function SettingsPage() {
             <CardContent>
               <CompanyPicker />
               <IntegrationsSection companyId={activeCompanyId} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "sidebar-order": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sidebar Order</CardTitle>
+              <CardDescription>Drag to reorder sidebar items. Hide ones you don't use. Changes are saved per browser.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SidebarOrderSection />
             </CardContent>
           </Card>
         );

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/offline-banner";
+import { getSidebarPrefs, ALL_NAV_ITEMS } from "@/components/settings/sidebar-order-section";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { toast } from "sonner";
 import { initialsOf } from "@/lib/format";
@@ -114,7 +115,11 @@ function AppLayout() {
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  const sidebarItems = SIDEBAR_NAV.filter((n) => role && n.roles.includes(role));
+  const prefs = getSidebarPrefs();
+  const sidebarItems = prefs.order
+    .filter((key) => !prefs.hidden.includes(key as any))
+    .map((key) => SIDEBAR_NAV.find((n) => n.to === `/${key}`))
+    .filter((n): n is NavItem => !!n && !!role && n.roles.includes(role));
   const moreItems = MORE_SHEET_NAV.filter((n) => role && n.roles.includes(role));
   const bottomItems = BOTTOM_TABS.filter((n) => role && n.roles.includes(role));
   const roleLabel = role === "super_admin" ? "Super Admin" : role === "admin" ? "Admin" : "Staff";
