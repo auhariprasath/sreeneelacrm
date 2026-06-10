@@ -209,7 +209,7 @@ function LeadsInbox() {
         ))}
       </div>
 
-      {/* List */}
+      {/* Table */}
       {loading ? (
         <SkeletonList rows={6} />
       ) : leads.length === 0 ? (
@@ -220,17 +220,32 @@ function LeadsInbox() {
           onAction={() => setOpen(true)}
         />
       ) : (
-        <div className="space-y-2">
-          {leads.map((l) => (
-            <LeadCard key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} />
-          ))}
+        <div className="rounded-lg border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Phone</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Score</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Event</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Updated</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((l) => (
+                <LeadRow key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} />
+              ))}
+            </tbody>
+          </table>
           {hasMore && (
-            <div ref={sentinelRef} className="h-12 flex items-center justify-center text-xs text-muted-foreground">
+            <div ref={sentinelRef} className="h-12 flex items-center justify-center text-xs text-muted-foreground border-t">
               Loading more…
             </div>
           )}
           {!hasMore && leads.length > PAGE && (
-            <div className="h-8 flex items-center justify-center text-[11px] text-muted-foreground">
+            <div className="h-8 flex items-center justify-center text-[11px] text-muted-foreground border-t">
               End of list
             </div>
           )}
@@ -242,73 +257,55 @@ function LeadsInbox() {
   );
 }
 
-function LeadCard({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: ReqMeta }) {
+function LeadRow({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: ReqMeta }) {
   const phone = formatPhoneIN(lead.phone, masked);
   const tel = (lead.phone || "").replace(/\D/g, "");
   const nextEvent = meta?.nextEvent ? new Date(meta.nextEvent) : null;
   return (
-    <Link
-      to="/leads/$leadId"
-      params={{ leadId: lead.id }}
-      className="block bg-card border rounded-lg p-3 md:p-4 hover:bg-accent/40 transition-colors"
-    >
-      <div className="flex items-start gap-3">
-        <Avatar className="h-10 w-10 shrink-0">
-          <AvatarFallback className="text-xs">{initialsOf(lead.full_name)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="font-medium truncate flex items-center gap-2">
-                {lead.full_name}
-                {lead.is_blacklisted && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive dark:text-destructive border border-destructive/30">
-                    Flagged
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-muted-foreground truncate">{phone}</div>
-            </div>
-            <ScoreBadge score={lead.lead_score} />
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 min-w-0 flex-wrap">
-              <StatusBadge status={lead.status} />
-              {nextEvent && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                  Event {String(nextEvent.getDate()).padStart(2,"0")}/{String(nextEvent.getMonth()+1).padStart(2,"0")}
-                </span>
-              )}
-              <span className="text-[11px] text-muted-foreground truncate">{relativeTime(lead.updated_at)}</span>
-            </div>
-            <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
-              <a
-                href={`tel:+91${tel.slice(-10)}`}
-                onClick={(e) => e.stopPropagation()}
-                className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-accent"
-                aria-label="Call"
-              >
-                <Phone className="h-4 w-4 text-primary" />
-              </a>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const wa = buildWaMeLink(lead.phone);
-                  if (wa) openWaMeLink(wa);
-                }}
-                className="h-9 w-9 rounded-md flex items-center justify-center hover:bg-accent"
-                aria-label="WhatsApp"
-              >
-                <MessageSquare className="h-4 w-4 text-success" />
-              </button>
-            </div>
-          </div>
+    <tr className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+      <td className="px-4 py-3">
+        <Link to="/leads/$leadId" params={{ leadId: lead.id }} className="flex items-center gap-2.5 hover:underline">
+          <Avatar className="h-7 w-7 shrink-0">
+            <AvatarFallback className="text-[10px]">{initialsOf(lead.full_name)}</AvatarFallback>
+          </Avatar>
+          <span className="font-medium truncate max-w-[150px]">{lead.full_name}</span>
+          {lead.is_blacklisted && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive border border-destructive/30 shrink-0">
+              Flagged
+            </span>
+          )}
+        </Link>
+      </td>
+      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{phone}</td>
+      <td className="px-4 py-3"><StatusBadge status={lead.status} /></td>
+      <td className="px-4 py-3"><ScoreBadge score={lead.lead_score} /></td>
+      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+        {nextEvent
+          ? `${String(nextEvent.getDate()).padStart(2,"0")}/${String(nextEvent.getMonth()+1).padStart(2,"0")}/${nextEvent.getFullYear()}`
+          : "—"}
+      </td>
+      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{relativeTime(lead.updated_at)}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-end gap-1">
+          <a
+            href={`tel:+91${tel.slice(-10)}`}
+            className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
+            aria-label="Call"
+          >
+            <Phone className="h-3.5 w-3.5 text-primary" />
+          </a>
+          <button
+            type="button"
+            onClick={() => { const wa = buildWaMeLink(lead.phone); if (wa) openWaMeLink(wa); }}
+            className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
+            aria-label="WhatsApp"
+          >
+            <MessageSquare className="h-3.5 w-3.5 text-success" />
+          </button>
         </div>
-      </div>
-    </Link>
+      </td>
+    </tr>
   );
 }
 
-// Avoid unused import warning
 void STATUS_LABELS;

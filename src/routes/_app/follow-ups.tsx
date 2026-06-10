@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Phone, ArrowLeft, AlertCircle } from "lucide-react";
 import { formatDateTimeIN } from "@/lib/format";
@@ -53,7 +52,7 @@ function FollowUpsPage() {
   useDashboardRealtime(["follow_ups"], load);
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto">
+    <div className="space-y-4 max-w-4xl mx-auto">
       <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Back to dashboard
       </Link>
@@ -74,24 +73,48 @@ function FollowUpsPage() {
       ) : rows.length === 0 ? (
         <Card className="p-6 text-sm text-muted-foreground text-center">No follow-ups in this view.</Card>
       ) : (
-        <div className="space-y-2">
-          {rows.map((r) => {
-            const overdue = new Date(r.scheduled_at).getTime() < Date.now();
-            return (
-              <Link key={r.id} to="/leads/$leadId" params={{ leadId: r.lead_id }}>
-                <Card className="p-3 flex items-center justify-between hover:bg-accent/40 transition">
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{r.full_name}</div>
-                    <div className={`text-xs ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                      {overdue && <AlertCircle className="inline h-3 w-3 mr-1" />}
-                      {overdue ? "Overdue " : ""}{formatDateTimeIN(r.scheduled_at)}
-                    </div>
-                  </div>
-                  <Button size="sm" variant="ghost">Open</Button>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="rounded-lg border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Lead name</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Scheduled at</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const overdue = new Date(r.scheduled_at).getTime() < Date.now();
+                return (
+                  <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium">{r.full_name}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                      {formatDateTimeIN(r.scheduled_at)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {overdue ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive">
+                          <AlertCircle className="h-3.5 w-3.5" /> Overdue
+                        </span>
+                      ) : (
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Upcoming</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        to="/leads/$leadId"
+                        params={{ leadId: r.lead_id }}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Open lead →
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

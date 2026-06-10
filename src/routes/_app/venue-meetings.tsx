@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, ArrowLeft, AlertCircle, Phone } from "lucide-react";
+import { Building2, ArrowLeft, AlertCircle } from "lucide-react";
 import { formatDateTimeIN } from "@/lib/format";
 import { StatusBadge } from "@/components/leads/lead-badges";
 
@@ -62,7 +61,6 @@ function VenueMeetingsPage() {
       contact_person_name: m.contact_person_name ?? null,
     }));
 
-    // Fetch latest event_type from requirements for each lead
     if (meetings.length > 0) {
       const leadIds = [...new Set(meetings.map((m) => m.lead_id))];
       const { data: reqs } = await supabase
@@ -96,7 +94,7 @@ function VenueMeetingsPage() {
   useDashboardRealtime(["venue_meetings"], load);
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto">
+    <div className="space-y-4 max-w-5xl mx-auto">
       <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Back to dashboard
       </Link>
@@ -117,41 +115,49 @@ function VenueMeetingsPage() {
       ) : rows.length === 0 ? (
         <Card className="p-6 text-sm text-muted-foreground text-center">No venue meetings in this view.</Card>
       ) : (
-        <div className="space-y-2">
-          {rows.map((r) => {
-            const overdue = new Date(r.scheduled_at).getTime() < Date.now();
-            return (
-              <Link key={r.id} to="/leads/$leadId" params={{ leadId: r.lead_id }}>
-                <Card className="p-3 hover:bg-accent/40 transition">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{r.full_name}</span>
-                        <StatusBadge status={r.lead_status as any} />
-                      </div>
-                      {r.phone && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Phone className="h-3 w-3 shrink-0" />
-                          {r.phone}
-                        </div>
-                      )}
-                      {r.event_type && (
-                        <div className="text-xs text-muted-foreground">
-                          Event: {r.event_type}
-                        </div>
-                      )}
-                      <div className={`text-xs ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                        {overdue && <AlertCircle className="inline h-3 w-3 mr-1" />}
-                        {overdue ? "Overdue · " : ""}{formatDateTimeIN(r.scheduled_at)}
-                        {r.contact_person_name ? ` · ${r.contact_person_name}` : ""}
-                      </div>
-                    </div>
-                    <Button size="sm" variant="ghost" className="shrink-0">Open</Button>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="rounded-lg border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Phone</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Event type</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Lead status</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Scheduled at</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Contact</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const overdue = new Date(r.scheduled_at).getTime() < Date.now();
+                return (
+                  <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">{r.full_name}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{r.phone || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.event_type || "—"}</td>
+                    <td className="px-4 py-3"><StatusBadge status={r.lead_status as any} /></td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={overdue ? "text-destructive font-medium flex items-center gap-1" : "text-muted-foreground"}>
+                        {overdue && <AlertCircle className="h-3.5 w-3.5 shrink-0" />}
+                        {formatDateTimeIN(r.scheduled_at)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.contact_person_name || "—"}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        to="/leads/$leadId"
+                        params={{ leadId: r.lead_id }}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Open lead →
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
