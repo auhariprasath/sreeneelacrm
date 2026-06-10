@@ -1,3 +1,9 @@
+// Polyfill WebSocket for Node.js < 22 so Supabase Realtime works in SSR.
+if (typeof globalThis.WebSocket === 'undefined') {
+  const { WebSocket } = await import('ws');
+  (globalThis as any).WebSocket = WebSocket;
+}
+
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";

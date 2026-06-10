@@ -57,14 +57,15 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       const publicUrl = (q as any).public_token
         ? `${window.location.origin}/quotation/${(q as any).public_token}`
         : "";
-      const tmpl = `Namaste {client_name}, here is your quotation from {company_name} for {event_type} on {event_date}.\n\nTotal: {total}\n\nView & approve online: {link}\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!`;
+      const defaultTmpl = "Hi [Name], your quotation from [Company] for [Event type] on [Event date] is ready.\n\nTotal: [Amount]\n\nView & approve online: [Quote link]\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!";
+      const tmpl = (c as any)?.wa_templates?.quotation_sent?.body ?? defaultTmpl;
       const filled = tmpl
-        .replace("{client_name}", (l as Lead | null)?.full_name ?? "")
-        .replace("{company_name}", (c as Company | null)?.name ?? "")
-        .replace("{event_type}", (r as Requirement | null)?.event_type ?? "your event")
-        .replace("{event_date}", (r as Requirement | null)?.event_date ? formatDateIN((r as Requirement).event_date as string) : "the planned date")
-        .replace("{total}", formatINR(Number((q as Quotation).total)))
-        .replace("{link}", publicUrl);
+        .replace(/\[Name\]/g, (l as Lead | null)?.full_name ?? "")
+        .replace(/\[Company\]/g, (c as Company | null)?.name ?? "")
+        .replace(/\[Event type\]/g, (r as Requirement | null)?.event_type ?? "your event")
+        .replace(/\[Event date\]/g, (r as Requirement | null)?.event_date ? formatDateIN((r as Requirement).event_date as string) : "the planned date")
+        .replace(/\[Amount\]/g, formatINR(Number((q as Quotation).total)))
+        .replace(/\[Quote link\]/g, publicUrl);
       setMessage(filled);
       setLoading(false);
     })();
@@ -88,7 +89,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       event: {
         type: requirement.event_type, date: requirement.event_date,
         start_time: requirement.start_time, end_time: requirement.end_time,
-        venue: null, guest_count: requirement.guest_count,
+        venue: (company as any).default_room ?? null, guest_count: requirement.guest_count,
       },
       quotation: {
         number: quote.quotation_number, version: quote.version,

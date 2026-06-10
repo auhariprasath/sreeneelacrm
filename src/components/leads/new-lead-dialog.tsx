@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowRight } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -20,6 +21,7 @@ const LANGUAGES = ["English", "Tamil", "Hindi", "Telugu", "Malayalam", "Kannada"
 
 export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const { profile, companies, activeCompanyId, role } = useAuth();
+  const navigate = useNavigate();
   const targetCompanyId = role === "super_admin" ? activeCompanyId : profile?.company_id ?? null;
 
   const [fullName, setFullName] = useState("");
@@ -32,7 +34,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const [referredByName, setReferredByName] = useState("");
   const [referredByLeadId, setReferredByLeadId] = useState<string | null>(null);
   const [refSearch, setRefSearch] = useState<{ id: string; full_name: string; phone: string }[]>([]);
-  const [duplicate, setDuplicate] = useState<{ company: string; status: string } | null>(null);
+  const [duplicate, setDuplicate] = useState<{ id: string; company: string; status: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
@@ -60,8 +62,15 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     const { data } = await q;
     if (data && data[0]) {
       const c = companies.find((c) => c.id === data[0].company_id);
-      setDuplicate({ company: c?.name ?? "another company", status: data[0].status });
+      setDuplicate({ id: data[0].id, company: c?.name ?? "another company", status: data[0].status });
     }
+  };
+
+  const goToExistingLead = () => {
+    if (!duplicate) return;
+    onOpenChange(false);
+    reset();
+    navigate({ to: "/leads/$leadId", params: { leadId: duplicate.id }, state: { openNewReq: true } as any });
   };
 
   const submit = async () => {
@@ -101,7 +110,10 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     }
     reset();
     onOpenChange(false);
-    if (data) onCreated?.(data.id);
+    if (data) {
+      onCreated?.(data.id);
+      navigate({ to: "/leads/$leadId", params: { leadId: data.id } });
+    }
   };
 
   return (
@@ -129,9 +141,23 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
               placeholder="98XXXXXXXX"
             />
             {duplicate && (
-              <div className="flex items-start gap-2 text-xs text-warning dark:text-warning bg-warning/10 border border-warning/30 rounded-md p-2">
-                <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span>This phone already exists in <b>{duplicate.company}</b> (status: {duplicate.status}). Creating anyway will make a separate lead.</span>
+              <div className="flex flex-col gap-2 text-xs bg-warning/10 border border-warning/30 rounded-md p-2">
+                <div className="flex items-start gap-2 text-warning dark:text-warning">
+                  <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    This contact already exists in <b>{duplicate.company}</b> (status: {duplicate.status}).
+                    {source === "portal" ? " For portal leads, open the existing profile and add a new requirement." : " You can open the existing lead or create a separate entry."}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs self-start"
+                  onClick={goToExistingLead}
+                >
+                  <ArrowRight className="h-3.5 w-3.5 mr-1" /> Open existing lead &amp; add requirement
+                </Button>
               </div>
             )}
           </div>

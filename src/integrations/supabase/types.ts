@@ -448,6 +448,7 @@ export type Database = {
           cancellation_policy: string | null
           communities: Json
           company_phone: string | null
+          default_room: string | null
           confirmation_auto_send: boolean
           confirmation_closing_line: string | null
           confirmation_reminder_lines: Json
@@ -507,6 +508,7 @@ export type Database = {
           type: Database["public"]["Enums"]["company_type"]
           upi_id: string | null
           vendor_status_reminder_hours: number
+          integrations: Json
           venue_photos: Json
           video_url: string | null
           wa_number: string | null
@@ -630,6 +632,7 @@ export type Database = {
           cancellation_policy?: string | null
           communities?: Json
           company_phone?: string | null
+          default_room?: string | null
           confirmation_auto_send?: boolean
           confirmation_closing_line?: string | null
           confirmation_reminder_lines?: Json
@@ -689,6 +692,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["company_type"]
           upi_id?: string | null
           vendor_status_reminder_hours?: number
+          integrations?: Json
           venue_photos?: Json
           video_url?: string | null
           wa_number?: string | null
@@ -1550,6 +1554,7 @@ export type Database = {
           muhurtham_time: string | null
           notes: string | null
           requirement_number: number
+          session_name: string | null
           start_time: string | null
           status: Database["public"]["Enums"]["requirement_status"]
           updated_at: string
@@ -1572,6 +1577,7 @@ export type Database = {
           muhurtham_time?: string | null
           notes?: string | null
           requirement_number?: number
+          session_name?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["requirement_status"]
           updated_at?: string
@@ -1594,6 +1600,7 @@ export type Database = {
           muhurtham_time?: string | null
           notes?: string | null
           requirement_number?: number
+          session_name?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["requirement_status"]
           updated_at?: string
@@ -2055,7 +2062,22 @@ export type Database = {
           status?: Database["public"]["Enums"]["venue_meeting_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "venue_meetings_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_meetings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       win_loss_log: {
         Row: {

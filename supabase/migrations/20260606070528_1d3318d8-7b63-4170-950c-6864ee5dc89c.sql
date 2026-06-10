@@ -1,11 +1,11 @@
 
 ALTER TABLE public.quotations
-  ADD COLUMN IF NOT EXISTS public_token text UNIQUE DEFAULT encode(gen_random_bytes(16), 'hex'),
+  ADD COLUMN IF NOT EXISTS public_token text UNIQUE DEFAULT replace(gen_random_uuid()::text, '-', ''),
   ADD COLUMN IF NOT EXISTS viewed_at timestamptz,
   ADD COLUMN IF NOT EXISTS approved_at timestamptz,
   ADD COLUMN IF NOT EXISTS view_count integer NOT NULL DEFAULT 0;
 
-UPDATE public.quotations SET public_token = encode(gen_random_bytes(16), 'hex') WHERE public_token IS NULL;
+UPDATE public.quotations SET public_token = replace(gen_random_uuid()::text, '-', '') WHERE public_token IS NULL;
 
 -- Allow anonymous read by token only (filter applied via server fn using admin client; but also allow direct anon select on specific columns via policy)
 CREATE POLICY "public read by token" ON public.quotations

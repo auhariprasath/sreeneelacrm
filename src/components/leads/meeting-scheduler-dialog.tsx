@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { Calendar, Send, MapPin, Loader2 } from "lucide-react";
 import { formatDateIN, formatTimeOfDay } from "@/lib/format";
 import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
+import { WA_TEMPLATES } from "@/lib/wa-templates";
 
 interface Props {
   open: boolean;
@@ -70,29 +71,26 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
   }, [open, companyId]);
 
   const buildMessage = () => {
-    const lines = [
-      `Hi ${leadName}! 👋`,
-      ``,
-      `Thank you for your interest in ${company?.name ?? ""}.`,
-      ``,
-      `We have scheduled a venue visit for you:`,
-      ``,
-      `📅 Date: ${formatDateIN(date)}`,
-      `⏰ Time: ${formatTimeOfDay(time)}`,
-      `📍 Venue: ${company?.name ?? ""}`,
-      company?.full_address ? `🏠 Address: ${company.full_address}` : "",
-      company?.google_maps_link ? `📍 Google Maps: ${company.google_maps_link}` : "",
-      ``,
-      contactName ? `You will be meeting: ${contactName}` : "",
-      contactPhone ? `📞 Contact: ${contactPhone}` : "",
-      ``,
-      `We look forward to seeing you! Please confirm your visit.`,
-    ].filter(Boolean);
-    return lines.join("\n");
+    const defaultBody = WA_TEMPLATES.find((t) => t.key === "meeting_confirmed")?.defaultBody ?? "";
+    const templateBody = (company as any)?.wa_templates?.meeting_confirmed?.body ?? defaultBody;
+    return templateBody
+      .replace(/\[Name\]/g, leadName)
+      .replace(/\[Company\]/g, company?.name ?? "")
+      .replace(/\[Meeting date\]/g, formatDateIN(date))
+      .replace(/\[Meeting time\]/g, formatTimeOfDay(time))
+      .replace(/\[Duration\]/g, String(duration))
+      .replace(/\[Address\]/g, (company as any)?.full_address ?? "")
+      .replace(/\[Maps link\]/g, (company as any)?.google_maps_link ?? "")
+      .replace(/\[Contact person\]/g, contactName)
+      .replace(/\[Contact phone\]/g, contactPhone);
   };
 
   const goPreview = () => {
     setMessage(buildMessage());
+    // Auto-select up to 3 venue photos if none selected yet
+    if (selectedPhotos.size === 0 && photos.length > 0) {
+      setSelectedPhotos(new Set(photos.slice(0, 3).map((p) => p.path)));
+    }
     setStep("preview");
   };
 

@@ -4,14 +4,18 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, FileText, Loader2, MessageSquare } from "lucide-react";
+import { CheckCircle2, CreditCard, Download, FileText, Loader2, MapPin, MessageSquare, PartyPopper } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import {
   getQuotationByToken,
   markQuotationViewed,
   approveQuotationByToken,
   requestQuotationChanges,
+  createRazorpayOrderForQuotation,
+  recordRazorpayPayment,
 } from "@/lib/api/quotations-public.functions";
+import { generateQuotationPdf, downloadBlob } from "@/lib/quotation-pdf";
 
 export const Route = createFileRoute("/quotation/$token")({
   head: () => ({
@@ -39,11 +43,18 @@ function PublicQuotationPage() {
   const markViewed = useServerFn(markQuotationViewed);
   const approve = useServerFn(approveQuotationByToken);
   const requestChanges = useServerFn(requestQuotationChanges);
+  const createOrder = useServerFn(createRazorpayOrderForQuotation);
+  const recordPayment = useServerFn(recordRazorpayPayment);
 
   const [approved, setApproved] = useState(false);
   const [requested, setRequested] = useState(false);
   const [showChangesForm, setShowChangesForm] = useState(false);
+  const [approvedDialogOpen, setApprovedDialogOpen] = useState(false);
+  const [changesDialogOpen, setChangesDialogOpen] = useState(false);
   const [note, setNote] = useState("");
+  const [downloading, setDownloading] = useState(false);
+  const [paymentStep, setPaymentStep] = useState<"choose" | "cash" | "paid">("choose");
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["public-quote", token],
@@ -56,12 +67,12 @@ function PublicQuotationPage() {
 
   const approveMut = useMutation({
     mutationFn: () => approve({ data: { token } }),
-    onSuccess: () => setApproved(true),
+    onSuccess: () => { setApproved(true); setApprovedDialogOpen(true); },
   });
 
   const requestMut = useMutation({
     mutationFn: () => requestChanges({ data: { token, note: note.trim() } }),
-    onSuccess: () => setRequested(true),
+    onSuccess: () => { setRequested(true); setChangesDialogOpen(true); },
   });
 
   if (isLoading) {
@@ -75,13 +86,129 @@ function PublicQuotationPage() {
     return <div className="min-h-dvh grid place-items-center text-sm text-muted-foreground">Quotation not found.</div>;
   }
   const { quote, lead, requirement, company } = data;
-  const services = (quote.services as Array<{ name: string; amount: number }>) ?? [];
-  const addons = (quote.addons as Array<{ name: string; amount: number }>) ?? [];
+
+  const handleRazorpayPay = async () => {
+    if (!data?.quote) return;
+    setPaymentProcessing(true);
+    try {
+      const result = await createOrder({ data: { token } });
+      if (!result.ok) {
+        if (result.reason === "no_razorpay") {
+          setPaymentStep("cash");
+        }
+        return;
+      }
+      const { key_id, order_id, amount } = result;
+      await new Promise<void>((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Failed to load Razorpay"));
+        document.body.appendChild(script);
+      });
+      const rzp = new (window as any).Razorpay({
+        key: key_id,
+        amount,
+        currency: "INR",
+        order_id,
+        name: data.company?.name ?? "Payment",
+        description: `Quotation v${data.quote.version}`,
+        prefill: { name: data.lead?.full_name ?? "", contact: data.lead?.phone ?? "" },
+        handler: async (response: any) => {
+          await recordPayment({
+            data: {
+              token,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+          });
+          setPaymentStep("paid");
+        },
+      });
+      rzp.open();
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!quote || !lead || !requirement || !company) return;
+    setDownloading(true);
+    try {
+      const blob = await generateQuotationPdf({
+        company: { name: company.name, address: company.address, email: company.email, wa_number: company.wa_number, logo_url: company.logo_url },
+        client: { name: lead.full_name, phone: lead.phone },
+        event: { type: requirement.event_type, date: requirement.event_date, start_time: requirement.start_time, end_time: requirement.end_time, guest_count: requirement.guest_count, venue: (company as any).default_room ?? null },
+        quotation: {
+          number: (quote as any).quotation_number, version: quote.version,
+          services: (quote.services as any) ?? [], addons: (quote.addons as any) ?? [],
+          subtotal: Number(quote.subtotal), discount_percent: Number(quote.discount_percent),
+          discount_amount: Number(quote.discount_amount), gst_applied: quote.gst_applied,
+          gst_percent: Number(quote.gst_percent), gst_amount: Number(quote.gst_amount),
+          total: Number(quote.total), created_at: quote.created_at,
+        },
+        authorisedBy: null,
+      });
+      if (blob) downloadBlob(blob, `Quotation-v${quote.version}.pdf`);
+    } finally { setDownloading(false); }
+  };
+
+  type LineRaw = { name?: string; price?: number; amount?: number; quantity?: number };
+  const toAmount = (r: LineRaw) =>
+    Number(r.amount ?? 0) || (Number(r.price ?? 0) * (Number(r.quantity ?? 1) || 1));
+  const services = ((quote.services as LineRaw[]) ?? []).map((s) => ({ name: s.name ?? "", amount: toAmount(s) }));
+  const addons = ((quote.addons as LineRaw[]) ?? []).map((s) => ({ name: s.name ?? "", amount: toAmount(s) }));
   const isAgreed = approved || quote.status === "agreed";
   const isDeclined = requested || quote.status === "declined";
   const isExpired = quote.status === "expired";
 
   return (
+    <>
+    <Dialog open={approvedDialogOpen} onOpenChange={setApprovedDialogOpen}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 justify-center text-center">
+            <PartyPopper className="h-6 w-6 text-success" />
+            Quotation Approved!
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-3 text-center space-y-2">
+          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto">
+            <CheckCircle2 className="h-8 w-8 text-success" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Thank you for approving! Our team has been notified and will reach out shortly to confirm your booking details and next steps.
+          </p>
+        </div>
+        <Button onClick={() => setApprovedDialogOpen(false)} className="w-full bg-success hover:bg-success/90 text-white">
+          Great, thank you!
+        </Button>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={changesDialogOpen} onOpenChange={setChangesDialogOpen}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 justify-center text-center">
+            <MessageSquare className="h-5 w-5 text-warning" />
+            Request Received
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-3 text-center space-y-2">
+          <div className="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mx-auto">
+            <MessageSquare className="h-8 w-8 text-warning" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            We've received your change request and shared it with our team. We'll get back to you with a revised quotation as soon as possible.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => setChangesDialogOpen(false)} className="w-full">
+          Done
+        </Button>
+      </DialogContent>
+    </Dialog>
+
     <div className="min-h-dvh bg-muted/30 py-6 px-4">
       <div className="max-w-2xl mx-auto bg-card border rounded-lg shadow-sm overflow-hidden">
         <header className="p-5 border-b flex items-center gap-3">
@@ -103,6 +230,7 @@ function PublicQuotationPage() {
             {requirement?.event_date && ` · ${formatDateIN(requirement.event_date)}`}
             {requirement?.start_time && ` · ${formatTimeOfDay(requirement.start_time)}`}
             {requirement?.end_time && ` – ${formatTimeOfDay(requirement.end_time)}`}
+            {(company as any)?.default_room && ` · ${(company as any).default_room}`}
           </div>
         </section>
 
@@ -148,8 +276,54 @@ function PublicQuotationPage() {
               This quotation has expired. Please contact us for a fresh one.
             </div>
           ) : isAgreed ? (
-            <div className="flex items-center gap-2 text-success dark:text-success text-sm font-medium">
-              <CheckCircle2 className="h-5 w-5" /> Approved — thank you! The team will be in touch shortly.
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-success dark:text-success text-sm font-medium">
+                <CheckCircle2 className="h-5 w-5" /> Approved — thank you!
+              </div>
+              {paymentStep === "choose" && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">How would you like to pay?</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(company as any)?.payment_method === "razorpay" && (
+                      <Button
+                        className="min-h-12"
+                        onClick={handleRazorpayPay}
+                        disabled={paymentProcessing}
+                      >
+                        {paymentProcessing
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <><CreditCard className="h-5 w-5 mr-1.5" /> Pay Online</>}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="min-h-12"
+                      onClick={() => setPaymentStep("cash")}
+                    >
+                      Cheque / Cash
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {paymentStep === "cash" && (
+                <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+                  <div className="flex items-center gap-2 font-medium">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Please visit our venue
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    Our team will guide you through the payment process.
+                    {(company as any)?.full_address && (
+                      <div className="mt-1">{(company as any).full_address}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {paymentStep === "paid" && (
+                <div className="flex items-center gap-2 text-success dark:text-success text-sm font-medium">
+                  <CheckCircle2 className="h-5 w-5" /> Payment successful — the team will be in touch shortly.
+                </div>
+              )}
             </div>
           ) : isDeclined ? (
             <div className="flex items-center gap-2 text-warning dark:text-warning text-sm font-medium">
@@ -183,26 +357,39 @@ function PublicQuotationPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  onClick={() => approveMut.mutate()}
+                  disabled={approveMut.isPending}
+                  className="bg-success hover:bg-success text-white min-h-12 text-base font-medium"
+                >
+                  {approveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-5 w-5 mr-1.5" /> Approve</>}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowChangesForm(true)}
+                  className="min-h-12 text-base font-medium"
+                >
+                  <MessageSquare className="h-5 w-5 mr-1.5" /> Request changes
+                </Button>
+              </div>
               <Button
-                onClick={() => approveMut.mutate()}
-                disabled={approveMut.isPending}
-                className="bg-success hover:bg-success text-white min-h-12 text-base font-medium"
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground"
+                onClick={handleDownloadPdf}
+                disabled={downloading}
               >
-                {approveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-5 w-5 mr-1.5" /> Approve</>}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowChangesForm(true)}
-                className="min-h-12 text-base font-medium"
-              >
-                <MessageSquare className="h-5 w-5 mr-1.5" /> Request changes
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
+                Download PDF
               </Button>
             </div>
           )}
         </footer>
       </div>
     </div>
+    </>
   );
 }
 

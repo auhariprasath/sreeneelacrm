@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InfoTip } from "@/components/ui/info-tip";
-import { ArrowLeft, Phone, MessageSquare, Mail, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Mail, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star, UserCheck } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatPhoneIN, formatDateTimeIN, formatDateIN, formatTimeOfDay, initialsOf, relativeTime, formatINR } from "@/lib/format";
 import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
@@ -41,6 +42,7 @@ import { CoordinatorAssign } from "@/components/bookings/coordinator-assign";
 import { CoordinationProgress } from "@/components/bookings/coordination-progress";
 import { SourcesTab } from "@/components/leads/sources-tab";
 import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
+import { WhatsAppLeadTab } from "@/components/leads/whatsapp-lead-tab";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -81,6 +83,7 @@ function LeadProfile() {
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
   const [blOpen, setBlOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const [trOpen, setTrOpen] = useState(false);
   const [reqOpen, setReqOpen] = useState(false);
   const [editReqId, setEditReqId] = useState<string | null>(null);
@@ -102,6 +105,7 @@ function LeadProfile() {
   const [paymentReceivedQuoteId, setPaymentReceivedQuoteId] = useState<string | null>(null);
   const [paymentReceivedMethod, setPaymentReceivedMethod] = useState<"cash" | "cheque" | "bank_transfer" | "upi" | "razorpay">("cash");
   const [generatingInvoiceFor, setGeneratingInvoiceFor] = useState<string | null>(null);
+  const [postPaymentBookingId, setPostPaymentBookingId] = useState<string | null>(null);
   
 
   const loadRequirements = async () => {
@@ -205,6 +209,18 @@ function LeadProfile() {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [leadId]);
+
+  // Auto-open new requirement if navigated from duplicate detection
+  useEffect(() => {
+    const state = (window.history.state as any)?.usr;
+    if (state?.openNewReq) {
+      setEditReqId(null);
+      setReqOpen(true);
+      setActiveTab("requirements");
+      // Clear the state so it doesn't re-trigger on back/forward
+      window.history.replaceState({ ...window.history.state, usr: { ...state, openNewReq: false } }, "");
+    }
+  }, [leadId]);
 
   useEffect(() => {
     const reloadList = async (table: "quotations" | "bookings" | "payments" | "requirements") => {
@@ -466,14 +482,15 @@ function LeadProfile() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-7 text-[11px]">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 text-[11px]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="sources">Sources</TabsTrigger>
           <TabsTrigger value="requirements">Reqs</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="followups">Follow-ups</TabsTrigger>
           <TabsTrigger value="venue">Venue</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="notes">Note</TabsTrigger>
         </TabsList>
 
@@ -635,11 +652,26 @@ function LeadProfile() {
                 </div>
               )}
 
-              {sent.length > 0 && (
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-2">Sent quotations</div>
+              {sent.length > 0 && (() => {
+                // Group sent quotations by requirement
+                const sentByReq = new Map<string, typeof sent>();
+                for (const q of sent) {
+                  const group = sentByReq.get(q.requirement_id) ?? [];
+                  group.push(q);
+                  sentByReq.set(q.requirement_id, group);
+                }
+                return (
+                <div className="space-y-4">
+                  {Array.from(sentByReq.entries()).map(([reqId, reqQuotes]) => {
+                    const req = requirements.find((r) => r.id === reqId);
+                    const reqLabel = req
+                      ? `R${req.requirement_number} — ${req.event_type ?? ""}${req.event_date ? ` · ${formatDateIN(req.event_date)}` : ""}`
+                      : "Requirement";
+                  return (
+                  <div key={reqId}>
+                  <div className="text-xs font-semibold text-muted-foreground mb-2">{reqLabel}</div>
                   <div className="space-y-2">
-                {sent.map((q) => {
+                {reqQuotes.map((q) => {
 
                   const hasBooking = bookings.some((b) => b.quotation_id === q.id);
                   const approved = q.status === "agreed";
@@ -681,12 +713,19 @@ function LeadProfile() {
 
                   return (
                     <div key={q.id} className="space-y-2">
+                      {invoiceGenerated && (
+                        <div className="flex items-center gap-2 rounded-md border border-success/40 bg-success/10 px-3 py-2 text-sm text-success dark:text-success">
+                          <CheckCircle2 className="h-4 w-4 shrink-0" />
+                          <span className="font-medium">Invoice {q.invoice_number ?? ""} generated</span>
+                          <span className="text-xs opacity-75">— no further edits allowed on this quotation</span>
+                        </div>
+                      )}
                       <div
                         role="button"
                         tabIndex={0}
-                        onClick={openBuilder}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openBuilder(); } }}
-                        className="bg-card border rounded-md p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                        onClick={invoiceGenerated ? undefined : openBuilder}
+                        onKeyDown={(e) => { if (!invoiceGenerated && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openBuilder(); } }}
+                        className={`bg-card border rounded-md p-3 flex items-center justify-between gap-3 transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${invoiceGenerated ? "" : "cursor-pointer hover:bg-muted/30"}`}
                       >
                         <div className="min-w-0">
                           <div className="text-sm font-medium flex items-center gap-2">
@@ -773,7 +812,9 @@ function LeadProfile() {
                             leadId={leadId}
                             pdfUrl={q.pdf_url}
                             versionLabel={`v${q.version}`}
-                            onView={openBuilder}
+                            onView={invoiceGenerated && (q as any).public_token
+                              ? () => window.open(`${window.location.origin}/invoice/${(q as any).public_token}`, "_blank", "noopener")
+                              : openBuilder}
                             onResend={() => invoiceGenerated ? handleSendInvoice() : setSendQuoteId(q.id)}
                             onDeleted={loadQuotations}
                           />
@@ -793,8 +834,12 @@ function LeadProfile() {
                   );
                 })}
                   </div>
+                  </div>
+                  );
+                  })}
                 </div>
-              )}
+                );
+              })()}
             </div>
             );
           })()}
@@ -1044,6 +1089,20 @@ function LeadProfile() {
           )}
         </TabsContent>
 
+        <TabsContent value="whatsapp">
+          <WhatsAppLeadTab
+            lead={lead}
+            quotations={quotations}
+            activities={activities}
+            companyId={lead.company_id}
+            onActivityLogged={() => {
+              supabase.from("activity_logs").select("*").eq("lead_id", leadId)
+                .order("created_at", { ascending: false }).limit(50)
+                .then(({ data }) => setActivities((data as Activity[]) ?? []));
+            }}
+          />
+        </TabsContent>
+
         <TabsContent value="notes" className="pt-3 space-y-2">
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4} placeholder="Type a note about this lead…" />
           <Button onClick={addNote} disabled={saving || !note.trim()} className="min-h-11">
@@ -1116,7 +1175,7 @@ function LeadProfile() {
         leadId={lead.id}
         companyId={lead.company_id}
         requirementId={editReqId}
-        onSaved={loadRequirements}
+        onSaved={() => { loadRequirements(); setActiveTab("requirements"); }}
       />
       {decisionReqId && (
         <DecisionDialog
@@ -1137,7 +1196,7 @@ function LeadProfile() {
         quotationId={editQuoteId}
         reviseFromId={reviseQuoteId}
         onSaved={loadQuotations}
-        onContinueToSend={(id) => { setQuoteOpen(false); setReviseQuoteId(null); loadQuotations(); setSendQuoteId(id); }}
+        onContinueToSend={(id) => { setQuoteOpen(false); setReviseQuoteId(null); loadQuotations(); setActiveTab("requirements"); }}
       />
       <SendQuotationDialog
         open={!!sendQuoteId}
@@ -1157,7 +1216,7 @@ function LeadProfile() {
         onOpenChange={(v) => { if (!v) setPaymentReceivedQuoteId(null); }}
         quotationId={paymentReceivedQuoteId}
         defaultMethod={paymentReceivedMethod}
-        onConfirmed={(bookingId) => { loadBookings(); loadQuotations(); load(); setConfirmationBookingId(bookingId); }}
+        onConfirmed={(bookingId) => { loadBookings(); loadQuotations(); load(); setConfirmationBookingId(bookingId); setPostPaymentBookingId(bookingId); }}
       />
       <BookingConfirmationDialog
         open={!!confirmationBookingId}
@@ -1182,6 +1241,41 @@ function LeadProfile() {
           booking={completeBooking} leadId={lead.id} leadPhone={lead.phone}
           onDone={() => { loadBookings(); load(); }} />
       )}
+
+      {/* Post-payment coordinator nudge — Fix 26 */}
+      {(() => {
+        const bk = bookings.find((b) => b.id === postPaymentBookingId);
+        if (!bk) return null;
+        return (
+          <Dialog open={!!postPaymentBookingId} onOpenChange={(v) => { if (!v) setPostPaymentBookingId(null); }}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-success" /> Payment received
+                </DialogTitle>
+                <DialogDescription>
+                  Payment confirmed for {lead.full_name}. Would you like to assign an event coordinator now?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setPostPaymentBookingId(null)}>
+                  Later
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    setPostPaymentBookingId(null);
+                    setActiveTab("requirements");
+                    toast.info("Find the booking card and use 'Assign coordinator'.");
+                  }}
+                >
+                  <UserCheck className="h-4 w-4 mr-1.5" /> Assign coordinator
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }

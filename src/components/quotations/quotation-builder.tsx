@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Trash2, Sparkles, Save, Check, ChevronLeft, ChevronRight,
-  MessageCircle, Mail, Copy, Download, FileText,
+  MessageCircle, Mail, Copy, Download, FileText, Link2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -89,6 +90,10 @@ export function QuotationBuilder({
   // Preview message
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState<string | null>(null);
+  const [confirmStep, setConfirmStep] = useState(false);
+  const [publicToken, setPublicToken] = useState<string | null>(null);
+
+  useEffect(() => { if (!open) setConfirmStep(false); }, [open]);
 
   // Load
   useEffect(() => {
@@ -156,6 +161,7 @@ export function QuotationBuilder({
         setGstPercent(Number(sourceForRevise.gst_percent ?? gp));
       } else if (base) {
         setDraftId(base.id);
+        setPublicToken((base as any).public_token ?? null);
         setRevisingFromId(null);
         setBaseVersion(base.version);
         setServices(((base.services as any) ?? []) as LineItem[]);
@@ -187,7 +193,7 @@ export function QuotationBuilder({
   // Reset on close
   useEffect(() => {
     if (!open) {
-      setDraftId(null); setRequirement(null); setRevisingFromId(null);
+      setDraftId(null); setRequirement(null); setRevisingFromId(null); setPublicToken(null);
       setServices([]); setAddons([]); setDiscountPercent(0); setDiscountAmount(0); setDiscountReason("");
       setGstApplied(true); setLastSaved(null); setStep(0);
     }
@@ -263,9 +269,10 @@ export function QuotationBuilder({
       const { error } = await supabase.from("quotations").update(updatePayload).eq("id", id);
       if (error) { setSaving(false); if (!silent) toast.error(error.message); return null; }
     } else {
-      const { data, error } = await supabase.from("quotations").insert(payload).select("id").single();
+      const shortToken = Math.random().toString(36).slice(2, 7) + Date.now().toString(36).slice(-4);
+      const { data, error } = await supabase.from("quotations").insert({ ...payload, public_token: shortToken }).select("id").single();
       if (error || !data) { setSaving(false); if (!silent) toast.error(error?.message || "Couldn't save draft"); return null; }
-      id = data.id; setDraftId(id);
+      id = data.id; setDraftId(id); setPublicToken(shortToken);
 
       // First save of a revision: archive the source quotation and notify admins on 3+ revisions
       if (revisingFromId) {
@@ -341,13 +348,19 @@ export function QuotationBuilder({
   const pdfFilename = `Quotation-${(lead?.full_name || "client").replace(/\s+/g, "_")}-v${baseVersion}.pdf`;
   const buildPdf = async (): Promise<Blob | null> => pdfInput ? await generateQuotationPdf({ ...pdfInput, authorisedBy: profile?.full_name ?? null }) : null;
 
+  const publicUrl = useMemo(() => {
+    if (!publicToken) return null;
+    return `${window.location.origin}/quotation/${publicToken}`;
+  }, [publicToken]);
+
   // Build preview message when entering step 4
   useEffect(() => {
     if (step !== 3 || !lead || !company) return;
-    const tmpl = `Namaste ${lead.full_name}, here is your quotation from ${company.name} for ${evType || "your event"}${evDate ? ` on ${formatDateIN(evDate)}` : ""}.\n\nTotal: ${formatINR(total)}\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!`;
+    const link = publicToken ? `\n\nView & approve your quotation here:\n${window.location.origin}/quotation/${publicToken}` : "";
+    const tmpl = `Namaste ${lead.full_name}, here is your quotation from ${company.name} for ${evType || "your event"}${evDate ? ` on ${formatDateIN(evDate)}` : ""}.\n\nTotal: ${formatINR(total)}${link}\n\nThank you!`;
     setMessage(tmpl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, publicToken]);
 
   // Step nav
   const canNext = () => {
@@ -380,27 +393,25 @@ export function QuotationBuilder({
     if (!lead?.phone) { toast.error("Lead has no phone number"); return; }
     setSending("whatsapp");
     try {
-      const id = await saveDraft(true); if (!id) return;
-      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+      const id = draftId ?? await saveDraft(true); if (!id) return;
       const url = buildWaMeLink(lead.phone, message);
       if (!url) { toast.error("Invalid phone number"); return; }
       openWaMeLink(url);
       await markSent("whatsapp", "WhatsApp", id);
       onContinueToSend?.(id); onSaved?.();
-      toast.success("WhatsApp opened · PDF downloaded — attach it in the chat");
+      toast.success("WhatsApp opened");
       onOpenChange(false);
     } finally { setSending(null); }
   };
   const sendViaEmail = async () => {
     setSending("email");
     try {
-      const id = await saveDraft(true); if (!id) return;
-      const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
+      const id = draftId ?? await saveDraft(true); if (!id) return;
       const subject = `Quotation from ${company?.name ?? ""} — v${baseVersion}`;
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+      window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`, "_blank");
       await markSent("email", "Email", id);
       onContinueToSend?.(id); onSaved?.();
-      toast.success("Email opened · PDF downloaded");
+      toast.success("Email opened");
       onOpenChange(false);
     } finally { setSending(null); }
   };
@@ -408,21 +419,23 @@ export function QuotationBuilder({
     await navigator.clipboard.writeText(message);
     toast.success("Message copied");
   };
+  const copyPublicLink = async () => {
+    if (!publicUrl) { toast.error("Save the quotation first to get the link"); return; }
+    await navigator.clipboard.writeText(publicUrl);
+    toast.success("Public link copied!");
+  };
   const downloadPdf = async () => {
     const blob = await buildPdf(); if (blob) { downloadBlob(blob, pdfFilename); toast.success("PDF downloaded"); }
   };
   const saveAndSend = async () => {
     const id = await saveDraft(true); if (!id) return;
-    const blob = await buildPdf(); if (blob) downloadBlob(blob, pdfFilename);
-    await markSent("whatsapp", "WhatsApp", id);
-    onContinueToSend?.(id); onSaved?.();
-    toast.success("Quotation saved and sent ✓");
-    onOpenChange(false);
+    setConfirmStep(true);
   };
 
   if (!open) return null;
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col">
         <SheetHeader className="p-4 border-b">
@@ -545,8 +558,8 @@ export function QuotationBuilder({
                   </div>
                   {addons.length > 0 && (
                     <div className="space-y-2 mt-2">
-                      <div className="grid grid-cols-[1fr_70px_80px_110px_110px_auto] gap-2 px-1 text-[10px] uppercase tracking-wide text-muted-foreground">
-                        <div>Add-on</div><div className="text-right">Qty</div><div>Unit</div><div className="text-right">Rate ₹</div><div className="text-right">Line total</div><div />
+                      <div className="grid grid-cols-[1fr_70px_110px_110px_auto] gap-2 px-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <div>Add-on</div><div className="text-right">Qty</div><div className="text-right">Rate ₹</div><div className="text-right">Line total</div><div />
                       </div>
                       {addons.map((it, idx) => (
                         <AddonInline key={idx} item={it}
@@ -683,13 +696,92 @@ export function QuotationBuilder({
               </Button>
             ) : (
               <Button onClick={saveAndSend} disabled={saving || loading || !hasValidServices} className="bg-primary">
-                <FileText className="h-4 w-4 mr-1" /> Save & Send
+                <FileText className="h-4 w-4 mr-1" /> Save & Next
               </Button>
             )}
           </div>
         </div>
       </SheetContent>
     </Sheet>
+
+    {/* Confirmation popup */}
+    <Dialog open={confirmStep} onOpenChange={(v) => { if (!v) setConfirmStep(false); }}>
+      <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
+          <DialogTitle>Review & Send Quotation</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {/* Client & event */}
+          <div className="border rounded-md p-3 space-y-1.5">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Event Details</div>
+            <Row label="Client" value={lead?.full_name ?? "—"} />
+            <Row label="Phone" value={lead?.phone ?? "—"} />
+            <Row label="Event type" value={evType || "—"} />
+            <Row label="Date" value={evDate ? formatDateIN(evDate) : "—"} />
+            {evStart && <Row label="Time" value={evEnd ? `${formatTimeOfDay(evStart)} – ${formatTimeOfDay(evEnd)}` : formatTimeOfDay(evStart)} />}
+            {evGuests !== "" && <Row label="Guests" value={String(evGuests)} />}
+            {evVenue && <Row label="Venue" value={evVenue} />}
+          </div>
+
+          {/* Services & add-ons */}
+          <div className="border rounded-md divide-y">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 pt-3 pb-1">Services & Add-ons</div>
+            {services.map((s, i) => (
+              <div key={i} className="flex justify-between px-3 py-2 text-sm">
+                <span>{s.name}{s.quantity > 1 ? <span className="text-xs text-muted-foreground ml-1">× {s.quantity}</span> : null}</span>
+                <span className="font-medium">{formatINR((Number(s.price) || 0) * (Number(s.quantity) || 0))}</span>
+              </div>
+            ))}
+            {addons.map((a, i) => {
+              const qty = Number(a.quantity) || 1;
+              return (
+                <div key={i} className="flex justify-between px-3 py-2 text-sm text-muted-foreground">
+                  <span>+ {a.name}{qty > 1 ? <span className="text-xs ml-1">× {qty}</span> : null}</span>
+                  <span>{formatINR((Number(a.price) || 0) * qty)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Totals */}
+          <div className="border rounded-md p-3 space-y-1 text-sm">
+            <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
+            {effDiscountAmount > 0 && <div className="flex justify-between text-muted-foreground"><span>Discount</span><span>− {formatINR(effDiscountAmount)}</span></div>}
+            {gstApplied && <div className="flex justify-between text-muted-foreground"><span>GST ({gstPercent}%)</span><span>{formatINR(gstAmount)}</span></div>}
+            <div className="flex justify-between font-semibold text-base border-t pt-2 mt-1"><span>Total</span><span>{formatINR(total)}</span></div>
+          </div>
+
+          {/* Editable message */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Message to client (editable)</Label>
+            <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} />
+          </div>
+        </div>
+
+        <DialogFooter className="px-5 py-4 border-t flex-wrap gap-2 shrink-0">
+          <Button variant="outline" onClick={() => setConfirmStep(false)} disabled={!!sending}>
+            ← Edit
+          </Button>
+          <Button onClick={sendViaWhatsApp} disabled={!!sending} className="bg-success hover:bg-success text-white">
+            <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+          </Button>
+          <Button variant="outline" onClick={sendViaEmail} disabled={!!sending}>
+            <Mail className="h-4 w-4 mr-1" /> Email
+          </Button>
+          <Button variant="outline" onClick={copyMessage} disabled={!!sending}>
+            <Copy className="h-4 w-4 mr-1" /> Copy
+          </Button>
+          <Button variant="outline" onClick={copyPublicLink} disabled={!!sending || !publicUrl}>
+            <Link2 className="h-4 w-4 mr-1" /> Copy Public Quotation Link
+          </Button>
+          <Button variant="outline" onClick={downloadPdf} disabled={!!sending}>
+            <Download className="h-4 w-4 mr-1" /> PDF
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
@@ -743,10 +835,9 @@ function AddonInline({ item, onChange, onRemove }: { item: AddonItem; onChange: 
   const price = Number(item.price) || 0;
   const lineTotal = qty * price;
   return (
-    <div className="bg-card border rounded-md p-2 grid grid-cols-[1fr_70px_80px_110px_110px_auto] gap-2 items-center">
+    <div className="bg-card border rounded-md p-2 grid grid-cols-[1fr_70px_110px_110px_auto] gap-2 items-center">
       <Input value={item.name} onChange={(e) => onChange({ ...item, name: e.target.value })} placeholder="Add-on name" />
       <Input type="number" min={1} className="text-right" value={qty} onChange={(e) => onChange({ ...item, quantity: Number(e.target.value) || 1 })} />
-      <Input value={item.unit ?? ""} onChange={(e) => onChange({ ...item, unit: e.target.value })} placeholder="pcs" />
       <Input type="number" min={0} className="text-right" value={price} onChange={(e) => onChange({ ...item, price: Number(e.target.value) })} />
       <div className="h-9 px-3 flex items-center justify-end text-sm font-medium border rounded-md bg-muted/30 tabular-nums">{formatINR(lineTotal)}</div>
       <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={onRemove}><Trash2 className="h-4 w-4" /></Button>

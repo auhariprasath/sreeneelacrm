@@ -20,6 +20,14 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Environment variables — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Data import scripts (local only)
+data-import/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

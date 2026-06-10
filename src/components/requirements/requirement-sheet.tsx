@@ -155,6 +155,10 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
 
   // Pick session → auto-fill start/end
   const onSessionChange = (name: string) => {
+    if (name === "__none") {
+      setForm((f) => ({ ...f, session_name: "", start_time: "", end_time: "" }));
+      return;
+    }
     const s = sessions.find((x) => x.name === name);
     if (!s) return;
     setForm((f) => ({
@@ -318,25 +322,28 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
               <DateInfoBanner count={otherCount} loading={countingOthers} hasDate={!!form.event_date} />
             </div>
 
-            {/* Mandapam: session picker / non-mandapam: start + duration */}
-            {isMandapam && sessions.length > 0 ? (
+            {/* Session picker (when sessions configured) + manual start/duration */}
+            {sessions.length > 0 && (
               <div className="space-y-1.5">
-                <Label>Session *</Label>
+                <Label>Session {isMandapam ? "*" : "(optional)"}</Label>
                 <Select value={form.session_name} onValueChange={onSessionChange}>
                   <SelectTrigger><SelectValue placeholder="Pick a session" /></SelectTrigger>
                   <SelectContent>
+                    {!isMandapam && <SelectItem value="__none">— Enter time manually —</SelectItem>}
                     {sessions.map((s) => (
                       <SelectItem key={s.name} value={s.name}>
-                        {s.name} · {formatTimeOfDay(s.start_time)} - {formatTimeOfDay(s.end_time)}
+                        {s.name} · {formatTimeOfDay(s.start_time)} – {formatTimeOfDay(s.end_time)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            ) : (
+            )}
+            {/* Manual time entry — always shown for non-mandapam, or when no session selected */}
+            {(!isMandapam || !form.session_name) && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Start time *</Label>
+                  <Label>Start time {!sessions.length ? "*" : "(optional)"}</Label>
                   <TimeClockField value={form.start_time} onChange={onStartChange} />
                 </div>
                 <div className="space-y-1.5">

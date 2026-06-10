@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, CalendarCheck, Plus, Percent, MessageSquare, CreditCard,
-  ListChecks, XCircle, Lock, Clock,
+  ListChecks, XCircle, Lock, Clock, Globe,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
@@ -20,6 +20,7 @@ import { WhatsappTemplatesSection } from "@/components/settings/whatsapp-templat
 import { VendorsSection } from "@/components/settings/vendors-section";
 import { CompaniesSection } from "@/components/settings/companies-section";
 import { ReminderTimingSection } from "@/components/settings/reminder-timing-section";
+import { IntegrationsSection } from "@/components/settings/integrations-section";
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
@@ -33,6 +34,7 @@ const SECTIONS = [
   { id: "task-templates", label: "Task templates", icon: ListChecks, superOnly: false },
   { id: "payment", label: "Payment gateway", icon: CreditCard, superOnly: false },
   { id: "discounts", label: "Discount rules", icon: Percent, superOnly: false },
+  { id: "integrations", label: "Integrations", icon: Globe, superOnly: false },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -250,6 +252,20 @@ function SettingsPage() {
             <CardContent>
               <CompanyPicker />
               <CompanyFieldsSection companyId={activeCompanyId} fields={fields} />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "integrations": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Integrations</CardTitle>
+              <CardDescription>Connect third-party services like IndiaMART, JustDial, payment gateways, and more. Each company manages its own integrations.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompanyPicker />
+              <IntegrationsSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, BarChart3, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal, ArrowRightLeft, FileText, Menu, Globe,
+  PhoneCall, Megaphone, MapPin, UserX, Star, MessageSquare,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/offline-banner";
@@ -34,7 +35,13 @@ const SIDEBAR_NAV: NavItem[] = [
   { to: "/bookings", label: "Bookings", icon: ClipboardList, roles: ["super_admin","admin","staff"] },
   { to: "/quotations", label: "Quotations", icon: FileText, roles: ["super_admin","admin","staff"] },
   { to: "/calendar", label: "Calendar", icon: CalendarDays, roles: ["super_admin","admin","staff"] },
+  { to: "/follow-ups", label: "Follow-ups", icon: PhoneCall, roles: ["super_admin","admin","staff"] },
   { to: "/tasks", label: "Task Board", icon: KanbanSquare, roles: ["super_admin","admin","staff"] },
+  { to: "/campaigns", label: "Campaigns", icon: Megaphone, roles: ["super_admin","admin"] },
+  { to: "/venue-meetings", label: "Venue Meetings", icon: MapPin, roles: ["super_admin","admin","staff"] },
+  { to: "/customers", label: "Customers", icon: Star, roles: ["super_admin","admin","staff"] },
+  { to: "/not-interested", label: "Not Interested", icon: UserX, roles: ["super_admin","admin"] },
+  { to: "/stale-leads", label: "Stale Leads", icon: MessageSquare, roles: ["super_admin","admin"] },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["super_admin","admin","staff"] },
   { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
@@ -55,6 +62,12 @@ const MORE_SHEET_NAV: NavItem[] = [
   { to: "/bookings", label: "Bookings", icon: ClipboardList, roles: ["super_admin","admin","staff"] },
   { to: "/quotations", label: "Quotations", icon: FileText, roles: ["super_admin","admin","staff"] },
   { to: "/calendar", label: "Calendar", icon: CalendarDays, roles: ["super_admin","admin","staff"] },
+  { to: "/follow-ups", label: "Follow-ups", icon: PhoneCall, roles: ["super_admin","admin","staff"] },
+  { to: "/campaigns", label: "Campaigns", icon: Megaphone, roles: ["super_admin","admin"] },
+  { to: "/venue-meetings", label: "Venue Meetings", icon: MapPin, roles: ["super_admin","admin","staff"] },
+  { to: "/customers", label: "Customers", icon: Star, roles: ["super_admin","admin","staff"] },
+  { to: "/not-interested", label: "Not Interested", icon: UserX, roles: ["super_admin","admin"] },
+  { to: "/stale-leads", label: "Stale Leads", icon: MessageSquare, roles: ["super_admin","admin"] },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["super_admin","admin","staff"] },
   { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
@@ -69,12 +82,10 @@ function AppLayout() {
   const handleCompanyChange = (v: string) => {
     const nextId = v === "__all" ? null : v;
     setActiveCompanyId(nextId);
-    // Keep the global filter on list/report pages; only rewrite company-specific URLs.
-    if (nextId && (pathname === "/dashboard" || pathname.startsWith("/company-dashboard/"))) {
+    // Always navigate so the new company context loads cleanly.
+    if (nextId) {
       navigate({ to: "/company-dashboard/$companyId", params: { companyId: nextId } });
-    } else if (nextId && pathname.startsWith("/company-settings/")) {
-      navigate({ to: "/company-settings/$companyId", params: { companyId: nextId } });
-    } else if (!nextId && (pathname.startsWith("/company-dashboard/") || pathname.startsWith("/company-settings/"))) {
+    } else {
       navigate({ to: "/dashboard" });
     }
   };

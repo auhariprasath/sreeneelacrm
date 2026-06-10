@@ -32,8 +32,9 @@ export const PLACEHOLDERS: string[] = [
   "Guest count", "Amount", "Balance", "Staff name", "Staff phone",
   "PDF link", "Quote link", "Invoice link", "Booking ref", "Invoice number",
   "Feedback link", "Google review link", "Address", "Maps link",
-  "Portfolio link", "Video link", "Contact person", "Coordinator name",
+  "Portfolio link", "Video link", "Contact person", "Contact phone", "Coordinator name",
   "Upload link", "Progress link", "Approval link",
+  "Meeting date", "Meeting time", "Duration",
 ];
 
 export const WA_TEMPLATES: WaTemplateDef[] = [
@@ -98,8 +99,8 @@ export const WA_TEMPLATES: WaTemplateDef[] = [
     defaultBody: "Hi [Name], staying in touch from [Company]. Let us know whenever you're planning your next event!" },
 
   // Meetings
-  { key: "meeting_confirmed", name: "Meeting confirmation", fires: "When venue meeting scheduled", category: "meetings",
-    defaultBody: "Hi [Name], your venue meeting is confirmed for [Event date] at [Start time]. Address: [Address]." },
+  { key: "meeting_confirmed", name: "Schedule venue meeting", fires: "Sent when venue meeting is scheduled", category: "meetings",
+    defaultBody: "Hello [Name]! 🙏\n\nThank you for your interest in *[Company]*.\nWe are pleased to invite you for a venue visit.\n\n*Visit Details*\n📅 Date: [Meeting date]\n⏰ Time: [Meeting time]\n⏳ Duration: ~[Duration] min\n\n*Venue*\n🏛️ [Company]\n📍 [Address]\n🗺️ Directions: [Maps link]\n\n*Your Point of Contact*\n👤 [Contact person]\n📞 [Contact phone]\n\nWe look forward to welcoming you.\nPlease confirm your visit by replying *YES* or call us if you need to reschedule." },
   { key: "meeting_reminder_1d", name: "Meeting reminder 1 day before", fires: "To lead", category: "meetings",
     defaultBody: "Hi [Name], reminder about our meeting tomorrow at [Start time]. Address: [Address] ([Maps link])." },
   { key: "meeting_reminder_now", name: "Meeting reminder at meeting time", fires: "To lead", category: "meetings",
@@ -149,6 +150,10 @@ export const SAMPLE_VALUES: Record<string, string> = {
   "Upload link": "https://example.com/upload/abc",
   "Progress link": "https://example.com/progress/abc",
   "Approval link": "https://example.com/approve/abc",
+  "Meeting date": "15 Aug 2026",
+  "Meeting time": "11:00 AM",
+  "Duration": "60",
+  "Contact phone": "+91 98765 43210",
 };
 
 export function renderPreview(body: string): string {

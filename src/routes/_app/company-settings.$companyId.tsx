@@ -135,6 +135,7 @@ function CompanyFullSettings() {
     { key: "max_capacity", label: "Max guest capacity", type: "number" },
     { key: "brand_color", label: "Company colour (hex)", placeholder: "#6366f1" },
     { key: "email", label: "Email", fullWidth: true },
+    { key: "default_room", label: "Default hall / room name", placeholder: "e.g. Lotus Hall", fullWidth: true },
   ];
 
   const venueMediaFields: CompanyField[] = [

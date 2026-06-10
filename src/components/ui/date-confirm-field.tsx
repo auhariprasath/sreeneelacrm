@@ -1,6 +1,6 @@
 import * as React from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Check } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -55,28 +55,19 @@ export function DateConfirmField({
         <Calendar
           mode="single"
           selected={draft}
-          onSelect={setDraft}
+          onSelect={(date) => {
+            if (date) {
+              setDraft(date);
+              onChange(formatISO(date));
+              setOpen(false);
+            }
+          }}
           disabled={isDateDisabled}
           fromDate={fromDate}
           toDate={toDate}
           initialFocus
           className={cn("p-3 pointer-events-auto")}
         />
-        <div className="border-t p-3">
-          <Button
-            type="button"
-            onClick={() => {
-              if (draft) {
-                onChange(formatISO(draft));
-                setOpen(false);
-              }
-            }}
-            disabled={!draft}
-            className="w-full font-semibold h-10"
-          >
-            <Check className="h-4 w-4 mr-2" /> Confirm date
-          </Button>
-        </div>
       </PopoverContent>
     </Popover>
   );
