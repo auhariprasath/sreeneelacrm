@@ -158,7 +158,7 @@ function AppLayout() {
           lg+ (1024+):   full sidebar 220px, no hamburger. */}
       <aside
         className="hidden md:flex shrink-0 bg-sidebar text-sidebar-foreground flex-col
-                   w-14 lg:w-[220px] transition-[width] duration-200"
+                   w-14 lg:w-[220px] transition-[width] duration-200 sticky top-0 h-screen"
         title="Navigation"
       >
         <div className="h-16 flex items-center gap-2 px-2 lg:px-4 border-b border-sidebar-border">
