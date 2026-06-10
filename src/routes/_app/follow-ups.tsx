@@ -98,7 +98,7 @@ function FollowUpsPage() {
                           <AlertCircle className="h-3.5 w-3.5" /> Overdue
                         </span>
                       ) : (
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Upcoming</span>
+                        <span className="text-xs text-success font-medium">Upcoming</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">

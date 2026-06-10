@@ -8,7 +8,7 @@ import { Plus, Search, Phone, MessageSquare } from "lucide-react";
 import { SkeletonList } from "@/components/skeleton-list";
 import { EmptyState } from "@/components/empty-state";
 import { formatPhoneIN, relativeTime, initialsOf } from "@/lib/format";
-import { StatusBadge, ScoreBadge, STATUS_LABELS } from "@/components/leads/lead-badges";
+import { StatusBadge, STATUS_LABELS } from "@/components/leads/lead-badges";
 import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn, buildWaMeLink, openWaMeLink } from "@/lib/utils";
@@ -24,9 +24,11 @@ const PAGE = 25;
 const STATUS_TABS: { key: "all" | Status; label: string }[] = [
   { key: "all", label: "All" },
   { key: "new", label: "New" },
-  { key: "in_progress", label: "In progress" },
-  { key: "positive", label: "Positive" },
-  { key: "unresponsive", label: "Unresponsive" },
+  { key: "in_progress", label: "Active" },
+  { key: "follow_up", label: "Follow-up" },
+  { key: "venue_meeting", label: "Venue meeting" },
+  { key: "positive", label: "Interested" },
+  { key: "unresponsive", label: "No reply" },
   { key: "closed", label: "Closed" },
 ];
 
@@ -51,6 +53,7 @@ function LeadsInbox() {
   const [hasMore, setHasMore] = useState(true);
   const [open, setOpen] = useState(false);
   const [reqMeta, setReqMeta] = useState<Record<string, ReqMeta>>({});
+  const [assignedNames, setAssignedNames] = useState<Record<string, string>>({});
   const [followupDueIds, setFollowupDueIds] = useState<string[] | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const followupDue = searchParams.filter === "followup_due";
@@ -100,7 +103,19 @@ function LeadsInbox() {
     const next = reset ? (data ?? []) : [...leads, ...(data ?? [])];
     setLeads(next);
     setLoading(false);
-    void loadReqMeta((data ?? []).map((l) => l.id));
+    const newLeads = data ?? [];
+    void loadReqMeta(newLeads.map((l) => l.id));
+    void loadAssignedNames(newLeads);
+  };
+
+  const loadAssignedNames = async (leads: Lead[]) => {
+    const ids = [...new Set(leads.map((l) => l.assigned_to).filter(Boolean))] as string[];
+    if (ids.length === 0) return;
+    const { data } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+    if (!data) return;
+    const map: Record<string, string> = {};
+    for (const p of data as any[]) map[p.id] = p.full_name;
+    setAssignedNames((prev) => ({ ...prev, ...map }));
   };
 
   const loadReqMeta = async (ids: string[]) => {
@@ -227,7 +242,7 @@ function LeadsInbox() {
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Phone</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Score</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Assigned to</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Event</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Updated</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
@@ -235,7 +250,7 @@ function LeadsInbox() {
             </thead>
             <tbody>
               {leads.map((l) => (
-                <LeadRow key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} />
+                <LeadRow key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} assignedName={l.assigned_to ? (assignedNames[l.assigned_to] ?? "…") : undefined} />
               ))}
             </tbody>
           </table>
@@ -257,7 +272,7 @@ function LeadsInbox() {
   );
 }
 
-function LeadRow({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: ReqMeta }) {
+function LeadRow({ lead, masked, meta, assignedName }: { lead: Lead; masked: boolean; meta?: ReqMeta; assignedName?: string }) {
   const phone = formatPhoneIN(lead.phone, masked);
   const tel = (lead.phone || "").replace(/\D/g, "");
   const nextEvent = meta?.nextEvent ? new Date(meta.nextEvent) : null;
@@ -278,7 +293,7 @@ function LeadRow({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: R
       </td>
       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{phone}</td>
       <td className="px-4 py-3"><StatusBadge status={lead.status} /></td>
-      <td className="px-4 py-3"><ScoreBadge score={lead.lead_score} /></td>
+      <td className="px-4 py-3 text-sm text-muted-foreground">{assignedName ?? "—"}</td>
       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
         {nextEvent
           ? `${String(nextEvent.getDate()).padStart(2,"0")}/${String(nextEvent.getMonth()+1).padStart(2,"0")}/${nextEvent.getFullYear()}`
@@ -308,4 +323,4 @@ function LeadRow({ lead, masked, meta }: { lead: Lead; masked: boolean; meta?: R
   );
 }
 
-void STATUS_LABELS;
+void STATUS_LABELS; // keeps import live

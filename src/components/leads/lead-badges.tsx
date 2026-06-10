@@ -12,7 +12,9 @@ const STATUS_LABEL = LEAD_STATUS_LABEL;
 
 const STATUS_CLASS: Record<Status, string> = {
   new: "bg-primary/15 text-primary border-primary/30",
-  in_progress: "bg-info/15 text-info  border-info/30",
+  in_progress: "bg-info/15 text-info border-info/30",
+  follow_up: "bg-warning/15 text-warning border-warning/30",
+  venue_meeting: "bg-success/15 text-success dark:text-success border-success/30",
   neutral: "bg-muted text-muted-foreground border-border",
   positive: "bg-success/15 text-success dark:text-success border-success/30",
   negative: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30",

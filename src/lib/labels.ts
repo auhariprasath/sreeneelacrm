@@ -14,6 +14,8 @@ type SlotStatus = Database["public"]["Enums"]["slot_status"];
 export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   new: "New enquiry",
   in_progress: "Active",
+  follow_up: "Follow-up",
+  venue_meeting: "Venue meeting",
   positive: "Interested",
   neutral: "Thinking",
   negative: "Not interested",

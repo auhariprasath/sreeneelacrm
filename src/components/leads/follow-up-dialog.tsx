@@ -80,6 +80,7 @@ export function FollowUpDialog({ open, onOpenChange, leadId, performedBy, defaul
       note: note.trim() || null, created_by: performedBy,
     });
     if (!error) {
+      await supabase.from("leads").update({ status: "follow_up" as any }).eq("id", leadId);
       await supabase.from("activity_logs").insert({
         lead_id: leadId,
         action: `Callback scheduled for ${scheduled.toLocaleString("en-IN")}`,

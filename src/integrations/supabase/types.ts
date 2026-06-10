@@ -2184,6 +2184,8 @@ export type Database = {
       lead_status:
         | "new"
         | "in_progress"
+        | "follow_up"
+        | "venue_meeting"
         | "neutral"
         | "positive"
         | "negative"
@@ -2434,6 +2436,8 @@ export const Constants = {
       lead_status: [
         "new",
         "in_progress",
+        "follow_up",
+        "venue_meeting",
         "neutral",
         "positive",
         "negative",

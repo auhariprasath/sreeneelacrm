@@ -128,7 +128,7 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
     const { closeOtherActiveReminders } = await import("@/lib/lead-reminders");
     await closeOtherActiveReminders(leadId, { kind: "venue_meeting", venueMeetingId: (meeting as any).id });
 
-    await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
+    await supabase.from("leads").update({ status: "venue_meeting" }).eq("id", leadId);
     await supabase.from("activity_logs").insert({
       lead_id: leadId,
       action: `Venue meeting scheduled for ${formatDateIN(date)} ${formatTimeOfDay(time)}${send ? ". Confirmation sent." : "."}`,
