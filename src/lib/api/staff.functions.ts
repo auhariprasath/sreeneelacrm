@@ -195,3 +195,36 @@ export const setStaffLeave = createServerFn({ method: "POST" })
 
     return { ok: true, reassigned };
   });
+
+export const deleteStaff = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ user_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: target } = await supabaseAdmin
+      .from("profiles").select("company_id").eq("id", data.user_id).maybeSingle();
+    if (!target?.company_id) throw new Error("Target not found");
+    await assertAdminScope(context.userId, target.company_id);
+
+    // Soft-delete: set deleted_at, deactivate, sign out
+    await supabaseAdmin.from("profiles").update({
+      deleted_at: new Date().toISOString(),
+      is_active: false,
+    }).eq("id", data.user_id);
+    await supabaseAdmin.auth.admin.signOut(data.user_id, "global").catch(() => {});
+    return { ok: true };
+  });
+
+export const changeOwnPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ password: z.string().min(8) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(context.userId, {
+      password: data.password,
+    });
+    if (error) throw new Error(error.message);
+    await supabaseAdmin
+      .from("profiles")
+      .update({ must_change_password: false })
+      .eq("id", context.userId);
+    return { ok: true };
+  });

@@ -14,6 +14,7 @@ import {
   PhoneCall, Megaphone, MapPin, UserX, Star, MessageSquare,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAppLogo } from "@/lib/use-app-logo";
 import { OfflineBanner } from "@/components/offline-banner";
 import { getSidebarPrefs, ALL_NAV_ITEMS } from "@/components/settings/sidebar-order-section";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
@@ -77,6 +78,7 @@ const MORE_SHEET_NAV: NavItem[] = [
 function AppLayout() {
   const { loading, user, profile, role, companies, activeCompanyId, setActiveCompanyId, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  const appLogo = useAppLogo();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -177,7 +179,9 @@ function AppLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="hidden lg:flex items-center gap-2">
-            <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
+            <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary overflow-hidden flex items-center justify-center">
+              <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
+            </div>
             <div className="leading-tight">
               <div className="text-sm font-semibold">Neela Events</div>
               <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
@@ -202,7 +206,9 @@ function AppLayout() {
       <Sheet open={tabletNavOpen} onOpenChange={setTabletNavOpen}>
         <SheetContent side="left" className="w-[260px] p-0 bg-sidebar text-sidebar-foreground border-sidebar-border">
           <SheetHeader className="h-16 px-4 border-b border-sidebar-border flex flex-row items-center gap-2 space-y-0">
-            <div className="h-8 w-8 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold">N</div>
+            <div className="h-8 w-8 rounded-md bg-sidebar-primary overflow-hidden flex items-center justify-center">
+              <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
+            </div>
             <SheetTitle className="text-sm font-semibold text-sidebar-foreground">Neela Events</SheetTitle>
           </SheetHeader>
           <nav className="p-3 space-y-1 overflow-y-auto">
@@ -254,7 +260,9 @@ function AppLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="md:hidden flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">N</div>
+            <div className="h-7 w-7 rounded-md bg-primary overflow-hidden flex items-center justify-center">
+              <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
+            </div>
             <span className="text-sm font-semibold">Neela CRM</span>
           </div>
 

@@ -132,61 +132,68 @@
 }
 
 .dark {
-  --background: #14132A;
-  --foreground: #F2F2FA;
-  --card: #1E1B3A;
-  --card-foreground: #F2F2FA;
-  --popover: #1E1B3A;
-  --popover-foreground: #F2F2FA;
+  /* ── Surfaces ── clear 3-step depth: sidebar < background < card < popover */
+  --background: #0D0C1C;
+  --foreground: #EDECF8;
+  --card: #17152B;
+  --card-foreground: #EDECF8;
+  --popover: #211F3C;
+  --popover-foreground: #EDECF8;
 
-  --primary: #534AB7;
+  /* ── Primary — lighter violet so it reads on dark surfaces ── */
+  --primary: #8278EE;
   --primary-foreground: #FFFFFF;
-  --primary-dark: #3C3489;
-  --primary-light: #2A2655;
+  --primary-dark: #5E55CC;
+  --primary-light: #231F45;
 
-  --secondary: #2A2655;
-  --secondary-foreground: #F2F2FA;
-  --muted: #2A2655;
-  --muted-foreground: #9999BB;
-  --accent: #2A2655;
-  --accent-foreground: #F2F2FA;
+  /* ── Secondary / muted ── */
+  --secondary: #231F45;
+  --secondary-foreground: #EDECF8;
+  --muted: #1E1B38;
+  --muted-foreground: #AEACC8;
+  --accent: #26224A;
+  --accent-foreground: #EDECF8;
 
-  --destructive: #E24B4A;
+  /* ── Semantic — boosted brightness so they're legible on dark ── */
+  --destructive: #F06060;
   --destructive-foreground: #FFFFFF;
-  --success: #1D9E75;
-  --success-foreground: #FFFFFF;
-  --warning: #BA7517;
-  --warning-foreground: #FFFFFF;
-  --info: #0C6FBF;
-  --info-foreground: #FFFFFF;
+  --success: #22D192;        /* bright emerald — was too dark #1D9E75 */
+  --success-foreground: #05200F;
+  --warning: #F7B731;        /* bright amber — was unreadable #BA7517 */
+  --warning-foreground: #1A0E00;
+  --info: #5BB5FF;            /* bright sky blue — was too dark #0C6FBF */
+  --info-foreground: #001B33;
 
-  --border: rgba(255, 255, 255, 0.10);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #534AB7;
+  /* ── Borders / inputs ── */
+  --border: rgba(255, 255, 255, 0.13);
+  --input: rgba(255, 255, 255, 0.09);
+  --ring: #8278EE;
 
-  --sidebar: #14132A;
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #534AB7;
+  /* ── Sidebar — slightly darker than background for contrast ── */
+  --sidebar: #09081A;
+  --sidebar-foreground: #F0EFF9;
+  --sidebar-primary: #8278EE;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(255, 255, 255, 0.10);
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #534AB7;
+  --sidebar-accent: rgba(255, 255, 255, 0.09);
+  --sidebar-accent-foreground: #F0EFF9;
+  --sidebar-border: rgba(255, 255, 255, 0.09);
+  --sidebar-ring: #8278EE;
 
-  --status-new: #0C6FBF;
-  --status-active: #534AB7;
-  --status-getting-details: #BA7517;
-  --status-quote-sent: #7B5EA7;
-  --status-confirmed: #1D9E75;
-  --status-done: #3B6D11;
-  --status-not-interested: #E24B4A;
-  --status-no-reply: #888888;
-  --status-hot: #E24B4A;
-  --status-warm: #BA7517;
-  --status-cold: #0C6FBF;
+  /* ── Status badges — all readable on dark cards ── */
+  --status-new: #5BB5FF;          /* bright blue */
+  --status-active: #8278EE;       /* brand violet */
+  --status-getting-details: #F7B731; /* bright amber */
+  --status-quote-sent: #C4A8FF;   /* soft lavender */
+  --status-confirmed: #22D192;    /* bright emerald */
+  --status-done: #22D192;         /* was #3B6D11 — completely unreadable on dark */
+  --status-not-interested: #F06060;
+  --status-no-reply: #8888A8;
+  --status-hot: #F06060;
+  --status-warm: #F7B731;
+  --status-cold: #5BB5FF;
 
-  --muted-strong: #9999BB;
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --muted-strong: #AEACC8;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.55);
 }
 
 @layer base {

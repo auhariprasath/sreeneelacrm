@@ -2,16 +2,23 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import type { AppRole } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Phone, MessageSquare } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Search, Phone, MessageSquare, ArrowRightLeft } from "lucide-react";
 import { SkeletonList } from "@/components/skeleton-list";
 import { EmptyState } from "@/components/empty-state";
 import { formatPhoneIN, relativeTime, initialsOf } from "@/lib/format";
 import { StatusBadge, STATUS_LABELS } from "@/components/leads/lead-badges";
 import { NewLeadDialog } from "@/components/leads/new-lead-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { cn, buildWaMeLink, openWaMeLink } from "@/lib/utils";
+import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -54,6 +61,9 @@ function LeadsInbox() {
   const [open, setOpen] = useState(false);
   const [reqMeta, setReqMeta] = useState<Record<string, ReqMeta>>({});
   const [assignedNames, setAssignedNames] = useState<Record<string, string>>({});
+  const [transferLead, setTransferLead] = useState<Lead | null>(null);
+  const [transferReason, setTransferReason] = useState("");
+  const [transferBusy, setTransferBusy] = useState(false);
   const [followupDueIds, setFollowupDueIds] = useState<string[] | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const followupDue = searchParams.filter === "followup_due";
@@ -133,6 +143,35 @@ function LeadsInbox() {
       if (!cur.nextEvent || r.event_date < cur.nextEvent) cur.nextEvent = r.event_date;
     }
     setReqMeta((prev) => ({ ...prev, ...meta }));
+  };
+
+  const handleAutoAssign = async (lead: Lead) => {
+    if (!profile?.id) return;
+    if (lead.assigned_to === profile.id) return;
+    await supabase.from("leads").update({ assigned_to: profile.id }).eq("id", lead.id);
+    setLeads((prev) => prev.map((l) => l.id === lead.id ? { ...l, assigned_to: profile.id } : l));
+    setAssignedNames((prev) => ({ ...prev, [profile.id]: profile.full_name }));
+  };
+
+  const submitTransfer = async () => {
+    if (!transferLead || !profile) return;
+    if (transferReason.trim().length < 10) { toast.error("Reason must be at least 10 characters"); return; }
+    setTransferBusy(true);
+    const companyId = transferLead.company_id;
+    const { error } = await supabase.from("transfer_requests").insert({
+      lead_id: transferLead.id,
+      from_company_id: companyId,
+      to_company_id: companyId,
+      requested_by: profile.id,
+      reason: transferReason.trim(),
+      requirement_summary: "Employee reassignment request",
+      status: "pending",
+    });
+    setTransferBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Transfer request sent to super admin");
+    setTransferLead(null);
+    setTransferReason("");
   };
 
   // initial + filter changes
@@ -250,7 +289,17 @@ function LeadsInbox() {
             </thead>
             <tbody>
               {leads.map((l) => (
-                <LeadRow key={l.id} lead={l} masked={profile?.phone_masked ?? false} meta={reqMeta[l.id]} assignedName={l.assigned_to ? (assignedNames[l.assigned_to] ?? "…") : undefined} />
+                <LeadRow
+                  key={l.id}
+                  lead={l}
+                  masked={profile?.phone_masked ?? false}
+                  meta={reqMeta[l.id]}
+                  assignedName={l.assigned_to ? (assignedNames[l.assigned_to] ?? "…") : undefined}
+                  currentProfileId={profile?.id}
+                  role={role ?? undefined}
+                  onAutoAssign={role !== "super_admin" ? handleAutoAssign : undefined}
+                  onTransferRequest={role !== "super_admin" ? (lead) => { setTransferLead(lead); setTransferReason(""); } : undefined}
+                />
               ))}
             </tbody>
           </table>
@@ -268,14 +317,52 @@ function LeadsInbox() {
       )}
 
       <NewLeadDialog open={open} onOpenChange={setOpen} />
+
+      {/* Transfer request dialog */}
+      <Dialog open={!!transferLead} onOpenChange={(v) => { if (!v) setTransferLead(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Request transfer</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Lead: <span className="font-medium text-foreground">{transferLead?.full_name}</span>
+            </p>
+            <div className="space-y-1.5">
+              <Label>Reason <span className="text-muted-foreground text-xs">(min 10 chars)</span></Label>
+              <Textarea
+                value={transferReason}
+                onChange={(e) => setTransferReason(e.target.value)}
+                placeholder="Why can't you attend this lead?"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferLead(null)} disabled={transferBusy}>Cancel</Button>
+            <Button onClick={submitTransfer} disabled={transferBusy || transferReason.trim().length < 10}>
+              {transferBusy ? "Sending…" : "Send request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function LeadRow({ lead, masked, meta, assignedName }: { lead: Lead; masked: boolean; meta?: ReqMeta; assignedName?: string }) {
+function LeadRow({
+  lead, masked, meta, assignedName, currentProfileId, role, onAutoAssign, onTransferRequest,
+}: {
+  lead: Lead; masked: boolean; meta?: ReqMeta; assignedName?: string;
+  currentProfileId?: string; role?: AppRole;
+  onAutoAssign?: (lead: Lead) => void;
+  onTransferRequest?: (lead: Lead) => void;
+}) {
   const phone = formatPhoneIN(lead.phone, masked);
   const tel = (lead.phone || "").replace(/\D/g, "");
   const nextEvent = meta?.nextEvent ? new Date(meta.nextEvent) : null;
+  const canTransfer = role !== "super_admin" && lead.assigned_to === currentProfileId && !!currentProfileId;
+
   return (
     <tr className="border-b last:border-0 hover:bg-muted/30 transition-colors">
       <td className="px-4 py-3">
@@ -304,6 +391,7 @@ function LeadRow({ lead, masked, meta, assignedName }: { lead: Lead; masked: boo
         <div className="flex items-center justify-end gap-1">
           <a
             href={`tel:+91${tel.slice(-10)}`}
+            onClick={() => onAutoAssign?.(lead)}
             className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
             aria-label="Call"
           >
@@ -311,12 +399,23 @@ function LeadRow({ lead, masked, meta, assignedName }: { lead: Lead; masked: boo
           </a>
           <button
             type="button"
-            onClick={() => { const wa = buildWaMeLink(lead.phone); if (wa) openWaMeLink(wa); }}
+            onClick={() => { onAutoAssign?.(lead); const wa = buildWaMeLink(lead.phone); if (wa) openWaMeLink(wa); }}
             className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
             aria-label="WhatsApp"
           >
             <MessageSquare className="h-3.5 w-3.5 text-success" />
           </button>
+          {canTransfer && (
+            <button
+              type="button"
+              onClick={() => onTransferRequest?.(lead)}
+              className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
+              aria-label="Request transfer"
+              title="Request transfer to super admin"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5 text-warning" />
+            </button>
+          )}
         </div>
       </td>
     </tr>

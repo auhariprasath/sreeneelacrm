@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Navigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { changeOwnPassword } from "@/lib/api/staff.functions";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +12,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/change-password")({ component: ChangePassword });
 
 function ChangePassword() {
-  const { user, loading, profile, refreshProfile } = useAuth();
+  const { user, loading, profile, clearMustChangePassword } = useAuth();
   const navigate = useNavigate();
+  const changePwd = useServerFn(changeOwnPassword);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,11 +27,18 @@ function ChangePassword() {
     if (password.length < 8) return toast.error("At least 8 characters");
     if (password !== confirm) return toast.error("Passwords don't match");
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    if (!error) await supabase.from("profiles").update({ must_change_password: false }).eq("id", user.id);
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else { await refreshProfile(); toast.success("Password updated"); navigate({ to: "/dashboard" }); }
+    try {
+      await changePwd({ data: { password } });
+      // Immediately clear the flag in context so the _app guard doesn't bounce
+      // the user back before the background profile refresh completes.
+      clearMustChangePassword();
+      toast.success("Password updated");
+      navigate({ to: "/dashboard" });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update password");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

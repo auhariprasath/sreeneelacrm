@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { CalendarDays, Mail, Phone, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { Mail, Phone, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { useAppLogo } from "@/lib/use-app-logo";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
@@ -22,6 +23,7 @@ function normalizePhone(raw: string) {
 function LoginPage() {
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
+  const appLogo = useAppLogo();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,8 +93,8 @@ function LoginPage() {
 
         {/* Logo */}
         <div className="relative flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-            <CalendarDays className="h-6 w-6 text-primary-foreground" />
+          <div className="h-12 w-12 rounded-xl bg-primary overflow-hidden flex items-center justify-center shadow-lg">
+            <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
           </div>
           <div>
             <div className="text-white font-bold text-xl leading-tight">Neela Events</div>
@@ -136,8 +138,8 @@ function LoginPage() {
         <div className="w-full max-w-md space-y-8">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 justify-center">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-              <CalendarDays className="h-5 w-5 text-primary-foreground" />
+            <div className="h-10 w-10 rounded-xl bg-primary overflow-hidden flex items-center justify-center shadow-lg">
+              <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <div className="text-white font-bold text-lg leading-tight">Neela Events CRM</div>

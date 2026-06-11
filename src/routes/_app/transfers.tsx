@@ -71,6 +71,8 @@ function TransfersPage() {
     // eslint-disable-next-line
   }, []);
 
+  const isInternal = (t: EnrichedTransfer) => t.from_company_id === t.to_company_id;
+
   const approve = async (t: EnrichedTransfer) => {
     if (!profile) return;
     const { error: e1 } = await supabase.from("transfer_requests").update({
@@ -78,14 +80,19 @@ function TransfersPage() {
     }).eq("id", t.id);
     if (e1) { toast.error(e1.message); return; }
 
-    await supabase.from("leads").update({
-      company_id: t.to_company_id, assigned_to: null, status: "new",
-    }).eq("id", t.lead_id);
+    if (isInternal(t)) {
+      // Internal reassignment: just unassign from current employee, keep same company
+      await supabase.from("leads").update({ assigned_to: null }).eq("id", t.lead_id);
+    } else {
+      await supabase.from("leads").update({
+        company_id: t.to_company_id, assigned_to: null, status: "new",
+      }).eq("id", t.lead_id);
+    }
 
     await supabase.from("activity_logs").insert({
       lead_id: t.lead_id,
-      action: "Transfer approved",
-      note: `Approved transfer to ${t.to_name}`,
+      action: isInternal(t) ? "Reassignment approved" : "Transfer approved",
+      note: isInternal(t) ? `Approved reassignment request from ${t.requester_name}` : `Approved transfer to ${t.to_name}`,
       action_type: "transfer",
       performed_by: profile.id,
     });
@@ -94,11 +101,13 @@ function TransfersPage() {
       user_id: t.requested_by,
       lead_id: t.lead_id,
       type: "transfer",
-      title: "Transfer approved",
-      body: `Your transfer request for ${t.lead_name} was approved.`,
+      title: isInternal(t) ? "Reassignment approved" : "Transfer approved",
+      body: isInternal(t)
+        ? `Your request to reassign ${t.lead_name} was approved. The lead is now unassigned.`
+        : `Your transfer request for ${t.lead_name} was approved.`,
     });
 
-    toast.success("Transfer approved");
+    toast.success(isInternal(t) ? "Reassignment approved" : "Transfer approved");
   };
 
   const reject = async () => {
@@ -169,14 +178,27 @@ function TransfersPage() {
             <div key={t.id} className="bg-card border rounded-lg p-4 space-y-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
-                  <Link to="/leads/$leadId" params={{ leadId: t.lead_id }} className="font-medium hover:underline">
-                    {t.lead_name}
-                  </Link>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link to="/leads/$leadId" params={{ leadId: t.lead_id }} className="font-medium hover:underline">
+                      {t.lead_name}
+                    </Link>
+                    {isInternal(t) && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full border bg-info/10 text-info border-info/30">
+                        Reassignment request
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
-                    <span>{t.from_name}</span>
-                    <ArrowRight className="h-3 w-3" />
-                    <span>{t.to_name}</span>
-                    <span className="opacity-60">· by {t.requester_name}</span>
+                    {isInternal(t) ? (
+                      <span>Requested by {t.requester_name} to release this lead</span>
+                    ) : (
+                      <>
+                        <span>{t.from_name}</span>
+                        <ArrowRight className="h-3 w-3" />
+                        <span>{t.to_name}</span>
+                        <span className="opacity-60">· by {t.requester_name}</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <StatusPill status={t.status} />

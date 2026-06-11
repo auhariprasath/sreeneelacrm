@@ -149,11 +149,17 @@ export function MeetingSchedulerDialog({ open, onOpenChange, leadId, leadName, l
     }
 
     if (send) {
-      const url = buildWaMeLink(leadPhone, finalMsg + (selectedPhotoUrls.length ? `\n\n${selectedPhotoUrls.map((p) => p.url).join("\n")}` : ""));
+      // Do NOT append signed photo URLs — they are 250+ chars each and blow past
+      // WhatsApp's URL length limit, causing the entire ?text= param to be silently
+      // dropped so nothing appears in the chat.  Photos must be attached manually.
+      const url = buildWaMeLink(leadPhone, finalMsg);
       if (url) openWaMeLink(url);
     }
 
-    toast.success(send ? "Meeting scheduled & WhatsApp opened ✓" : "Meeting scheduled ✓");
+    const photoHint = send && selectedPhotoUrls.length > 0
+      ? ` Attach the ${selectedPhotoUrls.length} selected photo${selectedPhotoUrls.length > 1 ? "s" : ""} manually in WhatsApp.`
+      : "";
+    toast.success((send ? "Meeting scheduled & WhatsApp opened ✓" : "Meeting scheduled ✓") + photoHint);
     setSaving(false);
     onScheduled?.();
     onOpenChange(false);

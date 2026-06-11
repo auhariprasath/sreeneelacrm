@@ -5,31 +5,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Build a WhatsApp web link (wa.me). Normalises Indian phone numbers (defaults +91). Returns null if no usable phone. */
+/** Build a WhatsApp send link. Normalises Indian phone numbers (defaults +91). Returns null if no usable phone.
+ *  Uses web.whatsapp.com/send directly so the browser decodes the text via JS (preserving emojis & newlines).
+ *  wa.me goes through a native-app redirect on Windows that corrupts multi-byte emoji sequences. */
 export function buildWaMeLink(phone: string | null | undefined, message?: string): string | null {
   if (!phone) return null;
   const digits = phone.replace(/\D/g, "");
   if (!digits) return null;
-  // If exactly 10 digits, assume Indian mobile and prefix 91
   const intl = digits.length === 10 ? `91${digits}` : digits;
-  const base = `https://wa.me/${intl}`;
   if (message) {
-    // Encode using encodeURIComponent but preserve emoji surrogate pairs correctly
-    // by first normalising the string to NFC form
-    const normalised = message.normalize("NFC");
-    return `${base}?text=${encodeURIComponent(normalised)}`;
+    return `https://web.whatsapp.com/send?phone=${intl}&text=${encodeURIComponent(message)}`;
   }
-  return base;
+  return `https://web.whatsapp.com/send?phone=${intl}`;
 }
 
 export function openWaMeLink(url: string) {
-  // Use anchor click instead of window.open — more reliable for emoji in URLs
-  const a = document.createElement("a");
-  a.href = url;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 

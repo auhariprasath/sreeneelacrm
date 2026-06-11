@@ -35,6 +35,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  clearMustChangePassword: () => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -148,8 +149,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
+  const clearMustChangePassword = () => {
+    setProfile((prev) => prev ? { ...prev, must_change_password: false } : null);
+  };
+
   return (
-    <AuthContext.Provider value={{ loading, user, session, profile, role, companies, activeCompanyId, setActiveCompanyId, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ loading, user, session, profile, role, companies, activeCompanyId, setActiveCompanyId, signIn, signOut, refreshProfile, clearMustChangePassword }}>
       {children}
     </AuthContext.Provider>
   );

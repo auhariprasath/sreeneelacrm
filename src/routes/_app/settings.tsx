@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, CalendarCheck, Plus, Percent, MessageSquare, CreditCard,
-  ListChecks, XCircle, Lock, Clock, Globe,
+  ListChecks, XCircle, Lock, Clock, Globe, ImageIcon, UserPlus, Trash2,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
+import { useServerFn } from "@tanstack/react-start";
+import { createStaff, listCompanyStaff, deleteStaff } from "@/lib/api/staff.functions";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 import { PaymentCredentialsSection } from "@/components/settings/payment-credentials-section";
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
@@ -22,6 +24,7 @@ import { CompaniesSection } from "@/components/settings/companies-section";
 import { ReminderTimingSection } from "@/components/settings/reminder-timing-section";
 import { IntegrationsSection } from "@/components/settings/integrations-section";
 import { SidebarOrderSection } from "@/components/settings/sidebar-order-section";
+import { LogoSection } from "@/components/settings/logo-section";
 
 export const Route = createFileRoute("/_app/settings")({ component: SettingsPage });
 
@@ -37,6 +40,8 @@ const SECTIONS = [
   { id: "discounts", label: "Discount rules", icon: Percent, superOnly: false },
   { id: "integrations", label: "Integrations", icon: Globe, superOnly: false },
   { id: "sidebar-order", label: "Sidebar Order", icon: ListChecks, superOnly: false },
+  { id: "logo", label: "Logo", icon: ImageIcon, superOnly: false },
+  { id: "add-employees", label: "Add Employees", icon: UserPlus, superOnly: true },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -285,6 +290,33 @@ function SettingsPage() {
           </Card>
         );
       }
+      case "logo": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Logo</CardTitle>
+              <CardDescription>Upload a custom logo shown across the entire app. Applies globally — not per company. Defaults to icon-192.png if none uploaded.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LogoSection />
+            </CardContent>
+          </Card>
+        );
+      }
+      case "add-employees": {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Employees</CardTitle>
+              <CardDescription>Create employee login accounts. New accounts must change their password on first login.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompanyPicker />
+              <AddEmployeesSection companyId={activeCompanyId} />
+            </CardContent>
+          </Card>
+        );
+      }
     }
   };
 
@@ -318,6 +350,122 @@ function SettingsPage() {
         )}
       </aside>
       <div className="flex-1 min-w-0">{renderSection()}</div>
+    </div>
+  );
+}
+
+interface EmployeeRow { id: string; full_name: string; email: string | null; is_active: boolean; role: string }
+
+function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
+  const create = useServerFn(createStaff);
+  const list = useServerFn(listCompanyStaff);
+  const del = useServerFn(deleteStaff);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<EmployeeRow[]>([]);
+  const [loadingList, setLoadingList] = useState(true);
+
+  const loadList = async () => {
+    if (!companyId) return;
+    setLoadingList(true);
+    try {
+      const data = await list({ data: { company_id: companyId } });
+      setEmployees((data as EmployeeRow[]).filter((e) => e.role === "staff"));
+    } catch { /* ignore */ } finally { setLoadingList(false); }
+  };
+
+  useEffect(() => { loadList(); /* eslint-disable-next-line */ }, [companyId]);
+
+  const submit = async () => {
+    if (!companyId) { toast.error("Select a company first"); return; }
+    if (!fullName.trim() || !email.trim() || password.length < 8) {
+      toast.error("Name, email, and a password (8+ characters) are required");
+      return;
+    }
+    setBusy(true);
+    try {
+      await create({ data: { company_id: companyId, full_name: fullName.trim(), email: email.trim(), password, phone: "", role: "staff" } });
+      toast.success(`Employee account created for ${email.trim()}`);
+      setFullName(""); setEmail(""); setPassword("");
+      loadList();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to create account");
+    } finally { setBusy(false); }
+  };
+
+  const handleDelete = async (emp: EmployeeRow) => {
+    if (!window.confirm(`Delete ${emp.full_name}? This will deactivate their account and sign them out immediately.`)) return;
+    setDeletingId(emp.id);
+    try {
+      await del({ data: { user_id: emp.id } });
+      toast.success(`${emp.full_name} deleted`);
+      loadList();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to delete");
+    } finally { setDeletingId(null); }
+  };
+
+  if (!companyId) return <div className="text-sm text-muted-foreground">Select a company above first.</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-lg border p-4 space-y-4">
+        <p className="text-sm font-medium">Create new employee account</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-1.5">
+            <Label>Full name</Label>
+            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Employee name" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email</Label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="employee@example.com" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Password <span className="text-muted-foreground text-xs">(min 8 chars)</span></Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Temporary password" />
+          </div>
+        </div>
+        <Button onClick={submit} disabled={busy} size="sm">
+          <Plus className="h-4 w-4 mr-1.5" /> {busy ? "Creating…" : "Create employee"}
+        </Button>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-muted-foreground">Existing employees</p>
+        {loadingList ? (
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        ) : employees.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No employees yet.</div>
+        ) : (
+          <div className="rounded-lg border divide-y text-sm">
+            {employees.map((e) => (
+              <div key={e.id} className="flex items-center justify-between px-4 py-3 gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium">{e.full_name}</div>
+                  <div className="text-xs text-muted-foreground">{e.email ?? "—"}</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-xs px-2 py-0.5 rounded-full border ${e.is_active ? "bg-success/10 text-success border-success/30" : "bg-muted text-muted-foreground"}`}>
+                    {e.is_active ? "Active" : "Inactive"}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={deletingId === e.id}
+                    onClick={() => handleDelete(e)}
+                    title="Delete employee"
+                    className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-destructive/40 text-destructive hover:bg-destructive/10 disabled:opacity-50 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

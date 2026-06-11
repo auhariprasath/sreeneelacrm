@@ -156,8 +156,8 @@ function LeadProfile() {
       const aActive = !a.is_sent && !(a as any).is_cancelled;
       const bActive = !b.is_sent && !(b as any).is_cancelled;
       if (aActive !== bActive) return aActive ? -1 : 1;
-      if (aActive) return new Date(b.created_at as any).getTime() - new Date(a.created_at as any).getTime();
-      return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+      if (aActive) return new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(); // active: soonest first
+      return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime(); // completed: most recent first
     });
     setFollowUps(sortedFus);
     const { data: vms } = await supabase
@@ -167,7 +167,16 @@ function LeadProfile() {
       .is("deleted_at", null)
       .order("scheduled_date", { ascending: false })
       .order("scheduled_time", { ascending: false });
-    setVenueMeetings((vms as any[]) ?? []);
+    const ACTIVE_STATUSES = ["scheduled", "reminder_sent", "rescheduled"];
+    const sortedVms = ((vms as any[]) ?? []).slice().sort((a, b) => {
+      const aActive = ACTIVE_STATUSES.includes(a.status);
+      const bActive = ACTIVE_STATUSES.includes(b.status);
+      if (aActive !== bActive) return aActive ? -1 : 1;
+      const aT = new Date(`${a.scheduled_date}T${a.scheduled_time}`).getTime();
+      const bT = new Date(`${b.scheduled_date}T${b.scheduled_time}`).getTime();
+      return aActive ? aT - bT : bT - aT; // upcoming: soonest first; completed: most recent first
+    });
+    setVenueMeetings(sortedVms);
     setRequirements((reqs as Requirement[]) ?? []);
     setQuotations((quotes as Quotation[]) ?? []);
     setBookings((bks as Booking[]) ?? []);
