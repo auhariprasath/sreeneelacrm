@@ -214,6 +214,25 @@ export const deleteStaff = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const resetStaffPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ user_id: z.string().uuid(), password: z.string().min(8) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: target } = await supabaseAdmin
+      .from("profiles").select("company_id").eq("id", data.user_id).maybeSingle();
+    if (!target?.company_id) throw new Error("Target not found");
+    await assertAdminScope(context.userId, target.company_id);
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, {
+      password: data.password,
+    });
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("profiles").update({ must_change_password: true }).eq("id", data.user_id);
+    return { ok: true };
+  });
+
 export const changeOwnPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ password: z.string().min(8) }).parse(input))

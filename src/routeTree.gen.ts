@@ -41,6 +41,7 @@ import { Route as AppCommandCentreRouteImport } from './routes/_app/command-cent
 import { Route as AppCampaignsRouteImport } from './routes/_app/campaigns'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
 import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
+import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppLeadsIndexRouteImport } from './routes/_app/leads.index'
 import { Route as ApiPublicSeedRouteImport } from './routes/api/public/seed'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/_app/leads.$leadId'
@@ -214,6 +215,11 @@ const AppBookingsRoute = AppBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLeadsIndexRoute = AppLeadsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/bookings': typeof AppBookingsRoute
   '/calendar': typeof AppCalendarRoute
   '/campaigns': typeof AppCampaignsRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/bookings': typeof AppBookingsRoute
   '/calendar': typeof AppCalendarRoute
   '/campaigns': typeof AppCampaignsRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/bookings': typeof AppBookingsRoute
   '/_app/calendar': typeof AppCalendarRoute
   '/_app/campaigns': typeof AppCampaignsRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/reset-password'
+    | '/analytics'
     | '/bookings'
     | '/calendar'
     | '/campaigns'
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/reset-password'
+    | '/analytics'
     | '/bookings'
     | '/calendar'
     | '/campaigns'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/reset-password'
+    | '/_app/analytics'
     | '/_app/bookings'
     | '/_app/calendar'
     | '/_app/campaigns'
@@ -819,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBookingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/leads/': {
       id: '/_app/leads/'
       path: '/'
@@ -940,6 +959,7 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppBookingsRoute: typeof AppBookingsRoute
   AppCalendarRoute: typeof AppCalendarRoute
   AppCampaignsRoute: typeof AppCampaignsRoute
@@ -964,6 +984,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
   AppBookingsRoute: AppBookingsRoute,
   AppCalendarRoute: AppCalendarRoute,
   AppCampaignsRoute: AppCampaignsRoute,

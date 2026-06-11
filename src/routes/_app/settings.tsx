@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, CalendarCheck, Plus, Percent, MessageSquare, CreditCard,
-  ListChecks, XCircle, Lock, Clock, Globe, ImageIcon, UserPlus, Trash2,
+  ListChecks, XCircle, Lock, Clock, Globe, ImageIcon, UserPlus, Trash2, KeyRound,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 import { useServerFn } from "@tanstack/react-start";
-import { createStaff, listCompanyStaff, deleteStaff } from "@/lib/api/staff.functions";
+import { createStaff, listCompanyStaff, deleteStaff, resetStaffPassword } from "@/lib/api/staff.functions";
 import { CompanyFieldsSection, type CompanyField } from "@/components/settings/company-fields-section";
 import { PaymentCredentialsSection } from "@/components/settings/payment-credentials-section";
 import { TaskTemplatesSection } from "@/components/settings/task-templates-section";
@@ -80,11 +81,11 @@ function PeakSection({ companyId }: { companyId: string | undefined }) {
           </div>
           <div className="space-y-1.5">
             <Label>Start</Label>
-            <Input type="date" value={r.start} onChange={(e) => setRanges(ranges.map((x, j) => j === i ? { ...x, start: e.target.value } : x))} />
+            <DateConfirmField value={r.start} onChange={(v) => setRanges(ranges.map((x, j) => j === i ? { ...x, start: v } : x))} />
           </div>
           <div className="space-y-1.5">
             <Label>End</Label>
-            <Input type="date" value={r.end} onChange={(e) => setRanges(ranges.map((x, j) => j === i ? { ...x, end: e.target.value } : x))} />
+            <DateConfirmField value={r.end} onChange={(v) => setRanges(ranges.map((x, j) => j === i ? { ...x, end: v } : x))} />
           </div>
           <Button variant="ghost" size="icon" onClick={() => setRanges(ranges.filter((_, j) => j !== i))} aria-label="Remove"><XCircle className="h-4 w-4" /></Button>
         </div>
@@ -360,6 +361,7 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
   const create = useServerFn(createStaff);
   const list = useServerFn(listCompanyStaff);
   const del = useServerFn(deleteStaff);
+  const resetPwd = useServerFn(resetStaffPassword);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -367,6 +369,9 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [employees, setEmployees] = useState<EmployeeRow[]>([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [resetTarget, setResetTarget] = useState<EmployeeRow | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   const loadList = async () => {
     if (!companyId) return;
@@ -406,6 +411,20 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to delete");
     } finally { setDeletingId(null); }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetTarget) return;
+    if (newPassword.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    setResetting(true);
+    try {
+      await resetPwd({ data: { user_id: resetTarget.id, password: newPassword } });
+      toast.success(`Password reset for ${resetTarget.full_name}`);
+      setResetTarget(null);
+      setNewPassword("");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to reset password");
+    } finally { setResetting(false); }
   };
 
   if (!companyId) return <div className="text-sm text-muted-foreground">Select a company above first.</div>;
@@ -453,6 +472,14 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
                   </span>
                   <button
                     type="button"
+                    onClick={() => { setResetTarget(e); setNewPassword(""); }}
+                    title="Reset password"
+                    className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    <KeyRound className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
                     disabled={deletingId === e.id}
                     onClick={() => handleDelete(e)}
                     title="Delete employee"
@@ -466,6 +493,38 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
           </div>
         )}
       </div>
+
+      {/* Reset password modal */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-background rounded-lg border shadow-lg w-full max-w-sm p-6 space-y-4">
+            <div>
+              <h3 className="font-semibold text-base">Reset password</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Set a new temporary password for <span className="font-medium text-foreground">{resetTarget.full_name}</span>. They will be asked to change it on next login.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>New password <span className="text-muted-foreground text-xs">(min 8 chars)</span></Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => { setResetTarget(null); setNewPassword(""); }} disabled={resetting}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleResetPassword} disabled={resetting || newPassword.length < 8}>
+                {resetting ? "Saving…" : "Reset password"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

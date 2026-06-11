@@ -5,6 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Bell } from "lucide-react";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
 import type { ReminderFormState } from "@/lib/task-reminders";
 
 interface Props {
@@ -35,16 +37,8 @@ export function TaskReminderSection({ value, onChange, hasBookingDate }: Props) 
           </div>
           {value.mode === "absolute" && (
             <div className="grid grid-cols-2 gap-2 pl-6">
-              <Input
-                type="date"
-                value={value.absoluteDate}
-                onChange={(e) => update({ absoluteDate: e.target.value })}
-              />
-              <Input
-                type="time"
-                value={value.absoluteTime}
-                onChange={(e) => update({ absoluteTime: e.target.value })}
-              />
+              <DateConfirmField value={value.absoluteDate} onChange={(v) => update({ absoluteDate: v })} />
+              <TimeClockField   value={value.absoluteTime} onChange={(v) => update({ absoluteTime: v })} placeholder="Pick time" />
             </div>
           )}
         </div>

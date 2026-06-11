@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InfoTip } from "@/components/ui/info-tip";
-import { ArrowLeft, Phone, MessageSquare, Mail, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star, UserCheck } from "lucide-react";
+import { ArrowLeft, Phone, MessageSquare, Mail, Eye, EyeOff, Send, CalendarClock, ShieldAlert, ShieldOff, AlertTriangle, ArrowRightLeft, Lock, ClipboardList, Plus, FileText, CheckCircle2, IndianRupee, Building2, CreditCard, MoreVertical, XCircle, Star, UserCheck, Paperclip, X, FileImage, File, Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import { FollowUpDialog } from "@/components/leads/follow-up-dialog";
 import { BlacklistDialog } from "@/components/leads/blacklist-dialog";
 import { TransferDialog } from "@/components/leads/transfer-dialog";
 import { RequirementSheet } from "@/components/requirements/requirement-sheet";
+import { RequirementDetailDialog } from "@/components/requirements/requirement-detail-dialog";
 import { DecisionDialog } from "@/components/requirements/decision-dialog";
 import { QuotationBuilder } from "@/components/quotations/quotation-builder";
 import { SendQuotationDialog } from "@/components/quotations/send-quotation-dialog";
@@ -43,6 +44,8 @@ import { CoordinationProgress } from "@/components/bookings/coordination-progres
 import { SourcesTab } from "@/components/leads/sources-tab";
 import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
 import { WhatsAppLeadTab } from "@/components/leads/whatsapp-lead-tab";
+import { LeadFilesTab } from "@/components/leads/lead-files-tab";
+import { BookingStatusTab } from "@/components/leads/booking-status-tab";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -70,6 +73,7 @@ function LeadProfile() {
   const [venueMeetings, setVenueMeetings] = useState<Array<{ id: string; scheduled_date: string; scheduled_time: string; status: string; contact_person_name: string | null; notes: string | null }>>([]);
   const [referrer, setReferrer] = useState<{ id: string; full_name: string } | null>(null);
   const [note, setNote] = useState("");
+  const [noteFiles, setNoteFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
 
   const [requirements, setRequirements] = useState<Requirement[]>([]);
@@ -77,6 +81,7 @@ function LeadProfile() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [winLoss, setWinLoss] = useState<{ outcome: string; drop_reason: string | null; competitor_name: string | null; amount_value: number | null; closed_at: string }[]>([]);
+  const [reqDecisions, setReqDecisions] = useState<Record<string, string>>({});
   const [rejectedTransfer, setRejectedTransfer] = useState<{ rejection_reason: string | null; updated_at: string; to_name: string } | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
 
@@ -87,6 +92,7 @@ function LeadProfile() {
   const [trOpen, setTrOpen] = useState(false);
   const [reqOpen, setReqOpen] = useState(false);
   const [editReqId, setEditReqId] = useState<string | null>(null);
+  const [detailReq, setDetailReq] = useState<(typeof requirements)[0] | null>(null);
   const [decisionReqId, setDecisionReqId] = useState<string | null>(null);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteReqId, setQuoteReqId] = useState<string | null>(null);
@@ -157,6 +163,16 @@ function LeadProfile() {
       supabase.from("win_loss_log").select("outcome, drop_reason, competitor_name, amount_value, closed_at").eq("lead_id", leadId).order("closed_at", { ascending: false }),
     ]);
     setActivities((acts as Activity[]) ?? []);
+
+    // Build requirement decision map from activity logs
+    const decMap: Record<string, string> = {};
+    for (const log of (acts as any[]) ?? []) {
+      const meta = log.metadata as any;
+      if (meta?.requirement_id && meta?.decision && !decMap[meta.requirement_id]) {
+        decMap[meta.requirement_id] = meta.decision;
+      }
+    }
+    setReqDecisions(decMap);
     // Sort: active (not sent, not cancelled) first — most recently created at top — then completed/cancelled by date.
     const sortedFus = ((fus as FollowUp[]) ?? []).slice().sort((a, b) => {
       const aActive = !a.is_sent && !(a as any).is_cancelled;
@@ -280,58 +296,135 @@ function LeadProfile() {
 
 
   const addNote = async () => {
-    if (!note.trim() || !lead) return;
+    if (!note.trim() && noteFiles.length === 0) return;
+    if (!lead) return;
     setSaving(true);
-    const { error } = await supabase.from("activity_logs").insert({
-      lead_id: lead.id, action: "Note added", note: note.trim(), action_type: "note", performed_by: profile?.id ?? null,
-    });
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    setNote("");
-    toast.success("Note added");
+    try {
+      // Upload files first
+      const attachments: { name: string; path: string; type: string; url: string }[] = [];
+      for (const file of noteFiles) {
+        const path = `${lead.id}/${Date.now()}_${file.name}`;
+        const { error: upErr } = await supabase.storage.from("lead-attachments").upload(path, file, { contentType: file.type });
+        if (upErr) { toast.error(`Failed to upload ${file.name}`); continue; }
+        const { data: signed } = await supabase.storage.from("lead-attachments").createSignedUrl(path, 60 * 60 * 24 * 365);
+        if (signed?.signedUrl) attachments.push({ name: file.name, path, type: file.type, url: signed.signedUrl });
+      }
+
+      const { error } = await supabase.from("activity_logs").insert({
+        lead_id: lead.id,
+        action: attachments.length > 0 && !note.trim() ? "File attached" : "Note added",
+        note: note.trim() || null,
+        action_type: "note",
+        performed_by: profile?.id ?? null,
+        metadata: attachments.length > 0 ? { attachments } as any : undefined,
+      });
+      if (error) { toast.error(error.message); return; }
+      setNote("");
+      setNoteFiles([]);
+      toast.success(attachments.length > 0 ? "Note & files saved" : "Note added");
+      // Refresh activities so the note appears immediately
+      supabase.from("activity_logs").select("*").eq("lead_id", lead.id)
+        .order("created_at", { ascending: false }).limit(50)
+        .then(({ data }) => setActivities((data as Activity[]) ?? []));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const [fuFeedback, setFuFeedback] = useState<Record<string, string>>({});
-  const [vmFeedback, setVmFeedback] = useState<Record<string, string>>({});
+  type Outcome = "positive" | "negative" | "neutral" | "other";
+  const [fuOutcome, setFuOutcome] = useState<Record<string, Outcome>>({});
+  const [fuComment, setFuComment] = useState<Record<string, string>>({});
+  const [vmOutcome, setVmOutcome] = useState<Record<string, Outcome>>({});
+  const [vmComment, setVmComment] = useState<Record<string, string>>({});
+
+  const OUTCOME_OPTIONS: { value: Outcome; label: string }[] = [
+    { value: "positive", label: "Positive" },
+    { value: "negative", label: "Negative" },
+    { value: "neutral", label: "Neutral" },
+    { value: "other", label: "Other" },
+  ];
+
+  const applyOutcomeToLead = async (outcome: Outcome) => {
+    const statusMap: Record<Outcome, string> = {
+      positive: "positive",
+      negative: "negative",
+      neutral: "neutral",
+      other: lead!.status,
+    };
+    const newStatus = statusMap[outcome];
+    if (newStatus !== lead!.status) {
+      await supabase.from("leads").update({ status: newStatus as any }).eq("id", leadId);
+      setLead((prev) => prev ? { ...prev, status: newStatus as any } : prev);
+    }
+  };
 
   const markFollowUpDone = async (id: string) => {
-    const feedback = (fuFeedback[id] || "").trim();
+    const outcome = fuOutcome[id] ?? "neutral";
+    const comment = (fuComment[id] || "").trim();
     const existing = followUps.find((x) => x.id === id);
-    const mergedNote = feedback
-      ? (existing?.note ? `${existing.note}\n— ${feedback}` : feedback)
+    const mergedNote = comment
+      ? (existing?.note ? `${existing.note}\n— ${comment}` : comment)
       : existing?.note ?? null;
     const patch: any = { is_sent: true };
-    if (feedback) patch.note = mergedNote;
+    if (comment) patch.note = mergedNote;
     const { error } = await supabase.from("follow_ups").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    await applyOutcomeToLead(outcome);
     await supabase.from("activity_logs").insert({
       lead_id: leadId,
-      action: "Follow-up marked done",
-      note: feedback || null,
+      action: `Follow-up marked done · ${outcome}`,
+      note: comment || null,
       action_type: "system",
       performed_by: profile?.id ?? null,
     });
     setFollowUps((prev) => prev.map((x) => x.id === id ? { ...x, is_sent: true, note: mergedNote } : x));
-    setFuFeedback((m) => { const n = { ...m }; delete n[id]; return n; });
+    setFuOutcome((m) => { const n = { ...m }; delete n[id]; return n; });
+    setFuComment((m) => { const n = { ...m }; delete n[id]; return n; });
     toast.success("Follow-up marked done");
   };
 
   const markVenueMeetingDone = async (id: string) => {
-    const feedback = (vmFeedback[id] || "").trim();
+    const outcome = vmOutcome[id] ?? "neutral";
+    const comment = (vmComment[id] || "").trim();
     const patch: any = { status: "completed", outcome_recorded: true, updated_at: new Date().toISOString() };
-    if (feedback) patch.notes = feedback;
+    if (comment) patch.notes = comment;
     const { error } = await supabase.from("venue_meetings").update(patch).eq("id", id);
     if (error) { toast.error(error.message); return; }
+    await applyOutcomeToLead(outcome);
     await supabase.from("activity_logs").insert({
       lead_id: leadId,
-      action: "Venue meeting marked done",
-      note: feedback || null,
+      action: `Venue meeting marked done · ${outcome}`,
+      note: comment || null,
       action_type: "system",
       performed_by: profile?.id ?? null,
     });
-    setVmFeedback((m) => { const n = { ...m }; delete n[id]; return n; });
-    setVenueMeetings((prev) => prev.map((v) => v.id === id ? { ...v, status: "completed", notes: feedback || v.notes } : v));
+    setVmOutcome((m) => { const n = { ...m }; delete n[id]; return n; });
+    setVmComment((m) => { const n = { ...m }; delete n[id]; return n; });
+    setVenueMeetings((prev) => prev.map((v) => v.id === id ? { ...v, status: "completed", notes: comment || v.notes } : v));
     toast.success("Venue meeting marked done");
+  };
+
+  const closeBothActive = async (outcome: Outcome, comment: string) => {
+    const activeFu = followUps.find((f) => !f.is_sent && !(f as any).is_cancelled);
+    const activeVm = venueMeetings.find((m) => ["scheduled", "reminder_sent", "rescheduled"].includes(m.status));
+    const note = comment.trim() || null;
+    if (activeFu) {
+      await supabase.from("follow_ups").update({ is_sent: true, note: note ?? activeFu.note }).eq("id", activeFu.id);
+      setFollowUps((prev) => prev.map((x) => x.id === activeFu.id ? { ...x, is_sent: true } : x));
+    }
+    if (activeVm) {
+      await supabase.from("venue_meetings").update({ status: "completed", outcome_recorded: true, notes: note, updated_at: new Date().toISOString() }).eq("id", activeVm.id);
+      setVenueMeetings((prev) => prev.map((v) => v.id === activeVm.id ? { ...v, status: "completed" } : v));
+    }
+    await applyOutcomeToLead(outcome);
+    await supabase.from("activity_logs").insert({
+      lead_id: leadId,
+      action: `All active schedules closed · ${outcome}`,
+      note,
+      action_type: "system",
+      performed_by: profile?.id ?? null,
+    });
+    toast.success("All active schedules closed");
   };
 
   if (loading || !lead) {
@@ -498,20 +591,17 @@ function LeadProfile() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 text-[11px]">
+        <TabsList className="grid w-full grid-cols-5 sm:grid-cols-9 text-[11px]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="sources">Sources</TabsTrigger>
           <TabsTrigger value="requirements">Reqs</TabsTrigger>
+          <TabsTrigger value="booking">Booking</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="followups">Follow-ups</TabsTrigger>
           <TabsTrigger value="venue">Venue</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="notes">Note</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="sources">
-          <SourcesTab leadId={lead.id} source={lead.source} createdAt={lead.created_at} createdBy={lead.created_by} />
-        </TabsContent>
 
         <TabsContent value="overview" className="space-y-3 pt-3">
           <InfoRow label="Language" value={lead.language} />
@@ -547,6 +637,9 @@ function LeadProfile() {
               ))}
             </div>
           )}
+          <div className="border-t pt-3">
+            <SourcesTab leadId={lead.id} source={lead.source} createdAt={lead.created_at} createdBy={lead.created_by} />
+          </div>
         </TabsContent>
 
         <TabsContent value="requirements" className="pt-3 space-y-2">
@@ -562,30 +655,46 @@ function LeadProfile() {
           ) : (
             <div className="space-y-2">
               {requirements.map((r) => (
-                <div key={r.id} className="bg-card border rounded-md p-3 hover:border-primary/40 transition-colors">
-                  <button
-                    onClick={() => { setEditReqId(r.id); setReqOpen(true); }}
-                    className="w-full text-left"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium flex items-center gap-2">
-                          <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
-                          Requirement #{r.requirement_number}
-                          {r.event_type && <span className="text-muted-foreground font-normal">· {r.event_type}</span>}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {r.event_date ? formatDateIN(r.event_date) : "Date TBD"}
-                          {r.start_time && ` · ${formatTimeOfDay(r.start_time)}`}
-                          {r.end_time && ` – ${formatTimeOfDay(r.end_time)}`}
-                        </div>
-                      </div>
-                      <span className="text-[11px] uppercase tracking-wide bg-muted text-muted-foreground rounded-full px-2 py-0.5 shrink-0">
+                <div key={r.id} className="bg-card border rounded-md p-3 hover:border-primary/40 transition-colors cursor-pointer" onClick={() => setDetailReq(r)}>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="text-sm font-medium flex items-center gap-2">
+                      <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                      Requirement #{r.requirement_number}
+                      {r.event_type && <span className="text-muted-foreground font-normal">· {r.event_type === "other" ? (r.event_type_other ?? "Other") : r.event_type}</span>}
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-[11px] uppercase tracking-wide bg-muted text-muted-foreground rounded-full px-2 py-0.5">
                         {r.status.replace("_", " ")}
                       </span>
+                      {reqDecisions[r.id] && (() => {
+                        const d = reqDecisions[r.id];
+                        const cls = d === "interested" ? "bg-success/10 text-success border border-success/30"
+                          : d === "confirm_booking" ? "bg-primary/10 text-primary border border-primary/30"
+                          : d === "not_interested" ? "bg-destructive/10 text-destructive border border-destructive/30"
+                          : "bg-warning/10 text-warning border border-warning/30";
+                        const label = d === "interested" ? "Interested"
+                          : d === "confirm_booking" ? "Booking confirmed"
+                          : d === "not_interested" ? "Not interested"
+                          : "Needs time";
+                        return (
+                          <span className={`text-[10px] rounded-full px-2 py-0.5 font-medium ${cls}`}>{label}</span>
+                        );
+                      })()}
                     </div>
-                  </button>
-                  <div className="mt-2 flex gap-2 justify-end flex-wrap">
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-2">
+                    {r.event_date && <div><span className="text-muted-foreground">Date: </span>{formatDateIN(r.event_date)}</div>}
+                    {r.start_time && <div><span className="text-muted-foreground">Start: </span>{formatTimeOfDay(r.start_time)}</div>}
+                    {r.end_time && <div><span className="text-muted-foreground">End: </span>{formatTimeOfDay(r.end_time)}</div>}
+                    {r.guest_count && <div><span className="text-muted-foreground">Guests: </span>{r.guest_count}</div>}
+                    {r.duration_hours && <div><span className="text-muted-foreground">Duration: </span>{r.duration_hours}h</div>}
+                    {r.budget_range && <div><span className="text-muted-foreground">Budget: </span>{r.budget_range}</div>}
+                    {r.community && <div><span className="text-muted-foreground">Community: </span>{r.community}</div>}
+                    {r.session_name && <div><span className="text-muted-foreground">Session: </span>{r.session_name}</div>}
+                    {r.muhurtham_time && <div><span className="text-muted-foreground">Muhurtham: </span>{formatTimeOfDay(r.muhurtham_time)}</div>}
+                  </div>
+                  {r.notes && <div className="text-xs text-muted-foreground bg-muted/40 rounded p-2 mb-2 whitespace-pre-wrap">{r.notes}</div>}
+                  <div className="mt-2 flex gap-2 justify-end flex-wrap" onClick={(e) => e.stopPropagation()}>
                     <Button size="sm" variant="outline" onClick={() => setDecisionReqId(r.id)} disabled={lead.status === "locked"}>
                       Record decision
                     </Button>
@@ -861,8 +970,8 @@ function LeadProfile() {
 
 
 
-          {/* Bookings card */}
-          {bookings.length > 0 && (
+          {/* Bookings moved to Booking tab */}
+          {bookings.length > 0 && false && (
             <div className="mt-4">
               <div className="text-xs font-semibold text-muted-foreground mb-2">Bookings</div>
               <div className="space-y-2">
@@ -1011,6 +1120,21 @@ function LeadProfile() {
 
 
 
+        {/* ── Booking & Tasks tab ── */}
+        <TabsContent value="booking">
+          <BookingStatusTab
+            leadId={lead.id}
+            companyId={lead.company_id}
+            bookings={bookings}
+            assignedTo={(lead as any).assigned_to ?? null}
+          />
+        </TabsContent>
+
+        {/* ── Files tab ── */}
+        <TabsContent value="files" className="pt-3 space-y-4">
+          <LeadFilesTab leadId={lead.id} />
+        </TabsContent>
+
         <TabsContent value="activity" className="pt-3">
           {activities.length === 0 ? (
             <div className="text-sm text-muted-foreground py-6 text-center">No activity yet.</div>
@@ -1021,6 +1145,23 @@ function LeadProfile() {
                   <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
                   <div className="text-sm font-medium">{a.action}</div>
                   {a.note && <div className="text-sm text-muted-foreground mt-0.5 whitespace-pre-wrap">{a.note}</div>}
+                  {(a.metadata as any)?.attachments?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {((a.metadata as any).attachments as { name: string; type: string; url: string }[]).map((att, i) => (
+                        att.type.startsWith("image/") ? (
+                          <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="block">
+                            <img src={att.url} alt={att.name} className="h-16 w-16 rounded-md object-cover border hover:opacity-80 transition-opacity" />
+                          </a>
+                        ) : (
+                          <a key={i} href={att.url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted transition-colors">
+                            <File className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="max-w-[160px] truncate">{att.name}</span>
+                          </a>
+                        )
+                      ))}
+                    </div>
+                  )}
                   <div className="text-[11px] text-muted-foreground mt-1">{formatDateTimeIN(a.created_at)}</div>
                 </li>
               ))}
@@ -1038,6 +1179,8 @@ function LeadProfile() {
             <div className="space-y-2">
               {followUps.map((f) => {
                 const active = !f.is_sent && !(f as any).is_cancelled;
+                const hasActiveVm = venueMeetings.some((m) => ["scheduled", "reminder_sent", "rescheduled"].includes(m.status));
+                const outcome = fuOutcome[f.id] ?? "neutral";
                 return (
                   <div key={f.id} className="bg-card border rounded-md p-3 space-y-2">
                     <div className="flex items-start justify-between gap-3">
@@ -1048,14 +1191,47 @@ function LeadProfile() {
                       </div>
                     </div>
                     {active && (
-                      <div className="space-y-1.5">
-                        <Textarea
-                          rows={2}
-                          placeholder="Feedback / outcome (optional)"
-                          value={fuFeedback[f.id] ?? ""}
-                          onChange={(e) => setFuFeedback((m) => ({ ...m, [f.id]: e.target.value }))}
-                        />
-                        <Button size="sm" onClick={() => markFollowUpDone(f.id)}>Mark done</Button>
+                      <div className="space-y-2">
+                        {/* Outcome */}
+                        <div className="space-y-1">
+                          <div className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Outcome</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {OUTCOME_OPTIONS.map((o) => (
+                              <button
+                                key={o.value}
+                                type="button"
+                                onClick={() => setFuOutcome((m) => ({ ...m, [f.id]: o.value }))}
+                                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${outcome === o.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"}`}
+                              >
+                                {o.label}
+                              </button>
+                            ))}
+                          </div>
+                          {outcome === "other" && (
+                            <Textarea
+                              rows={2}
+                              placeholder="Describe the outcome…"
+                              value={fuComment[f.id] ?? ""}
+                              onChange={(e) => setFuComment((m) => ({ ...m, [f.id]: e.target.value }))}
+                            />
+                          )}
+                        </div>
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setFuOpen(true)}>
+                            <CalendarClock className="h-3.5 w-3.5 mr-1" /> Reschedule
+                          </Button>
+                          <Button size="sm" onClick={() => markFollowUpDone(f.id)}>Mark done</Button>
+                          {hasActiveVm && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => closeBothActive(outcome, fuComment[f.id] ?? "")}
+                            >
+                              Close both
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1076,6 +1252,8 @@ function LeadProfile() {
               {venueMeetings.map((m) => {
                 const when = `${m.scheduled_date}T${m.scheduled_time}`;
                 const active = ["scheduled", "reminder_sent", "rescheduled"].includes(m.status);
+                const hasActiveFu = followUps.some((f) => !f.is_sent && !(f as any).is_cancelled);
+                const outcome = vmOutcome[m.id] ?? "neutral";
                 return (
                   <div key={m.id} className="bg-card border rounded-md p-3 space-y-2">
                     <div className="min-w-0">
@@ -1087,14 +1265,47 @@ function LeadProfile() {
                       </div>
                     </div>
                     {active && (
-                      <div className="space-y-1.5">
-                        <Textarea
-                          rows={2}
-                          placeholder="Feedback / outcome (optional)"
-                          value={vmFeedback[m.id] ?? ""}
-                          onChange={(e) => setVmFeedback((s) => ({ ...s, [m.id]: e.target.value }))}
-                        />
-                        <Button size="sm" onClick={() => markVenueMeetingDone(m.id)}>Mark done</Button>
+                      <div className="space-y-2">
+                        {/* Outcome */}
+                        <div className="space-y-1">
+                          <div className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Outcome</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {OUTCOME_OPTIONS.map((o) => (
+                              <button
+                                key={o.value}
+                                type="button"
+                                onClick={() => setVmOutcome((s) => ({ ...s, [m.id]: o.value }))}
+                                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${outcome === o.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"}`}
+                              >
+                                {o.label}
+                              </button>
+                            ))}
+                          </div>
+                          {outcome === "other" && (
+                            <Textarea
+                              rows={2}
+                              placeholder="Describe the outcome…"
+                              value={vmComment[m.id] ?? ""}
+                              onChange={(e) => setVmComment((s) => ({ ...s, [m.id]: e.target.value }))}
+                            />
+                          )}
+                        </div>
+                        {/* Actions */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}>
+                            <Building2 className="h-3.5 w-3.5 mr-1" /> Reschedule
+                          </Button>
+                          <Button size="sm" onClick={() => markVenueMeetingDone(m.id)}>Mark done</Button>
+                          {hasActiveFu && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => closeBothActive(outcome, vmComment[m.id] ?? "")}
+                            >
+                              Close both
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1115,14 +1326,114 @@ function LeadProfile() {
                 .order("created_at", { ascending: false }).limit(50)
                 .then(({ data }) => setActivities((data as Activity[]) ?? []));
             }}
+            onStatusAdvanced={() => load()}
           />
         </TabsContent>
 
-        <TabsContent value="notes" className="pt-3 space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={4} placeholder="Type a note about this lead…" />
-          <Button onClick={addNote} disabled={saving || !note.trim()} className="min-h-11">
-            <Send className="h-4 w-4 mr-1.5" /> {saving ? "Saving…" : "Add note"}
-          </Button>
+        <TabsContent value="notes" className="pt-3 space-y-4">
+          {/* Existing notes list */}
+          {activities.filter(a => a.action_type === "note").length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-4">No notes yet.</div>
+          ) : (
+            <div className="space-y-2">
+              {activities.filter(a => a.action_type === "note").map((a) => {
+                const attachments = (a.metadata as any)?.attachments as { name: string; type: string; url: string; path: string }[] | undefined;
+                return (
+                  <div key={a.id} className="rounded-lg border bg-card p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        {a.note && <p className="text-sm whitespace-pre-wrap">{a.note}</p>}
+                        {attachments && attachments.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {attachments.map((att, i) => (
+                              att.type.startsWith("image/") ? (
+                                <div key={i} className="relative group">
+                                  <a href={att.url} target="_blank" rel="noopener noreferrer">
+                                    <img src={att.url} alt={att.name} className="h-16 w-16 rounded-md object-cover border" />
+                                  </a>
+                                  <button
+                                    type="button"
+                                    className="absolute -top-1 -right-1 hidden group-hover:flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-white"
+                                    onClick={async () => {
+                                      await supabase.storage.from("lead-attachments").remove([att.path]);
+                                      const updated = attachments.filter((_, j) => j !== i);
+                                      await supabase.from("activity_logs").update({ metadata: updated.length ? { attachments: updated } : null }).eq("id", a.id);
+                                      setActivities(prev => prev.map(x => x.id === a.id ? { ...x, metadata: updated.length ? { attachments: updated } as any : null } : x));
+                                    }}
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div key={i} className="flex items-center gap-1 group">
+                                  <a href={att.url} target="_blank" rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted transition-colors">
+                                    <File className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="max-w-[160px] truncate">{att.name}</span>
+                                  </a>
+                                  <button
+                                    type="button"
+                                    className="hidden group-hover:flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white"
+                                    onClick={async () => {
+                                      await supabase.storage.from("lead-attachments").remove([att.path]);
+                                      const updated = attachments.filter((_, j) => j !== i);
+                                      await supabase.from("activity_logs").update({ metadata: updated.length ? { attachments: updated } : null }).eq("id", a.id);
+                                      setActivities(prev => prev.map(x => x.id === a.id ? { ...x, metadata: updated.length ? { attachments: updated } as any : null } : x));
+                                    }}
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+                        <div className="text-[11px] text-muted-foreground">{formatDateTimeIN(a.created_at)}</div>
+                      </div>
+                      <button
+                        type="button"
+                        title="Delete note"
+                        className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={async () => {
+                          if (!window.confirm("Delete this note?")) return;
+                          const atts = (a.metadata as any)?.attachments as { path: string }[] | undefined;
+                          if (atts?.length) await supabase.storage.from("lead-attachments").remove(atts.map(x => x.path));
+                          await supabase.from("activity_logs").delete().eq("id", a.id);
+                          setActivities(prev => prev.filter(x => x.id !== a.id));
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* New note input */}
+          <div className="space-y-2 border-t pt-3">
+            <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Type a note about this lead…" />
+
+            {noteFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {noteFiles.map((f, i) => (
+                  <div key={i} className="flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs">
+                    {f.type.startsWith("image/") ? <FileImage className="h-3.5 w-3.5 text-primary shrink-0" /> : <File className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                    <span className="max-w-[140px] truncate">{f.name}</span>
+                    <button type="button" onClick={() => setNoteFiles((prev) => prev.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive ml-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button onClick={addNote} disabled={saving || !note.trim()} className="w-full min-h-11">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
+              {saving ? "Saving…" : "Add note"}
+            </Button>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -1183,6 +1494,12 @@ function LeadProfile() {
         leadId={lead.id}
         fromCompanyId={lead.company_id}
         performedBy={profile?.id ?? null}
+      />
+      <RequirementDetailDialog
+        requirement={detailReq as any}
+        open={!!detailReq}
+        onOpenChange={(v) => { if (!v) setDetailReq(null); }}
+        onEdit={() => { setEditReqId(detailReq!.id); setReqOpen(true); setDetailReq(null); }}
       />
       <RequirementSheet
         open={reqOpen}

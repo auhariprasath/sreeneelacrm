@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { sendPasswordResetOtp, verifyPasswordResetOtp } from "@/lib/api/password-reset.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +21,9 @@ function Forgot() {
   const [busy, setBusy] = useState(false);
   const [resendIn, setResendIn] = useState(0);
 
-  // Countdown timer for resend
+  const sendOtp = useServerFn(sendPasswordResetOtp);
+  const verifyOtp = useServerFn(verifyPasswordResetOtp);
+
   useEffect(() => {
     if (resendIn <= 0) return;
     const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
@@ -30,37 +34,40 @@ function Forgot() {
     e?.preventDefault();
     if (!email.trim()) { toast.error("Enter your email address"); return; }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: false },
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      await sendOtp({ data: { email: email.trim() } });
+      toast.success("A 6-digit code has been sent to your email");
+      setOtp("");
+      setStep("otp");
+      setResendIn(60);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to send code");
+    } finally {
+      setBusy(false);
     }
-    toast.success("A 6-digit code has been sent to your email");
-    setOtp("");
-    setStep("otp");
-    setResendIn(60);
   };
 
   const verifyCode = async () => {
     if (otp.length !== 6) return;
     setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: otp,
-      type: "email",
-    });
-    setBusy(false);
-    if (error) {
-      toast.error("Invalid or expired code. Please try again.");
+    try {
+      const { token_hash } = await verifyOtp({ data: { email: email.trim(), otp } });
+
+      // Sign the user in using the recovery token so /change-password works
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash,
+        type: "recovery",
+      });
+      if (error) throw error;
+
+      toast.success("Identity verified — set your new password");
+      navigate({ to: "/change-password" });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Invalid or expired code. Please try again.");
       setOtp("");
-      return;
+    } finally {
+      setBusy(false);
     }
-    toast.success("Identity verified — set your new password");
-    navigate({ to: "/change-password" });
   };
 
   return (

@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, AlertTriangle, CalendarClock, CheckCircle2 } from "lucide-react";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -309,16 +311,16 @@ export function RescheduleBookingDialog({ open, onOpenChange, booking, onDone }:
           </div>
           <div>
             <Label className="text-xs">New date *</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="min-h-11" />
+            <DateConfirmField value={date} onChange={setDate} fromDate={new Date()} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Start</Label>
-              <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} className="min-h-11" />
+              <TimeClockField value={start} onChange={setStart} placeholder="Start time" />
             </div>
             <div>
               <Label className="text-xs">End</Label>
-              <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} className="min-h-11" />
+              <TimeClockField value={end} onChange={setEnd} placeholder="End time" />
             </div>
           </div>
           <div>

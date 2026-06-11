@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { SkeletonList } from "@/components/skeleton-list";
 import { formatINR, formatDateIN, formatPhoneIN, relativeTime } from "@/lib/format";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 import { FileText, Search, Download, ExternalLink } from "lucide-react";
 import { InvoiceRowMenu } from "@/components/quotations/invoice-row-menu";
 
@@ -197,8 +198,8 @@ function QuotationsPage() {
           </Select>
           {range === "custom" && (
             <>
-              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+              <DateConfirmField value={from} onChange={setFrom} placeholder="From date" />
+              <DateConfirmField value={to}   onChange={setTo}   placeholder="To date" />
             </>
           )}
         </CardContent>

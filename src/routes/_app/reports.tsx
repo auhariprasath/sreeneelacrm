@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DashboardSkeleton } from "@/components/skeleton-dashboard";
 import { formatINR } from "@/lib/format";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
 import { Download, TrendingUp, TrendingDown, Star, IndianRupee, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/_app/reports")({ component: ReportsPage });
@@ -145,11 +146,11 @@ function ReportsPage() {
         <div className="flex flex-wrap items-end gap-2">
           <div>
             <Label className="text-xs">From</Label>
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9" />
+            <DateConfirmField value={from} onChange={setFrom} />
           </div>
           <div>
             <Label className="text-xs">To</Label>
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9" />
+            <DateConfirmField value={to} onChange={setTo} />
           </div>
           <Button variant="outline" size="sm" onClick={exportAll} disabled={!data}>
             <Download className="h-4 w-4 mr-2" />Export CSV

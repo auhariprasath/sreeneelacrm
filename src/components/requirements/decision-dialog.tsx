@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, ThumbsDown, Clock, FileCheck2 } from "lucide-react";
+import { DateTimeField } from "@/components/ui/datetime-field";
 
 
 type Decision = "interested" | "not_interested" | "needs_time" | "confirm_booking";
@@ -202,7 +203,7 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
         {decision === "needs_time" && (
           <div className="space-y-1.5">
             <Label>Follow-up at *</Label>
-            <Input type="datetime-local" value={followUpAt} onChange={(e) => setFollowUpAt(e.target.value)} />
+            <DateTimeField value={followUpAt} onChange={setFollowUpAt} />
           </div>
         )}
 

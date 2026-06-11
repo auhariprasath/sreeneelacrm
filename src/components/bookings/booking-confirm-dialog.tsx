@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, CheckCircle2, Loader2, IndianRupee, Calendar, MapPin } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, Loader2, IndianRupee, Calendar, MapPin, CalendarPlus } from "lucide-react";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -26,6 +28,7 @@ interface Props {
 }
 
 interface Instalment { amount: number; due_date: string }
+interface ExtraDay { date: string; start_time: string; end_time: string; label: string }
 
 const PAYMENT_OPTIONS: { value: PaymentType; label: string; help: string }[] = [
   { value: "full", label: "Full payment", help: "Client pays the entire amount now" },
@@ -53,6 +56,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
   const [transactionRef, setTransactionRef] = useState("");
   const [instalments, setInstalments] = useState<Instalment[]>([]);
   const [notes, setNotes] = useState("");
+  const [extraDays, setExtraDays] = useState<ExtraDay[]>([]);
 
   useEffect(() => {
     if (!open || !quotationId) return;
@@ -92,7 +96,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
     if (!open) {
       setQuote(null); setRequirement(null); setCompany(null);
       setPaymentType("advance_50"); setChequeNumber(""); setChequeBank(""); setChequeClearDate("");
-      setTransactionRef(""); setInstalments([]); setNotes(""); setVenue("");
+      setTransactionRef(""); setInstalments([]); setNotes(""); setVenue(""); setExtraDays([]);
     }
   }, [open]);
 
@@ -138,6 +142,19 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
         created_by: profile?.id ?? null,
       }).select("*").single();
       if (bErr || !booking) throw new Error(bErr?.message || "Couldn't create booking");
+
+      // 1b. Insert extra days if any
+      if (extraDays.length > 0) {
+        const dayRows = extraDays.map((d, i) => ({
+          booking_id: booking.id,
+          day_number: i + 2,
+          label: d.label || `Day ${i + 2}`,
+          event_date: d.date,
+          start_time: d.start_time || null,
+          end_time: d.end_time || null,
+        }));
+        await supabase.from("booking_days" as any).insert(dayRows);
+      }
 
       // 2. Create payment rows
       const paymentRows: Database["public"]["Tables"]["payments"]["Insert"][] = [];
@@ -302,6 +319,78 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
               <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="e.g. Sri Krishna Mandapam, T Nagar" />
             </div>
 
+            {/* Multi-day */}
+            <div className="space-y-2 border rounded-md p-3 bg-card">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold flex items-center gap-1">
+                  <CalendarPlus className="h-3.5 w-3.5" />
+                  Day 1 — {requirement.event_date ? formatDateIN(requirement.event_date) : "Primary date"}
+                  {requirement.start_time && ` · ${formatTimeOfDay(requirement.start_time)}`}
+                </Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={() => setExtraDays([...extraDays, {
+                    date: new Date().toISOString().slice(0, 10),
+                    start_time: requirement.start_time ?? "",
+                    end_time: requirement.end_time ?? "",
+                    label: `Day ${extraDays.length + 2}`,
+                  }])}
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Add day
+                </Button>
+              </div>
+              {extraDays.map((d, idx) => (
+                <div key={idx} className="border rounded p-2 space-y-2 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Day {idx + 2}</span>
+                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => setExtraDays(extraDays.filter((_, i) => i !== idx))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-muted-foreground">Label (optional)</Label>
+                      <Input
+                        value={d.label}
+                        onChange={(e) => setExtraDays(extraDays.map((x, i) => i === idx ? { ...x, label: e.target.value } : x))}
+                        placeholder={`Day ${idx + 2}`}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-muted-foreground">Date *</Label>
+                      <DateConfirmField
+                        value={d.date}
+                        onChange={(v) => setExtraDays(extraDays.map((x, i) => i === idx ? { ...x, date: v } : x))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-muted-foreground">Start time</Label>
+                      <TimeClockField
+                        value={d.start_time}
+                        onChange={(v) => setExtraDays(extraDays.map((x, i) => i === idx ? { ...x, start_time: v } : x))}
+                        placeholder="Start time"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-muted-foreground">End time</Label>
+                      <TimeClockField
+                        value={d.end_time}
+                        onChange={(v) => setExtraDays(extraDays.map((x, i) => i === idx ? { ...x, end_time: v } : x))}
+                        placeholder="End time"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {extraDays.length === 0 && (
+                <div className="text-[11px] text-muted-foreground">Single-day event. Click "Add day" for multi-day bookings.</div>
+              )}
+            </div>
+
             {/* Payment type */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Payment</Label>
@@ -353,7 +442,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Expected clearing date</Label>
-                  <Input type="date" value={chequeClearDate} onChange={(e) => setChequeClearDate(e.target.value)} />
+                  <DateConfirmField value={chequeClearDate} onChange={setChequeClearDate} />
                 </div>
               </div>
             )}
@@ -369,7 +458,7 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
                 {instalments.map((it, idx) => (
                   <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
                     <Input type="number" min={0} value={it.amount} onChange={(e) => setInstalments(instalments.map((x, i) => i === idx ? { ...x, amount: Number(e.target.value) } : x))} placeholder="Amount" />
-                    <Input type="date" value={it.due_date} onChange={(e) => setInstalments(instalments.map((x, i) => i === idx ? { ...x, due_date: e.target.value } : x))} />
+                    <DateConfirmField value={it.due_date} onChange={(v) => setInstalments(instalments.map((x, i) => i === idx ? { ...x, due_date: v } : x))} />
                     <Button type="button" size="icon" variant="ghost" onClick={() => setInstalments(instalments.filter((_, i) => i !== idx))}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

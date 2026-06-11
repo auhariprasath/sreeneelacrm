@@ -19,30 +19,77 @@ type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Quotation = Database["public"]["Tables"]["quotations"]["Row"];
 type Activity = Database["public"]["Tables"]["activity_logs"]["Row"];
 
+type LeadStatus = "new" | "in_progress" | "follow_up" | "venue_meeting" | "positive" | "negative" | "neutral" | "closed" | "unresponsive" | "locked";
+
+const NEXT_STATUS: Partial<Record<LeadStatus, LeadStatus>> = {
+  new:           "in_progress",
+  in_progress:   "follow_up",
+  follow_up:     "venue_meeting",
+  venue_meeting: "positive",
+  negative:      "follow_up",
+  unresponsive:  "follow_up",
+  neutral:       "in_progress",
+};
+
 const CATEGORY_ORDER: WaTemplateCategory[] = [
   "lead_capture", "follow_up", "quotation", "booking_payment",
   "event_reminders", "post_event", "meetings", "tasks_coordination",
 ];
 
 function suggestTemplateKey(lead: Lead, quotations: Quotation[]): string {
-  const daysSince = (Date.now() - new Date(lead.created_at).getTime()) / 86400000;
-  const sentQs = quotations.filter(q => !["draft"].includes(q.status));
+  const sentQs = quotations.filter(q => q.status !== "draft");
   const agreedQ = sentQs.find(q => q.status === "agreed");
   const declinedQ = sentQs.find(q => q.status === "declined");
   const sentQ = sentQs.find(q => q.status === "sent");
-  if (agreedQ) return "booking_confirmed";
-  if (declinedQ) return "quotation_revised";
-  if (sentQ) return "quotation_followup";
-  if (daysSince > 4) return "day5_portfolio";
-  if (daysSince > 2) return "day3_followup";
-  if (daysSince > 0) return "day1_followup";
-  return "lead_ack";
+  const daysSince = (Date.now() - new Date(lead.created_at).getTime()) / 86400000;
+
+  switch (lead.status) {
+    case "new":
+      // current: lead_ack → next phase: follow up
+      return "day1_followup";
+    case "in_progress":
+      // current: follow up → next phase: venue meeting
+      return "meeting_confirmed";
+    case "follow_up":
+      // current: follow up (deeper) → next phase: venue meeting
+      return "meeting_confirmed";
+    case "venue_meeting":
+      // current: meeting → next phase: quotation
+      return "quotation_sent";
+    case "positive":
+      // current: quotation sent → next phase: booking
+      if (declinedQ) return "quotation_revised";
+      if (sentQ) return "quotation_followup";
+      return "booking_confirmed";
+    case "negative":
+      // current: declined → next phase: re-engage with revised quote
+      return "quotation_revised";
+    case "closed":
+      // current: booked → next phase: post event
+      return "feedback_request";
+    case "unresponsive":
+      // current: no answer → next phase: follow up
+      return "day3_followup";
+    case "neutral":
+      // current: neutral → next phase: follow up with portfolio
+      return "day5_portfolio";
+    case "locked":
+      // current: balance pending → next phase: remind and close
+      return "balance_reminder";
+    default:
+      return "day1_followup";
+  }
 }
 
 function renderWithLead(body: string, lead: Lead, companyName: string): string {
+  const eventDate = lead.event_date
+    ? new Date(lead.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : "[Event date]";
   return body
     .replace(/\[Name\]/g, lead.full_name)
-    .replace(/\[Company\]/g, companyName);
+    .replace(/\[Company\]/g, companyName)
+    .replace(/\[Event type\]/g, lead.event_type ?? "[Event type]")
+    .replace(/\[Event date\]/g, eventDate);
 }
 
 interface Props {
@@ -51,9 +98,10 @@ interface Props {
   activities: Activity[];
   companyId: string;
   onActivityLogged?: () => void;
+  onStatusAdvanced?: (newStatus: LeadStatus) => void;
 }
 
-export function WhatsAppLeadTab({ lead, quotations, activities, companyId, onActivityLogged }: Props) {
+export function WhatsAppLeadTab({ lead, quotations, activities, companyId, onActivityLogged, onStatusAdvanced }: Props) {
   const { profile } = useAuth();
   const [templates, setTemplates] = useState<WaTemplatesMap>({});
   const [companyName, setCompanyName] = useState("");
@@ -97,6 +145,23 @@ export function WhatsAppLeadTab({ lead, quotations, activities, companyId, onAct
     setEditedMsg(rendered);
   };
 
+  const sendDirect = async (key: string, name: string) => {
+    const body = templates[key]?.body ?? "";
+    const rendered = renderWithLead(body, lead, companyName);
+    const url = buildWaMeLink(lead.phone, rendered);
+    if (url) openWaMeLink(url);
+    await supabase.from("activity_logs").insert({
+      lead_id: lead.id,
+      action: `WhatsApp sent — "${name}"`,
+      note: rendered.slice(0, 300),
+      action_type: "system",
+      performed_by: profile?.id ?? null,
+      metadata: { template_key: key } as any,
+    });
+    toast.success("WhatsApp opened ✓");
+    onActivityLogged?.();
+  };
+
   const handleSend = async () => {
     if (!selected || !editedMsg.trim()) return;
     setSending(true);
@@ -110,6 +175,16 @@ export function WhatsAppLeadTab({ lead, quotations, activities, companyId, onAct
       performed_by: profile?.id ?? null,
       metadata: { template_key: selected.key } as any,
     });
+
+    // Advance lead status if this was the suggested template
+    if (selected.key === suggestedKey) {
+      const nextStatus = NEXT_STATUS[lead.status as LeadStatus];
+      if (nextStatus) {
+        await supabase.from("leads").update({ status: nextStatus }).eq("id", lead.id);
+        onStatusAdvanced?.(nextStatus);
+      }
+    }
+
     toast.success("WhatsApp opened ✓");
     setSending(false);
     setSelected(null);

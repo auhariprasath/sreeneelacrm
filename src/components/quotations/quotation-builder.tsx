@@ -13,6 +13,8 @@ import {
   MessageCircle, Mail, Copy, Download, FileText, Link2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DateConfirmField } from "@/components/ui/date-confirm-field";
+import { TimeClockField } from "@/components/ui/time-clock-picker";
 import { useAuth } from "@/lib/auth";
 import { formatINR, formatDateIN, formatTimeOfDay, addHoursToTime } from "@/lib/format";
 import { buildWaMeLink, openWaMeLink } from "@/lib/utils";
@@ -468,16 +470,15 @@ export function QuotationBuilder({
                 <div className="text-xs text-muted-foreground">Auto-filled from intake form. Confirm or edit before continuing.</div>
                 <Field label="Event type *"><Input value={evType} onChange={(e) => setEvType(e.target.value)} placeholder="Wedding, Reception, etc." /></Field>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Event date *"><Input type="date" value={evDate} onChange={(e) => setEvDate(e.target.value)} /></Field>
+                  <Field label="Event date *"><DateConfirmField value={evDate} onChange={setEvDate} /></Field>
                   <Field label="Guest count"><Input type="number" min={0} value={evGuests} onChange={(e) => setEvGuests(e.target.value === "" ? "" : Number(e.target.value))} /></Field>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <Field label="Start time">
-                    <Input type="time" value={evStart} onChange={(e) => {
-                      const t = e.target.value;
+                    <TimeClockField value={evStart} onChange={(t) => {
                       setEvStart(t);
                       if (t && evDuration) setEvEnd(addHoursToTime(t, evDuration));
-                    }} />
+                    }} placeholder="Start time" />
                   </Field>
                   <Field label="Duration">
                     <DurationPicker value={evDuration} onChange={(h) => {

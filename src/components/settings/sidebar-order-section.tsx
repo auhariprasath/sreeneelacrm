@@ -5,7 +5,7 @@ import { GripVertical, Eye, EyeOff } from "lucide-react";
 import {
   LayoutDashboard, Users, ClipboardList, FileText, CalendarDays,
   PhoneCall, KanbanSquare, Megaphone, MapPin, Star, UserX,
-  MessageSquare, BarChart3, ArrowRightLeft, Settings,
+  MessageSquare, BarChart3, ArrowRightLeft, Settings, TrendingUp,
 } from "lucide-react";
 
 export const ALL_NAV_ITEMS = [
@@ -21,6 +21,7 @@ export const ALL_NAV_ITEMS = [
   { key: "customers",      label: "Customers",        icon: Star },
   { key: "not-interested", label: "Not Interested",   icon: UserX },
   { key: "stale-leads",    label: "Stale Leads",      icon: MessageSquare },
+  { key: "analytics",      label: "Analytics",        icon: TrendingUp },
   { key: "reports",        label: "Reports",          icon: BarChart3 },
   { key: "transfers",      label: "Transfers",        icon: ArrowRightLeft },
   { key: "settings",       label: "Settings",         icon: Settings },
@@ -33,7 +34,13 @@ const STORAGE_KEY = "crm_sidebar_order";
 export function getSidebarPrefs(): { order: NavKey[]; hidden: NavKey[] } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw) as { order: NavKey[]; hidden: NavKey[] };
+      const allKeys = ALL_NAV_ITEMS.map((i) => i.key);
+      const saved = parsed.order.filter((k) => allKeys.includes(k as NavKey));
+      const unsaved = allKeys.filter((k) => !saved.includes(k));
+      return { order: [...saved, ...unsaved] as NavKey[], hidden: parsed.hidden ?? [] };
+    }
   } catch {}
   return { order: ALL_NAV_ITEMS.map((i) => i.key), hidden: [] };
 }
