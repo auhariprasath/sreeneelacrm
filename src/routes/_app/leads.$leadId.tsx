@@ -60,7 +60,7 @@ export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadPro
 
 function LeadProfile() {
   const { leadId } = Route.useParams();
-  const { profile } = useAuth();
+  const { profile, role } = useAuth();
   const navigate = useNavigate();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
@@ -135,6 +135,12 @@ function LeadProfile() {
     setLoading(true);
     const { data, error } = await supabase.from("leads").select("*").eq("id", leadId).maybeSingle();
     if (error || !data) { toast.error("Lead not found"); navigate({ to: "/leads" }); return; }
+    // Staff can only view leads assigned to them
+    if (role === "staff" && profile?.id && (data as Lead).assigned_to !== profile.id) {
+      toast.error("You don't have access to this lead");
+      navigate({ to: "/leads" });
+      return;
+    }
     setLead(data as Lead);
 
     await supabase.from("activity_logs").insert({

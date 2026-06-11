@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { Mail, Phone, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { Mail, Phone, Lock, ArrowRight, Sparkles, Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import { useAppLogo } from "@/lib/use-app-logo";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
@@ -22,11 +23,13 @@ function normalizePhone(raw: string) {
 
 function LoginPage() {
   const { signIn, user, loading } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const appLogo = useAppLogo();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [phone, setPhone] = useState("");
@@ -83,12 +86,25 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen flex bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Theme toggle — top right */}
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label="Toggle theme"
+        className="fixed top-4 right-4 z-50 h-9 w-9 rounded-full border flex items-center justify-center transition-colors
+          bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700
+          dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/20 dark:text-white"
+      >
+        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
+
       {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden
+        bg-slate-50 border-r border-slate-200
+        dark:bg-transparent dark:border-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none dark:from-primary/20" />
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none dark:bg-primary/10" />
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Logo */}
@@ -97,8 +113,8 @@ function LoginPage() {
             <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
           </div>
           <div>
-            <div className="text-white font-bold text-xl leading-tight">Neela Events</div>
-            <div className="text-slate-400 text-sm">CRM Platform</div>
+            <div className="font-bold text-xl leading-tight text-slate-900 dark:text-white">Neela Events</div>
+            <div className="text-sm text-slate-500 dark:text-slate-400">CRM Platform</div>
           </div>
         </div>
 
@@ -108,18 +124,18 @@ function LoginPage() {
             <Sparkles className="h-4 w-4" />
             <span>Built for Indian event venues</span>
           </div>
-          <h1 className="text-4xl font-bold text-white leading-tight">
+          <h1 className="text-4xl font-bold leading-tight text-slate-900 dark:text-white">
             Manage every event,<br />
             <span className="text-primary">effortlessly.</span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
+          <p className="text-lg leading-relaxed max-w-sm text-slate-500 dark:text-slate-400">
             From lead capture to event day — quotations, bookings, payments, and vendor coordination in one place.
           </p>
 
           {/* Feature list */}
           <div className="space-y-3 pt-2">
             {["Lead & requirement tracking", "Quotation builder with PDF export", "Real-time booking & payment status"].map((f) => (
-              <div key={f} className="flex items-center gap-3 text-slate-300 text-sm">
+              <div key={f} className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                 {f}
               </div>
@@ -128,7 +144,7 @@ function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="relative text-slate-500 text-xs">
+        <div className="relative text-xs text-slate-400 dark:text-slate-500">
           © {new Date().getFullYear()} Neela Events CRM · Secure &amp; private
         </div>
       </div>
@@ -142,22 +158,27 @@ function LoginPage() {
               <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
             </div>
             <div>
-              <div className="text-white font-bold text-lg leading-tight">Neela Events CRM</div>
+              <div className="font-bold text-lg leading-tight text-slate-900 dark:text-white">Neela Events CRM</div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white">Sign in</h2>
-            <p className="text-slate-400 text-sm">Welcome back — enter your credentials to continue.</p>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Sign in</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Welcome back — enter your credentials to continue.</p>
           </div>
 
-          <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+          <div className="rounded-2xl p-6 shadow-sm border
+            bg-white border-slate-200
+            dark:bg-slate-800/60 dark:backdrop-blur-sm dark:border-slate-700/50 dark:shadow-2xl">
             <Tabs defaultValue="email" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-700/50">
-                <TabsTrigger value="email" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-300">
+              <TabsList className="grid w-full grid-cols-2 mb-6
+                bg-slate-100 dark:bg-slate-700/50">
+                <TabsTrigger value="email" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+                  text-slate-600 dark:text-slate-300">
                   <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
                 </TabsTrigger>
-                <TabsTrigger value="phone" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-300">
+                <TabsTrigger value="phone" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+                  text-slate-600 dark:text-slate-300">
                   <Phone className="h-3.5 w-3.5 mr-1.5" /> Phone OTP
                 </TabsTrigger>
               </TabsList>
@@ -165,7 +186,7 @@ function LoginPage() {
               <TabsContent value="email">
                 <form onSubmit={onSubmit} className="space-y-5">
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-slate-300 text-sm">Email address</Label>
+                    <Label htmlFor="email" className="text-sm text-slate-700 dark:text-slate-300">Email address</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
@@ -173,24 +194,40 @@ function LoginPage() {
                         value={email} onChange={(e) => setEmail(e.target.value)}
                         autoComplete="email"
                         placeholder="you@company.com"
-                        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/20"
+                        className="pl-10
+                          bg-white border-slate-300 text-slate-900 placeholder:text-slate-400
+                          dark:bg-slate-700/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500
+                          focus:border-primary focus:ring-primary/20"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-slate-300 text-sm">Password</Label>
+                      <Label htmlFor="password" className="text-sm text-slate-700 dark:text-slate-300">Password</Label>
                       <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
                     </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        id="password" type="password" required
+                        id="password" type={showPassword ? "text" : "password"} required
                         value={password} onChange={(e) => setPassword(e.target.value)}
                         autoComplete="current-password"
                         placeholder="••••••••"
-                        className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/20"
+                        className="pl-10 pr-10
+                          bg-white border-slate-300 text-slate-900 placeholder:text-slate-400
+                          dark:bg-slate-700/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500
+                          focus:border-primary focus:ring-primary/20"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors
+                          text-slate-400 hover:text-slate-700
+                          dark:text-slate-400 dark:hover:text-slate-200"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </div>
                   <Button type="submit" className="w-full gap-2 h-11 text-sm font-semibold" disabled={submitting}>
@@ -203,7 +240,7 @@ function LoginPage() {
                 {otpStep === "phone" ? (
                   <div className="space-y-5">
                     <div className="space-y-1.5">
-                      <Label htmlFor="phone" className="text-slate-300 text-sm">Phone number</Label>
+                      <Label htmlFor="phone" className="text-sm text-slate-700 dark:text-slate-300">Phone number</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
@@ -211,10 +248,13 @@ function LoginPage() {
                           placeholder="+91 98765 43210"
                           value={phone} onChange={(e) => setPhone(e.target.value)}
                           autoComplete="tel"
-                          className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-primary focus:ring-primary/20"
+                          className="pl-10
+                            bg-white border-slate-300 text-slate-900 placeholder:text-slate-400
+                            dark:bg-slate-700/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500
+                            focus:border-primary focus:ring-primary/20"
                         />
                       </div>
-                      <p className="text-xs text-slate-500">We'll text you a 6-digit code. Defaults to +91.</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">We'll text you a 6-digit code. Defaults to +91.</p>
                     </div>
                     <Button onClick={sendOtp} className="w-full gap-2 h-11 text-sm font-semibold" disabled={otpBusy || !phone.trim()}>
                       {otpBusy ? "Sending…" : <><span>Send code</span><ArrowRight className="h-4 w-4" /></>}
@@ -223,23 +263,26 @@ function LoginPage() {
                 ) : (
                   <div className="space-y-5">
                     <div className="space-y-2">
-                      <Label className="text-slate-300 text-sm">Enter the 6-digit code</Label>
+                      <Label className="text-sm text-slate-700 dark:text-slate-300">Enter the 6-digit code</Label>
                       <div className="flex justify-center py-2">
                         <InputOTP maxLength={6} value={otp} onChange={setOtp}>
                           <InputOTPGroup>
                             {[0, 1, 2, 3, 4, 5].map((i) => (
-                              <InputOTPSlot key={i} index={i} className="bg-slate-700/50 border-slate-600 text-white" />
+                              <InputOTPSlot key={i} index={i} className="
+                                bg-white border-slate-300 text-slate-900
+                                dark:bg-slate-700/50 dark:border-slate-600 dark:text-white" />
                             ))}
                           </InputOTPGroup>
                         </InputOTP>
                       </div>
-                      <p className="text-xs text-slate-500 text-center">Sent to {normalizePhone(phone)}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 text-center">Sent to {normalizePhone(phone)}</p>
                     </div>
                     <Button onClick={verifyOtp} className="w-full gap-2 h-11 text-sm font-semibold" disabled={otpBusy || otp.length !== 6}>
                       {otpBusy ? "Verifying…" : <><span>Verify &amp; sign in</span><ArrowRight className="h-4 w-4" /></>}
                     </Button>
                     <div className="flex items-center justify-between text-sm">
-                      <button type="button" className="text-slate-400 hover:text-white transition-colors"
+                      <button type="button"
+                        className="transition-colors text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
                         onClick={() => { setOtpStep("phone"); setOtp(""); }}>
                         Change number
                       </button>
@@ -255,7 +298,7 @@ function LoginPage() {
             </Tabs>
           </div>
 
-          <p className="text-center text-slate-500 text-xs">
+          <p className="text-center text-xs text-slate-400 dark:text-slate-500">
             Secured with Supabase Auth · Data stays in your region
           </p>
         </div>

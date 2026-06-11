@@ -73,6 +73,35 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     navigate({ to: "/leads/$leadId", params: { leadId: duplicate.id }, state: { openNewReq: true } as any });
   };
 
+  const getNextAssignee = async (companyId: string): Promise<string | null> => {
+    // Fetch active, non-leave staff for this company ordered consistently by name
+    const { data: staff } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("is_active", true)
+      .eq("on_leave", false)
+      .is("deleted_at", null)
+      .order("full_name", { ascending: true });
+    if (!staff || staff.length === 0) return profile?.id ?? null;
+
+    // Find who the last lead in this company was assigned to
+    const { data: lastLead } = await supabase
+      .from("leads")
+      .select("assigned_to")
+      .eq("company_id", companyId)
+      .is("deleted_at", null)
+      .not("assigned_to", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const lastAssignedId = lastLead?.assigned_to ?? null;
+    const ids = staff.map((s) => s.id);
+    const lastIndex = lastAssignedId ? ids.indexOf(lastAssignedId) : -1;
+    return ids[(lastIndex + 1) % ids.length];
+  };
+
   const submit = async () => {
     if (!targetCompanyId) { toast.error("Select a company first."); return; }
     const d = normalizedPhone(phone);
@@ -84,6 +113,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     }
 
     setSubmitting(true);
+    const assignedTo = await getNextAssignee(targetCompanyId);
     const { data, error } = await supabase.from("leads").insert({
       full_name: fullName.trim(),
       phone: `+91${d}`,
@@ -94,7 +124,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
       notes: notes.trim() || null,
       company_id: targetCompanyId,
       created_by: profile?.id,
-      assigned_to: profile?.id,
+      assigned_to: assignedTo,
       referred_by_name: source === "referral" ? (referredByName.trim() || null) : null,
       referred_by_lead_id: source === "referral" ? referredByLeadId : null,
     }).select("id").single();
@@ -170,6 +200,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
+              autoComplete="off"
             />
           </div>
 

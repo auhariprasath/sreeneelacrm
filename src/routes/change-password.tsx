@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/change-password")({ component: ChangePassword });
 
@@ -17,6 +18,8 @@ function ChangePassword() {
   const changePwd = useServerFn(changeOwnPassword);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
@@ -54,11 +57,21 @@ function ChangePassword() {
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="np">New password</Label>
-              <Input id="np" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <div className="relative">
+                <Input id="np" type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1}>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="cp">Confirm password</Label>
-              <Input id="cp" type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+              <div className="relative">
+                <Input id="cp" type={showConfirm ? "text" : "password"} required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="pr-10" />
+                <button type="button" onClick={() => setShowConfirm((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1}>
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={busy}>{busy ? "Saving…" : "Update password"}</Button>
           </form>

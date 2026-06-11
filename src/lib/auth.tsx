@@ -32,6 +32,7 @@ interface AuthState {
   companies: Company[]; // all visible to current user (1 or all 4)
   activeCompanyId: string | null; // super-admin can switch; null = all
   setActiveCompanyId: (id: string | null) => void;
+  setCompanyOrder: (orderedIds: string[]) => void;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -85,7 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // companies — RLS filters automatically
     const { data: comps } = await supabase.from("companies").select("id,name,type,brand_color").order("name");
-    const list = (comps ?? []) as Company[];
+    const fetched = (comps ?? []) as Company[];
+    // apply persisted drag-drop order
+    const stored = typeof window !== "undefined" ? localStorage.getItem("neela-company-order") : null;
+    const orderedIds: string[] = stored ? JSON.parse(stored) : [];
+    const list = orderedIds.length
+      ? [
+          ...orderedIds.map((id) => fetched.find((c) => c.id === id)).filter(Boolean) as Company[],
+          ...fetched.filter((c) => !orderedIds.includes(c.id)),
+        ]
+      : fetched;
     setCompanies(list);
 
     if (userRole === "super_admin") {
@@ -149,12 +159,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
+  const setCompanyOrder = useCallback((orderedIds: string[]) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("neela-company-order", JSON.stringify(orderedIds));
+    }
+    setCompanies((prev) => [
+      ...orderedIds.map((id) => prev.find((c) => c.id === id)).filter(Boolean) as Company[],
+      ...prev.filter((c) => !orderedIds.includes(c.id)),
+    ]);
+  }, []);
+
   const clearMustChangePassword = () => {
     setProfile((prev) => prev ? { ...prev, must_change_password: false } : null);
   };
 
   return (
-    <AuthContext.Provider value={{ loading, user, session, profile, role, companies, activeCompanyId, setActiveCompanyId, signIn, signOut, refreshProfile, clearMustChangePassword }}>
+    <AuthContext.Provider value={{ loading, user, session, profile, role, companies, activeCompanyId, setActiveCompanyId, setCompanyOrder, signIn, signOut, refreshProfile, clearMustChangePassword }}>
       {children}
     </AuthContext.Provider>
   );

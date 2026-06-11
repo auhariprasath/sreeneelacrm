@@ -96,6 +96,8 @@ function LeadsInbox() {
       .order("updated_at", { ascending: false })
       .range(pg * PAGE, pg * PAGE + PAGE - 1);
     if (companyFilter) q = q.eq("company_id", companyFilter);
+    // Staff can only see leads assigned to them
+    if (role === "staff" && profile?.id) q = q.eq("assigned_to", profile.id);
     if (status !== "all") q = q.eq("status", status);
     if (followupDue) {
       if (!followupDueIds || followupDueIds.length === 0) {
@@ -164,12 +166,16 @@ function LeadsInbox() {
       to_company_id: companyId,
       requested_by: profile.id,
       reason: transferReason.trim(),
-      requirement_summary: "Employee reassignment request",
+      requirement_summary: "Employee reassignment request — once approved, any staff can claim this lead from the Transfers tab.",
       status: "pending",
     });
+    // Lock lead until super admin reviews
+    if (!error) {
+      await supabase.from("leads").update({ status: "locked" }).eq("id", transferLead.id);
+    }
     setTransferBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Transfer request sent to super admin");
+    toast.success("Request sent to super admin — lead locked until approved");
     setTransferLead(null);
     setTransferReason("");
   };
@@ -195,9 +201,16 @@ function LeadsInbox() {
       .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, (payload) => {
         const row = (payload.new ?? payload.old) as Lead;
         if (companyFilter && row.company_id !== companyFilter) return;
+        // Staff only see their own leads in real-time too
+        if (role === "staff" && profile?.id && row.assigned_to !== profile.id) return;
         if (payload.eventType === "INSERT") {
           setLeads((prev) => (prev.find((l) => l.id === row.id) ? prev : [payload.new as Lead, ...prev]));
         } else if (payload.eventType === "UPDATE") {
+          // If reassigned away from this staff member, remove from list
+          if (role === "staff" && profile?.id && (payload.new as Lead).assigned_to !== profile.id) {
+            setLeads((prev) => prev.filter((l) => l.id !== row.id));
+            return;
+          }
           setLeads((prev) => prev.map((l) => (l.id === row.id ? (payload.new as Lead) : l)));
         } else if (payload.eventType === "DELETE") {
           setLeads((prev) => prev.filter((l) => l.id !== row.id));
