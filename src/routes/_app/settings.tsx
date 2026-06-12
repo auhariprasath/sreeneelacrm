@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2, Users, CalendarCheck, Plus, Percent, MessageSquare, CreditCard,
-  ListChecks, XCircle, Lock, Clock, Globe, ImageIcon, UserPlus, Trash2, KeyRound,
+  ListChecks, XCircle, Lock, Clock, Globe, ImageIcon, UserPlus, Trash2, KeyRound, Eye, EyeOff,
 } from "lucide-react";
 import { StaffSection } from "@/components/settings/staff-section";
 import { DateConfirmField } from "@/components/ui/date-confirm-field";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_app/settings")({ component: SettingsPage
 
 const SECTIONS = [
   { id: "companies", label: "Companies", icon: Building2, superOnly: true },
-  { id: "staff", label: "Staff and roles", icon: Users, superOnly: false },
+  { id: "add-employees", label: "Staff & Roles", icon: Users, superOnly: false },
   { id: "wa", label: "WhatsApp templates", icon: MessageSquare, superOnly: false },
   { id: "reminders", label: "Reminder timing", icon: Clock, superOnly: false },
   { id: "peak", label: "Peak season dates", icon: CalendarCheck, superOnly: false },
@@ -42,7 +42,6 @@ const SECTIONS = [
   { id: "integrations", label: "Integrations", icon: Globe, superOnly: false },
   { id: "sidebar-order", label: "Sidebar Order", icon: ListChecks, superOnly: false },
   { id: "logo", label: "Logo", icon: ImageIcon, superOnly: false },
-  { id: "add-employees", label: "Add Employees", icon: UserPlus, superOnly: true },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -110,7 +109,7 @@ function SettingsPage() {
   // Non-super admins shouldn't land on "companies"
   useEffect(() => {
     if (role && role !== "super_admin" && section === "companies") {
-      setSection("staff");
+      setSection("add-employees");
     }
   }, [role, section]);
 
@@ -139,19 +138,6 @@ function SettingsPage() {
             </CardHeader>
             <CardContent>
               <CompaniesSection />
-            </CardContent>
-          </Card>
-        );
-      case "staff":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Staff and roles</CardTitle>
-              <CardDescription>Manage users, deactivate accounts, control phone masking and auto-approve transfers.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CompanyPicker />
-              <StaffSection companyId={activeCompanyId} />
             </CardContent>
           </Card>
         );
@@ -308,7 +294,7 @@ function SettingsPage() {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Add Employees</CardTitle>
+              <CardTitle>Staff &amp; Roles</CardTitle>
               <CardDescription>Create employee login accounts. New accounts must change their password on first login.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -365,6 +351,8 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [employees, setEmployees] = useState<EmployeeRow[]>([]);
@@ -444,7 +432,12 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
           </div>
           <div className="space-y-1.5">
             <Label>Password <span className="text-muted-foreground text-xs">(min 8 chars)</span></Label>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Temporary password" />
+            <div className="relative">
+              <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Temporary password" className="pr-10" />
+              <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         </div>
         <Button onClick={submit} disabled={busy} size="sm">
@@ -506,13 +499,19 @@ function AddEmployeesSection({ companyId }: { companyId: string | undefined }) {
             </div>
             <div className="space-y-1.5">
               <Label>New password <span className="text-muted-foreground text-xs">(min 8 chars)</span></Label>
-              <Input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-                autoFocus
-              />
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  autoFocus
+                  className="pr-10"
+                />
+                <button type="button" onClick={() => setShowNewPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => { setResetTarget(null); setNewPassword(""); }} disabled={resetting}>

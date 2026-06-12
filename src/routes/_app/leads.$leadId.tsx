@@ -85,6 +85,8 @@ function LeadProfile() {
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [quoteChangeNotes, setQuoteChangeNotes] = useState<Record<string, string>>({});
 
+  const [callHistory, setCallHistory] = useState<{ id: string; outcome: string; notes: string | null; created_at: string }[]>([]);
+
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
   const [blOpen, setBlOpen] = useState(false);
@@ -174,7 +176,7 @@ function LeadProfile() {
       lead_id: leadId, action: "Viewed lead", action_type: "view", performed_by: profile?.id ?? null,
     });
 
-    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }, { data: bks }, { data: pmts }, { data: wls }] = await Promise.all([
+    const [{ data: acts }, { data: fus }, { data: reqs }, { data: quotes }, { data: bks }, { data: pmts }, { data: wls }, callOutcomesRes] = await Promise.all([
       supabase.from("activity_logs").select("*").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(50),
       supabase.from("follow_ups").select("*").eq("lead_id", leadId).is("deleted_at", null).order("scheduled_at", { ascending: true }),
       supabase.from("requirements").select("*").eq("lead_id", leadId).is("deleted_at", null).order("requirement_number", { ascending: true }),
@@ -182,7 +184,9 @@ function LeadProfile() {
       supabase.from("bookings").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("payments").select("*").eq("lead_id", leadId).is("deleted_at", null).order("created_at", { ascending: true }),
       supabase.from("win_loss_log").select("outcome, drop_reason, competitor_name, amount_value, closed_at").eq("lead_id", leadId).order("closed_at", { ascending: false }),
+      supabase.from("call_outcomes" as any).select("id, outcome, notes, created_at").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(20),
     ]);
+    setCallHistory(((callOutcomesRes as any)?.data ?? []) as any);
     setActivities((acts as Activity[]) ?? []);
 
     // Build requirement decision map from activity logs
@@ -964,7 +968,6 @@ function LeadProfile() {
                           onChanged={loadQuotations}
                         />
                       )}
-                    </div>
                     {/* Change-request note from customer */}
                     {q.status === "declined" && quoteChangeNotes[q.id] && (
                       <div className="rounded-md border border-warning/40 bg-warning/5 px-3 py-2.5 space-y-1">
@@ -1253,6 +1256,43 @@ function LeadProfile() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Call history */}
+          {callHistory.length > 0 && (
+            <div className="pt-2 space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Call history</div>
+              <div className="space-y-1.5">
+                {callHistory.map((c) => {
+                  const outcomeColors: Record<string, string> = {
+                    interested: "text-success dark:text-success",
+                    meeting_scheduled: "text-info",
+                    callback_requested: "text-warning dark:text-warning",
+                    not_interested: "text-destructive dark:text-destructive",
+                    other: "text-muted-foreground",
+                  };
+                  const outcomeLabels: Record<string, string> = {
+                    interested: "Interested",
+                    meeting_scheduled: "Meeting at venue",
+                    callback_requested: "Callback requested",
+                    not_interested: "Not interested",
+                    other: "Other",
+                  };
+                  return (
+                    <div key={c.id} className="flex items-start gap-2 text-sm bg-muted/30 rounded-md px-3 py-2">
+                      <Phone className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <span className={`font-medium ${outcomeColors[c.outcome] ?? "text-foreground"}`}>
+                          {outcomeLabels[c.outcome] ?? c.outcome}
+                        </span>
+                        {c.notes && <span className="ml-1.5 text-muted-foreground text-xs">— {c.notes}</span>}
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{relativeTime(c.created_at)}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </TabsContent>

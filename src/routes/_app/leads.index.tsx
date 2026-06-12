@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -371,15 +371,21 @@ function LeadRow({
   onAutoAssign?: (lead: Lead) => void;
   onTransferRequest?: (lead: Lead) => void;
 }) {
+  const navigate = useNavigate();
   const phone = formatPhoneIN(lead.phone, masked);
   const tel = (lead.phone || "").replace(/\D/g, "");
   const nextEvent = meta?.nextEvent ? new Date(meta.nextEvent) : null;
   const canTransfer = role !== "super_admin" && lead.assigned_to === currentProfileId && !!currentProfileId;
 
+  const goToLead = () => navigate({ to: "/leads/$leadId", params: { leadId: lead.id } });
+
   return (
-    <tr className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+    <tr
+      className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+      onClick={goToLead}
+    >
       <td className="px-4 py-3">
-        <Link to="/leads/$leadId" params={{ leadId: lead.id }} className="flex items-center gap-2.5 hover:underline">
+        <div className="flex items-center gap-2.5">
           <Avatar className="h-7 w-7 shrink-0">
             <AvatarFallback className="text-[10px]">{initialsOf(lead.full_name)}</AvatarFallback>
           </Avatar>
@@ -389,7 +395,7 @@ function LeadRow({
               Flagged
             </span>
           )}
-        </Link>
+        </div>
       </td>
       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{phone}</td>
       <td className="px-4 py-3"><StatusBadge status={lead.status} /></td>
@@ -400,11 +406,11 @@ function LeadRow({
           : "—"}
       </td>
       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{relativeTime(lead.updated_at)}</td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-end gap-1">
           <a
             href={`tel:+91${tel.slice(-10)}`}
-            onClick={() => onAutoAssign?.(lead)}
+            onClick={(e) => { e.stopPropagation(); onAutoAssign?.(lead); }}
             className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
             aria-label="Call"
           >
@@ -412,7 +418,7 @@ function LeadRow({
           </a>
           <button
             type="button"
-            onClick={() => { onAutoAssign?.(lead); const wa = buildWaMeLink(lead.phone); if (wa) openWaMeLink(wa); }}
+            onClick={(e) => { e.stopPropagation(); onAutoAssign?.(lead); const wa = buildWaMeLink(lead.phone); if (wa) openWaMeLink(wa); }}
             className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
             aria-label="WhatsApp"
           >
@@ -421,7 +427,7 @@ function LeadRow({
           {canTransfer && (
             <button
               type="button"
-              onClick={() => onTransferRequest?.(lead)}
+              onClick={(e) => { e.stopPropagation(); onTransferRequest?.(lead); }}
               className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-accent"
               aria-label="Request transfer"
               title="Request transfer to super admin"

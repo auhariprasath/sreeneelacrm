@@ -112,6 +112,21 @@ export function BookingConfirmDialog({ open, onOpenChange, quotationId, onConfir
     }
     setSubmitting(true);
     try {
+      // Double-booking guard: check for existing confirmed/cheque_pending bookings on the same date + company
+      const { data: existing } = await supabase
+        .from("bookings")
+        .select("id, lead_id")
+        .eq("company_id", quote.company_id)
+        .eq("event_date", requirement.event_date!)
+        .in("status", ["confirmed", "cheque_pending"])
+        .is("deleted_at", null)
+        .neq("lead_id", quote.lead_id); // allow same lead to re-book (edge case)
+      if (existing && existing.length > 0) {
+        toast.error("This venue already has a confirmed booking on the same date. Double booking prevented.", { duration: 5000 });
+        setSubmitting(false);
+        return;
+      }
+
       // Compute booking financials
       let amountPaid = 0;
       let status: Database["public"]["Enums"]["booking_status"] = "confirmed";

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDashboardRealtime } from "@/hooks/use-dashboard-realtime";
@@ -40,6 +40,14 @@ function CalendarPage() {
   const [bookings, setBookings] = useState<BookingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const detailPanelRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the detail panel into view whenever a date is selected
+  useEffect(() => {
+    if (selectedDate && detailPanelRef.current) {
+      detailPanelRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selectedDate]);
 
   const monthStart = cursor;
   const monthEnd = endOfMonth(cursor);
@@ -167,10 +175,14 @@ function CalendarPage() {
 
       <Legend />
 
-      <div className="grid grid-cols-7 gap-1 text-[11px] text-muted-foreground text-center">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d}>{d}</div>)}
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-1 text-[11px] font-semibold text-muted-foreground text-center px-0.5">
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+          <div key={d} className="py-1">{d}</div>
+        ))}
       </div>
 
+      {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
         {days.map(({ date, inMonth }, i) => {
           const iso = toISO(date);
@@ -179,113 +191,192 @@ function CalendarPage() {
           const counts = countByStatus(ds);
           const isToday = iso === todayISO;
           const isSelected = iso === selectedDate;
-          const conflict = counts.confirmed >= 2 || bks.length >= 2;
+          const conflict = bks.length >= 2;
+          const hasBooking = bks.length > 0;
+          const hasSlot = ds.length > 0;
+
           return (
             <button
               key={i}
-              onClick={() => setSelectedDate(iso)}
-              className={`relative min-h-[72px] md:min-h-[90px] border rounded-md p-1.5 text-left transition-colors
-                ${inMonth ? "bg-card" : "bg-muted/30 text-muted-foreground"}
-                ${conflict ? "border-destructive ring-1 ring-destructive/60" : ""}
-                ${isSelected ? "border-primary ring-1 ring-primary" : "hover:border-primary/40"}`}
-              title={conflict ? `${bks.length} confirmed bookings — double booking` : undefined}
+              onClick={() => setSelectedDate(iso === selectedDate ? null : iso)}
+              className={[
+                "relative min-h-[80px] md:min-h-[100px] border rounded-lg p-1.5 text-left transition-all",
+                inMonth ? "bg-card hover:shadow-sm" : "bg-muted/20 text-muted-foreground/60",
+                conflict ? "border-destructive/60 bg-destructive/5 ring-1 ring-destructive/40" : "",
+                isSelected ? "border-primary ring-2 ring-primary/40 shadow-sm" : !conflict ? "hover:border-primary/50" : "",
+                isToday && !isSelected ? "border-primary/40" : "",
+              ].filter(Boolean).join(" ")}
+              title={conflict ? "⚠ Double booking detected" : undefined}
             >
-              {conflict && (
-                <span className="absolute top-1 right-1 text-[9px] font-bold text-destructive rounded px-0.5">⚠</span>
-              )}
-              <div className={`text-xs font-medium ${isToday ? "text-primary" : ""}`}>
+              {/* Date number */}
+              <div className={[
+                "h-6 w-6 rounded-full flex items-center justify-center text-xs font-semibold mb-0.5",
+                isToday ? "bg-primary text-primary-foreground" : inMonth ? "text-foreground" : "text-muted-foreground/50",
+              ].join(" ")}>
                 {date.getDate()}
               </div>
-              {/* Show up to 2 event labels */}
-              <div className="mt-0.5 space-y-0.5">
+
+              {/* Event chips — show up to 2 */}
+              <div className="space-y-0.5">
                 {bks.slice(0, 2).map((b) => (
-                  <div key={b.id} className="text-[10px] leading-tight truncate bg-destructive/15 text-destructive dark:text-destructive rounded px-1">
+                  <div
+                    key={b.id}
+                    className={[
+                      "text-[9px] md:text-[10px] leading-tight truncate rounded px-1 py-0.5 font-medium",
+                      b.status === "cheque_pending"
+                        ? "bg-warning/20 text-warning dark:text-warning"
+                        : "bg-primary/15 text-primary dark:text-primary",
+                    ].join(" ")}
+                  >
                     {b.event_type ?? "Event"}
                   </div>
                 ))}
-                {bks.length === 0 && (
+                {bks.length > 2 && (
+                  <div className="text-[9px] text-muted-foreground px-1">+{bks.length - 2} more</div>
+                )}
+                {/* Dots for slots when no bookings */}
+                {!hasBooking && hasSlot && (
                   <div className="flex flex-wrap gap-0.5 mt-0.5">
-                    {counts.confirmed > 0 && <Dot tone="bg-destructive" n={counts.confirmed} />}
+                    {counts.confirmed > 0 && <Dot tone="bg-success" n={counts.confirmed} />}
                     {counts.enquiry > 0 && <Dot tone="bg-warning" n={counts.enquiry} />}
                   </div>
                 )}
               </div>
+
+              {/* Double booking badge */}
+              {conflict && (
+                <span className="absolute top-1 right-1 text-[9px] font-bold text-destructive">⚠</span>
+              )}
             </button>
           );
         })}
       </div>
 
       {/* Selected day panel */}
-      <div className="bg-card border rounded-lg p-4">
-        <div className="text-sm font-medium mb-2">
-          {selectedDate ? formatDateIN(selectedDate) : "Pick a date to see details"}
-        </div>
-        {loading ? (
-          <div className="text-sm text-muted-foreground">Loading…</div>
-        ) : selectedDate && dayBookings.length === 0 && daySlots.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No bookings or held slots for this date.</div>
-        ) : (
-          <div className="space-y-2">
-            {dayBookings.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Confirmed bookings</div>
-                {dayBookings.map((b) => (
-                  <div key={b.id} className={`flex items-center justify-between gap-3 border rounded-md p-2.5 ${dayBookings.length >= 2 ? "border-destructive/40 bg-destructive/5" : ""}`}>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
-                        <StatusDot status={b.status} />
-                        {b.event_type ?? "Event"}
-                        {b.start_time && <span className="text-muted-foreground font-normal text-xs">{formatTimeOfDay(b.start_time)}</span>}
-                        {dayBookings.length >= 2 && <span className="text-[10px] text-destructive font-semibold">DOUBLE BOOKING</span>}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {b.lead_name}
-                        {!companyId && b.company_name && <span className="ml-1 text-[10px] bg-muted px-1 rounded">{b.company_name}</span>}
-                      </div>
-                    </div>
-                    <Link to="/leads/$leadId" params={{ leadId: b.lead_id }} className="text-xs text-primary hover:underline shrink-0">Open</Link>
-                  </div>
-                ))}
-              </div>
-            )}
-            {daySlots.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Venue slots</div>
-                {daySlots.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between gap-3 border rounded-md p-2.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <StatusDot status={s.status} />
-                      <div className="text-sm">
-                        {s.session_name ? <span className="font-medium">{s.session_name} · </span> : null}
-                        {formatTimeOfDay(s.start_time)} – {formatTimeOfDay(s.end_time)}
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground capitalize">{s.status.replace("_", " ")}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+      {selectedDate && (
+        <div ref={detailPanelRef} className="bg-card border rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold">{formatDateIN(selectedDate)}</div>
+            <button type="button" onClick={() => setSelectedDate(null)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
           </div>
-        )}
-      </div>
+          {loading ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : dayBookings.length === 0 && daySlots.length === 0 ? (
+            <div className="text-sm text-muted-foreground py-3 text-center">No bookings or held slots for this date.</div>
+          ) : (
+            <div className="space-y-3">
+              {dayBookings.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    Confirmed Bookings
+                    {dayBookings.length >= 2 && (
+                      <span className="bg-destructive/15 text-destructive text-[10px] font-bold px-1.5 py-0.5 rounded">
+                        ⚠ Double Booking
+                      </span>
+                    )}
+                  </div>
+                  {dayBookings.map((b) => (
+                    <div
+                      key={b.id}
+                      className={[
+                        "flex items-center justify-between gap-3 rounded-lg p-3 border",
+                        dayBookings.length >= 2 ? "border-destructive/30 bg-destructive/5" : "border-border bg-muted/30",
+                      ].join(" ")}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold flex items-center gap-2 flex-wrap">
+                          <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${b.status === "cheque_pending" ? "bg-warning" : "bg-primary"}`} />
+                          {b.event_type ?? "Event"}
+                          {b.start_time && (
+                            <span className="text-xs text-muted-foreground font-normal bg-muted px-1.5 py-0.5 rounded">
+                              {formatTimeOfDay(b.start_time)}
+                            </span>
+                          )}
+                          {b.status === "cheque_pending" && (
+                            <span className="text-[10px] bg-warning/20 text-warning px-1.5 py-0.5 rounded">Cheque pending</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span>{b.lead_name}</span>
+                          {!companyId && b.company_name && (
+                            <span className="bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded">{b.company_name}</span>
+                          )}
+                        </div>
+                      </div>
+                      <Link
+                        to="/leads/$leadId"
+                        params={{ leadId: b.lead_id }}
+                        className="shrink-0 text-xs text-primary hover:underline font-medium"
+                      >
+                        Open →
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {daySlots.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Venue Slots</div>
+                  {daySlots.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 p-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <StatusDot status={s.status} />
+                        <div>
+                          <div className="text-sm font-medium">
+                            {s.session_name ?? "Session"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatTimeOfDay(s.start_time)} – {formatTimeOfDay(s.end_time)}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                        s.status === "confirmed" ? "bg-primary/15 text-primary"
+                        : s.status === "enquiry" ? "bg-warning/15 text-warning"
+                        : "bg-muted text-muted-foreground"
+                      }`}>
+                        {s.status.replace("_", " ")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Upcoming events */}
       {upcoming.length > 0 && (
-        <div className="bg-card border rounded-lg p-4">
-          <div className="text-sm font-semibold mb-3">Upcoming confirmed events</div>
-          <div className="space-y-2">
+        <div className="bg-card border rounded-xl p-4">
+          <div className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-primary" />
+            Upcoming Events
+            <span className="text-xs text-muted-foreground font-normal">({upcoming.length})</span>
+          </div>
+          <div className="space-y-1.5">
             {upcoming.slice(0, 15).map((b) => (
-              <div key={b.id} className="flex items-center justify-between gap-3 text-sm border-b last:border-0 pb-2 last:pb-0">
+              <div key={b.id} className="flex items-center gap-3 rounded-lg hover:bg-muted/40 px-2 py-2 transition-colors group">
+                <div className={`h-8 w-1.5 rounded-full shrink-0 ${b.status === "cheque_pending" ? "bg-warning" : "bg-primary"}`} />
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium">{b.event_type ?? "Event"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDateIN(b.event_date)}
-                    {b.start_time && ` · ${formatTimeOfDay(b.start_time)}`}
-                    {" · "}{b.lead_name}
-                    {!companyId && b.company_name && <span className="ml-1 text-[10px] bg-muted px-1 rounded">{b.company_name}</span>}
+                  <div className="text-sm font-medium truncate">{b.event_type ?? "Event"}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                    <span>{formatDateIN(b.event_date)}</span>
+                    {b.start_time && <span>· {formatTimeOfDay(b.start_time)}</span>}
+                    <span>· {b.lead_name}</span>
+                    {!companyId && b.company_name && (
+                      <span className="bg-muted px-1 rounded">{b.company_name}</span>
+                    )}
                   </div>
                 </div>
-                <Link to="/leads/$leadId" params={{ leadId: b.lead_id }} className="text-xs text-primary hover:underline shrink-0">Open</Link>
+                <Link
+                  to="/leads/$leadId"
+                  params={{ leadId: b.lead_id }}
+                  className="shrink-0 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity hover:underline"
+                >
+                  Open →
+                </Link>
               </div>
             ))}
           </div>
@@ -297,10 +388,12 @@ function CalendarPage() {
 
 function Legend() {
   return (
-    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" /> Confirmed booking</span>
-      <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning" /> Enquiry slot</span>
-      <span className="inline-flex items-center gap-1.5 text-destructive"><span>⚠</span> Double booking</span>
+    <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary/70" /> Confirmed</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-warning/70" /> Cheque pending</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-success" /> Slot booked</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-warning" /> Slot enquiry</span>
+      <span className="inline-flex items-center gap-1.5 text-destructive font-medium"><span>⚠</span> Double booking</span>
     </div>
   );
 }

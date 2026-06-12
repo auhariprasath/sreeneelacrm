@@ -43,20 +43,9 @@ const SIDEBAR_NAV: NavItem[] = [
   { to: "/venue-meetings", label: "Venue Meetings", icon: MapPin, roles: ["super_admin","admin","staff"] },
   { to: "/customers", label: "Customers", icon: Star, roles: ["super_admin","admin","staff"] },
   { to: "/not-interested", label: "Not Interested", icon: UserX, roles: ["super_admin","admin"] },
-  { to: "/stale-leads", label: "Stale Leads", icon: MessageSquare, roles: ["super_admin","admin"] },
   { to: "/analytics", label: "Analytics", icon: TrendingUp, roles: ["super_admin","admin"] },
   { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
-];
-
-// Mobile bottom nav: Dashboard | Leads | Tasks | Notifications | More
-const BOTTOM_NAV: Omit<NavItem, "to"> & { to: string | null }[] = [] as any;
-const BOTTOM_TABS: { key: string; to: string | null; label: string; icon: any; roles: AppRole[] }[] = [
-  { key: "dashboard", to: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["super_admin","admin","staff"] },
-  { key: "leads", to: "/leads", label: "Leads", icon: Users, roles: ["super_admin","admin","staff"] },
-  { key: "tasks", to: "/tasks", label: "Tasks", icon: KanbanSquare, roles: ["super_admin","admin","staff"] },
-  { key: "notifications", to: "/notifications", label: "Alerts", icon: Bell, roles: ["super_admin","admin","staff"] },
-  { key: "more", to: null, label: "More", icon: MoreHorizontal, roles: ["super_admin","admin","staff"] },
 ];
 
 // Items shown in the "More" sheet on mobile
@@ -69,7 +58,6 @@ const MORE_SHEET_NAV: NavItem[] = [
   { to: "/venue-meetings", label: "Venue Meetings", icon: MapPin, roles: ["super_admin","admin","staff"] },
   { to: "/customers", label: "Customers", icon: Star, roles: ["super_admin","admin","staff"] },
   { to: "/not-interested", label: "Not Interested", icon: UserX, roles: ["super_admin","admin"] },
-  { to: "/stale-leads", label: "Stale Leads", icon: MessageSquare, roles: ["super_admin","admin"] },
   { to: "/analytics", label: "Analytics", icon: TrendingUp, roles: ["super_admin","admin"] },
   { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
@@ -85,12 +73,7 @@ function AppLayout() {
   const handleCompanyChange = (v: string) => {
     const nextId = v === "__all" ? null : v;
     setActiveCompanyId(nextId);
-    // Always navigate so the new company context loads cleanly.
-    if (nextId) {
-      navigate({ to: "/company-dashboard/$companyId", params: { companyId: nextId } });
-    } else {
-      navigate({ to: "/dashboard" });
-    }
+    // Stay on the current page — data will reload via the new activeCompanyId in each page's useEffect.
   };
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -132,7 +115,6 @@ function AppLayout() {
     .map((key) => SIDEBAR_NAV.find((n) => n.to === `/${key}`))
     .filter((n): n is NavItem => !!n && !!role && n.roles.includes(role));
   const moreItems = MORE_SHEET_NAV.filter((n) => role && n.roles.includes(role));
-  const bottomItems = BOTTOM_TABS.filter((n) => role && n.roles.includes(role));
   const roleLabel = role === "super_admin" ? "Super Admin" : role === "admin" ? "Admin" : "Staff";
   const initials = initialsOf(profile?.full_name || profile?.email || "U");
 
@@ -153,16 +135,17 @@ function AppLayout() {
         to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
         params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
         title={item.label}
-        className={`flex items-center gap-3 rounded-md py-2 text-sm transition-colors ${
+        className={`flex items-center gap-3 rounded-lg py-2 text-sm font-medium transition-all duration-150 ${
           opts.collapsed ? "justify-center px-2" : "justify-start px-3"
         } ${
           active
-            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         }`}
       >
-        <Icon className="h-5 w-5 shrink-0" />
-        {!opts.collapsed && <span>{item.label}</span>}
+        <Icon className={`h-4 w-4 shrink-0 ${active ? "" : "opacity-70"}`} />
+        {!opts.collapsed && <span className="truncate">{item.label}</span>}
+        {!opts.collapsed && active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-primary-foreground/60 shrink-0" />}
       </Link>
     );
   };
@@ -391,47 +374,10 @@ function AppLayout() {
           );
         })()}
 
-        <main className="flex-1 p-3 lg:p-6 overflow-auto pb-20 md:pb-6">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">
           <Outlet />
         </main>
 
-        {/* Bottom nav — phones only (sidebar takes over at md+) */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t flex items-stretch h-16 safe-bottom">
-          {bottomItems.map((item) => {
-            const Icon = item.icon;
-            if (item.to === null) {
-              // "More" tab → opens bottom sheet
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setMoreOpen(true)}
-                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] min-h-[44px] ${
-                    moreOpen ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </button>
-              );
-            }
-            const dashboardCompanyId = role === "super_admin" && item.to === "/dashboard" ? activeCompanyId : null;
-            const active = isActive(item.to);
-            return (
-              <Link
-                key={item.key}
-                to={dashboardCompanyId ? "/company-dashboard/$companyId" : item.to}
-                params={dashboardCompanyId ? { companyId: dashboardCompanyId } : undefined}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] min-h-[44px] ${
-                  active ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
         <InstallPrompt />
         <WelcomeTour />
       </div>

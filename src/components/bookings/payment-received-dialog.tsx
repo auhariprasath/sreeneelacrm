@@ -62,6 +62,22 @@ export function PaymentReceivedDialog({ open, onOpenChange, quotationId, default
       if (!requirement) throw new Error("Requirement not found");
 
       const totalAmount = Number(quote.total);
+
+      // Double-booking guard
+      const { data: existing } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("company_id", quote.company_id)
+        .eq("event_date", requirement.event_date!)
+        .in("status", ["confirmed", "cheque_pending"])
+        .is("deleted_at", null)
+        .neq("lead_id", quote.lead_id);
+      if (existing && existing.length > 0) {
+        toast.error("This venue already has a confirmed booking on the same date. Double booking prevented.", { duration: 5000 });
+        setSubmitting(false);
+        return;
+      }
+
       // Map UI method → DB enum payment_type
       const paymentType: PaymentType = method as PaymentType;
 
