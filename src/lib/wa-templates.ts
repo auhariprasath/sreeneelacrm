@@ -56,7 +56,7 @@ export const WA_TEMPLATES: WaTemplateDef[] = [
 
   // Quotation
   { key: "quotation_sent", name: "Quotation sent", fires: "On send — includes quote link", category: "quotation",
-    defaultBody: "Hi [Name], your quotation from [Company] for [Event type] on [Event date] is ready: [Quote link]. Total: [Amount]." },
+    defaultBody: "Namaste [Name], here is your quotation from [Company] for [Event type] on [Event date].\n\nTotal: [Amount]\n\nView & approve your quotation here:\n[Quote link]\n\nThank you!" },
   { key: "quotation_followup", name: "Quotation follow-up", fires: "48 hours after sending, no reply", category: "quotation",
     defaultBody: "Hi [Name], following up on the quotation we shared: [Quote link]. Let us know your thoughts!" },
   { key: "quotation_viewed_staff", name: "Quotation viewed notification", fires: "To staff when client opens link", category: "quotation",

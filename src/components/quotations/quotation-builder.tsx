@@ -355,12 +355,21 @@ export function QuotationBuilder({
     return `${window.location.origin}/quotation/${publicToken}`;
   }, [publicToken]);
 
-  // Build preview message when entering step 4
+  // Build preview message when entering step 4 — use company's saved wa_templates.quotation_sent template
   useEffect(() => {
     if (step !== 3 || !lead || !company) return;
-    const link = publicToken ? `\n\nView & approve your quotation here:\n${window.location.origin}/quotation/${publicToken}` : "";
-    const tmpl = `Namaste ${lead.full_name}, here is your quotation from ${company.name} for ${evType || "your event"}${evDate ? ` on ${formatDateIN(evDate)}` : ""}.\n\nTotal: ${formatINR(total)}${link}\n\nThank you!`;
-    setMessage(tmpl);
+    const publicUrl = publicToken ? `${window.location.origin}/quotation/${publicToken}` : "";
+    const defaultBody = "Namaste [Name], here is your quotation from [Company] for [Event type] on [Event date].\n\nTotal: [Amount]\n\nView & approve your quotation here:\n[Quote link]\n\nThank you!";
+    const savedTemplates = (company as any).wa_templates as Record<string, { body?: string }> | null;
+    const tmplBody = savedTemplates?.quotation_sent?.body ?? defaultBody;
+    const filled = tmplBody
+      .replace(/\[Name\]/g, lead.full_name ?? "")
+      .replace(/\[Company\]/g, company.name ?? "")
+      .replace(/\[Event type\]/g, evType || "your event")
+      .replace(/\[Event date\]/g, evDate ? formatDateIN(evDate) : "the planned date")
+      .replace(/\[Amount\]/g, formatINR(total))
+      .replace(/\[Quote link\]/g, publicUrl);
+    setMessage(filled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, publicToken]);
 

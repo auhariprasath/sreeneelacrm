@@ -22,7 +22,6 @@ export const ALL_NAV_ITEMS = [
   { key: "not-interested", label: "Not Interested",   icon: UserX },
   { key: "stale-leads",    label: "Stale Leads",      icon: MessageSquare },
   { key: "analytics",      label: "Analytics",        icon: TrendingUp },
-  { key: "reports",        label: "Reports",          icon: BarChart3 },
   { key: "transfers",      label: "Transfers",        icon: ArrowRightLeft },
   { key: "settings",       label: "Settings",         icon: Settings },
 ] as const;

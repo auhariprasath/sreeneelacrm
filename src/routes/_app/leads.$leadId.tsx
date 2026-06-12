@@ -44,7 +44,6 @@ import { CoordinationProgress } from "@/components/bookings/coordination-progres
 import { SourcesTab } from "@/components/leads/sources-tab";
 import { QuotationStatusBadge } from "@/components/quotations/quotation-status-badge";
 import { WhatsAppLeadTab } from "@/components/leads/whatsapp-lead-tab";
-import { LeadFilesTab } from "@/components/leads/lead-files-tab";
 import { BookingStatusTab } from "@/components/leads/booking-status-tab";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -84,6 +83,7 @@ function LeadProfile() {
   const [reqDecisions, setReqDecisions] = useState<Record<string, string>>({});
   const [rejectedTransfer, setRejectedTransfer] = useState<{ rejection_reason: string | null; updated_at: string; to_name: string } | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [quoteChangeNotes, setQuoteChangeNotes] = useState<Record<string, string>>({});
 
   const [callOpen, setCallOpen] = useState(false);
   const [fuOpen, setFuOpen] = useState(false);
@@ -126,7 +126,27 @@ function LeadProfile() {
     const { data } = await supabase
       .from("quotations").select("*").eq("lead_id", leadId)
       .is("deleted_at", null).order("version", { ascending: false });
-    setQuotations((data as Quotation[]) ?? []);
+    const quotes = (data as Quotation[]) ?? [];
+    setQuotations(quotes);
+    // Fetch change-request notes for declined quotations from activity_logs
+    const declinedIds = quotes.filter((q) => q.status === "declined").map((q) => q.id);
+    if (declinedIds.length > 0) {
+      const { data: logs } = await supabase
+        .from("activity_logs")
+        .select("metadata")
+        .eq("lead_id", leadId)
+        .eq("action_type", "status_change")
+        .ilike("action", "%CHANGES%")
+        .order("created_at", { ascending: false });
+      const map: Record<string, string> = {};
+      for (const log of (logs ?? [])) {
+        const meta = log.metadata as any;
+        if (meta?.quotation_id && declinedIds.includes(meta.quotation_id) && meta?.note) {
+          if (!map[meta.quotation_id]) map[meta.quotation_id] = meta.note;
+        }
+      }
+      setQuoteChangeNotes(map);
+    }
   };
 
   const loadBookings = async () => {
@@ -600,7 +620,6 @@ function LeadProfile() {
           <TabsTrigger value="followups">Follow-ups</TabsTrigger>
           <TabsTrigger value="venue">Venue</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-          <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="notes">Note</TabsTrigger>
         </TabsList>
 
@@ -865,6 +884,9 @@ function LeadProfile() {
                                 · Approved {relativeTime((q as any).approved_at ?? q.agreed_at)}
                               </span>
                             )}
+                            {q.status === "declined" && quoteChangeNotes[q.id] && (
+                              <span className="text-[10px] text-warning dark:text-warning">· Changes requested</span>
+                            )}
                             {invoiceSent && (
                               <span className="text-[10px] text-success dark:text-success">
                                 · Invoice sent {relativeTime(q.invoice_sent_at!)}
@@ -942,6 +964,16 @@ function LeadProfile() {
                           onChanged={loadQuotations}
                         />
                       )}
+                    </div>
+                    {/* Change-request note from customer */}
+                    {q.status === "declined" && quoteChangeNotes[q.id] && (
+                      <div className="rounded-md border border-warning/40 bg-warning/5 px-3 py-2.5 space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-warning dark:text-warning">
+                          <MessageSquare className="h-3.5 w-3.5 shrink-0" /> Customer requested changes
+                        </div>
+                        <p className="text-xs text-foreground/80 whitespace-pre-wrap">{quoteChangeNotes[q.id]}</p>
+                      </div>
+                    )}
                     </div>
                   );
                 })}
@@ -1118,10 +1150,6 @@ function LeadProfile() {
           />
         </TabsContent>
 
-        {/* ── Files tab ── */}
-        <TabsContent value="files" className="pt-3 space-y-4">
-          <LeadFilesTab leadId={lead.id} />
-        </TabsContent>
 
         <TabsContent value="activity" className="pt-3">
           {activities.length === 0 ? (
@@ -1417,10 +1445,16 @@ function LeadProfile() {
               </div>
             )}
 
-            <Button onClick={addNote} disabled={saving || !note.trim()} className="w-full min-h-11">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
-              {saving ? "Saving…" : "Add note"}
-            </Button>
+            <div className="flex gap-2">
+              <label className="cursor-pointer inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-11 text-sm hover:bg-accent transition-colors shrink-0">
+                <Paperclip className="h-4 w-4 mr-1.5" /> Attach
+                <input type="file" multiple className="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" onChange={(e) => { const files = Array.from(e.target.files ?? []); setNoteFiles((prev) => [...prev, ...files]); e.target.value = ""; }} />
+              </label>
+              <Button onClick={addNote} disabled={saving || (!note.trim() && noteFiles.length === 0)} className="flex-1 min-h-11">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Send className="h-4 w-4 mr-1.5" />}
+                {saving ? "Saving…" : "Add note"}
+              </Button>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

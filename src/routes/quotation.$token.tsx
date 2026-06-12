@@ -393,6 +393,17 @@ function PublicQuotationPage() {
                   <CheckCircle2 className="h-5 w-5" /> Payment successful — the team will be in touch shortly.
                 </div>
               )}
+
+              {/* Download approved quotation — always show once approved */}
+              <Button
+                variant="outline"
+                className="w-full min-h-11"
+                onClick={handleDownloadPdf}
+                disabled={downloading}
+              >
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
+                Download Approved Quotation (PDF)
+              </Button>
             </div>
           ) : isDeclined ? (
             <div className="flex items-center gap-2 text-warning dark:text-warning text-sm font-medium">

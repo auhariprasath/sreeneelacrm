@@ -57,7 +57,7 @@ export function SendQuotationDialog({ open, onOpenChange, quotationId, onRespond
       const publicUrl = (q as any).public_token
         ? `${window.location.origin}/quotation/${(q as any).public_token}`
         : "";
-      const defaultTmpl = "Hi [Name], your quotation from [Company] for [Event type] on [Event date] is ready.\n\nTotal: [Amount]\n\nView & approve online: [Quote link]\n\nReply AGREED to confirm, or let us know if you'd like changes. Thank you!";
+      const defaultTmpl = "Namaste [Name], here is your quotation from [Company] for [Event type] on [Event date].\n\nTotal: [Amount]\n\nView & approve your quotation here:\n[Quote link]\n\nThank you!";
       const tmpl = (c as any)?.wa_templates?.quotation_sent?.body ?? defaultTmpl;
       const filled = tmpl
         .replace(/\[Name\]/g, (l as Lead | null)?.full_name ?? "")

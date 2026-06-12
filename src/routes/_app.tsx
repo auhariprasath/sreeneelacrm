@@ -10,7 +10,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, BarChart3, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal, ArrowRightLeft, FileText, Menu, Globe,
+  LayoutDashboard, Users, CalendarDays, ClipboardList, KanbanSquare, Settings, Moon, Sun, LogOut, KeyRound, Building2, Bell, MoreHorizontal, ArrowRightLeft, FileText, Menu, Globe,
   PhoneCall, Megaphone, MapPin, UserX, Star, MessageSquare, TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -45,7 +45,6 @@ const SIDEBAR_NAV: NavItem[] = [
   { to: "/not-interested", label: "Not Interested", icon: UserX, roles: ["super_admin","admin"] },
   { to: "/stale-leads", label: "Stale Leads", icon: MessageSquare, roles: ["super_admin","admin"] },
   { to: "/analytics", label: "Analytics", icon: TrendingUp, roles: ["super_admin","admin"] },
-  { to: "/reports", label: "Reports", icon: BarChart3, roles: ["super_admin","admin","staff"] },
   { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
 ];
@@ -72,7 +71,6 @@ const MORE_SHEET_NAV: NavItem[] = [
   { to: "/not-interested", label: "Not Interested", icon: UserX, roles: ["super_admin","admin"] },
   { to: "/stale-leads", label: "Stale Leads", icon: MessageSquare, roles: ["super_admin","admin"] },
   { to: "/analytics", label: "Analytics", icon: TrendingUp, roles: ["super_admin","admin"] },
-  { to: "/reports", label: "Reports", icon: BarChart3, roles: ["super_admin","admin","staff"] },
   { to: "/transfers", label: "Transfers", icon: ArrowRightLeft, roles: ["super_admin","admin","staff"] },
   { to: "/settings", label: "Settings", icon: Settings, roles: ["super_admin","admin"] },
 ];
