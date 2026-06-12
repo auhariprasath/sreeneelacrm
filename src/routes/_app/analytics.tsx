@@ -79,22 +79,34 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ leads: 0, conversions: 0, followUps: 0, meetings: 0, tasks: 0 });
 
+  // For super_admin with no company selected, load across all their companies
+  const allCompanyIds = role === "super_admin" && !companyId
+    ? companies.map((c) => c.id)
+    : null;
+
   useEffect(() => {
-    if (!companyId) return;
+    if (!companyId && !allCompanyIds?.length) return;
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId, period]);
+  }, [companyId, period, companies.length]);
 
   const load = async () => {
     setLoading(true);
     const since = new Date(Date.now() - Number(period) * 86400_000).toISOString();
 
+    const companyIds = allCompanyIds;
+
+    const applyCompanyFilter = (q: any) =>
+      companyIds ? q.in("company_id", companyIds) : q.eq("company_id", companyId!);
+
     const [staffRes, leadsRes, fuRes, vmRes, tasksRes] = await Promise.all([
-      supabase.from("profiles").select("id, full_name").eq("company_id", companyId!),
-      supabase.from("leads").select("id, assigned_to, status, created_at").eq("company_id", companyId!).gte("created_at", since),
+      companyIds
+        ? supabase.from("profiles").select("id, full_name").in("company_id", companyIds)
+        : supabase.from("profiles").select("id, full_name").eq("company_id", companyId!),
+      applyCompanyFilter(supabase.from("leads").select("id, assigned_to, status, created_at")).gte("created_at", since),
       supabase.from("follow_ups").select("id, created_by, is_sent, created_at").eq("is_sent", true).gte("created_at", since),
-      supabase.from("venue_meetings").select("id, created_by, status, scheduled_date").eq("company_id", companyId!).eq("status", "completed").gte("scheduled_date", since.slice(0, 10)),
-      supabase.from("tasks").select("id, assigned_to, status, updated_at").eq("company_id", companyId!).eq("status", "done").gte("updated_at", since),
+      applyCompanyFilter(supabase.from("venue_meetings").select("id, created_by, status, scheduled_date").eq("status", "completed")).gte("scheduled_date", since.slice(0, 10)),
+      applyCompanyFilter(supabase.from("tasks").select("id, assigned_to, status, updated_at").eq("status", "done")).gte("updated_at", since),
     ]);
 
     const staff = (staffRes.data as any[]) ?? [];

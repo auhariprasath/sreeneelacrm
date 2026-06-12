@@ -116,7 +116,7 @@ export function QuotationBuilder({
       setLead(ld as any);
       setCompany(comp as any);
       const r = req as Requirement;
-      setEvType(r.event_type || "");
+      setEvType((r.event_type === "Other" ? (r as any).event_type_other : r.event_type) || "");
       setEvDate(r.event_date || "");
       setEvStart(r.start_time || "");
       setEvEnd(r.end_time || "");

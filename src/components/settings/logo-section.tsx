@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload, Trash2 } from "lucide-react";
@@ -9,10 +10,21 @@ const STORAGE_PATH = "logos/global/logo";
 
 export function LogoSection() {
   const logo = useAppLogo();
+  const { companies } = useAuth();
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isCustom = logo !== DEFAULT_LOGO;
+
+  /** Persist logo_url to all companies so quotation/invoice pages show the correct logo. */
+  const syncLogoToCompanies = async (url: string | null) => {
+    if (!companies.length) return;
+    await Promise.all(
+      companies.map((c) =>
+        supabase.from("companies").update({ logo_url: url }).eq("id", c.id)
+      )
+    );
+  };
 
   const upload = async (file: File) => {
     setBusy(true);
@@ -30,12 +42,14 @@ export function LogoSection() {
     if (!url) { setBusy(false); toast.error("Failed to get logo URL"); return; }
 
     setAppLogo(url);
+    await syncLogoToCompanies(url);
     setBusy(false);
     toast.success("Logo updated ✓");
   };
 
-  const remove = () => {
+  const remove = async () => {
     clearAppLogo();
+    await syncLogoToCompanies(null);
     toast.success("Logo removed — default restored ✓");
   };
 

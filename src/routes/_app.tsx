@@ -95,12 +95,21 @@ function AppLayout() {
     }
   };
 
-  const [tabletNavOpen, setTabletNavOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
-  // Close overlays on route change
+  // Auto-open sidebar on desktop, close on mobile/tablet
   useEffect(() => {
-    setTabletNavOpen(false);
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setSidebarOpen(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setSidebarOpen(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Close sidebar on route change for mobile/tablet; always close more sheet
+  useEffect(() => {
+    if (window.innerWidth < 1024) setSidebarOpen(false);
     setMoreOpen(false);
   }, [pathname]);
 
@@ -161,63 +170,48 @@ function AppLayout() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background flex-col md:flex-row">
-      {/* Persistent sidebar — visible at md+ (768px+).
-          md (768-1023): icon rail 56px with hamburger.
-          lg+ (1024+):   full sidebar 220px, no hamburger. */}
+    <div className="flex min-h-screen w-full bg-background flex-col">
+      {/* Backdrop — shown on mobile/tablet when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar — fixed, slides in/out from the left on all screen sizes */}
       <aside
-        className="hidden md:flex shrink-0 bg-sidebar text-sidebar-foreground flex-col
-                   w-14 lg:w-[220px] transition-[width] duration-200 sticky top-0 h-screen"
-        title="Navigation"
+        className={`fixed left-0 top-0 h-screen w-[260px] z-40 bg-sidebar text-sidebar-foreground
+                    flex flex-col border-r border-sidebar-border
+                    transition-transform duration-300 ease-in-out
+                    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        aria-label="Navigation"
       >
-        <div className="h-16 flex items-center gap-2 px-2 lg:px-4 border-b border-sidebar-border">
-          {/* Hamburger — visible only on tablet rail (md to lg-1) */}
+        <div className="h-16 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
           <button
             type="button"
-            onClick={() => setTabletNavOpen(true)}
-            className="lg:hidden h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-sidebar-accent"
-            aria-label="Open navigation"
+            onClick={() => setSidebarOpen(false)}
+            className="h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-sidebar-accent shrink-0"
+            aria-label="Close navigation"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="hidden lg:flex items-center gap-2">
-            <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary overflow-hidden flex items-center justify-center">
-              <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-sm font-semibold">Neela Events</div>
-              <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
-            </div>
+          <div className="h-8 w-8 shrink-0 rounded-md bg-sidebar-primary overflow-hidden flex items-center justify-center">
+            <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
+          </div>
+          <div className="leading-tight flex-1 min-w-0">
+            <div className="text-sm font-semibold truncate">Neela Events</div>
+            <div className="text-[11px] text-sidebar-foreground/60">CRM</div>
           </div>
         </div>
-        <nav className="flex-1 p-2 lg:p-3 space-y-1 overflow-y-auto">
-          {/* Render two variants and toggle via responsive visibility so labels appear only at lg+ */}
-          <div className="lg:hidden space-y-1">
-            {sidebarItems.map((item) => renderNavLink(item, { collapsed: true }))}
-          </div>
-          <div className="hidden lg:block space-y-1">
-            {sidebarItems.map((item) => renderNavLink(item, { collapsed: false }))}
-          </div>
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {sidebarItems.map((item) => renderNavLink(item, { collapsed: false }))}
         </nav>
-        <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border hidden lg:block">
+        <div className="p-3 text-[11px] text-sidebar-foreground/50 border-t border-sidebar-border shrink-0">
           v0.4 · Phase 4
         </div>
       </aside>
-
-      {/* Tablet overlay sidebar (md to lg-1): triggered by rail hamburger */}
-      <Sheet open={tabletNavOpen} onOpenChange={setTabletNavOpen}>
-        <SheetContent side="left" className="w-[260px] p-0 bg-sidebar text-sidebar-foreground border-sidebar-border">
-          <SheetHeader className="h-16 px-4 border-b border-sidebar-border flex flex-row items-center gap-2 space-y-0">
-            <div className="h-8 w-8 rounded-md bg-sidebar-primary overflow-hidden flex items-center justify-center">
-              <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />
-            </div>
-            <SheetTitle className="text-sm font-semibold text-sidebar-foreground">Neela Events</SheetTitle>
-          </SheetHeader>
-          <nav className="p-3 space-y-1 overflow-y-auto">
-            {sidebarItems.map((item) => renderNavLink(item, { collapsed: false }))}
-          </nav>
-        </SheetContent>
-      </Sheet>
 
       {/* Mobile "More" bottom sheet */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
@@ -246,21 +240,26 @@ function AppLayout() {
         </SheetContent>
       </Sheet>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main — shifts right on desktop when sidebar is open */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-[margin] duration-300 ease-in-out
+                    ${sidebarOpen ? "lg:ml-[260px]" : "lg:ml-0"}`}
+      >
         <OfflineBanner />
 
         {/* Top header */}
         <header className="h-14 lg:h-16 border-b bg-card flex items-center gap-2 lg:gap-3 px-3 lg:px-6 sticky top-0 z-30">
-          {/* Mobile (below md): hamburger + brand */}
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            className="md:hidden h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-accent"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {/* Hamburger — in header only when sidebar is closed */}
+          {!sidebarOpen && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-accent shrink-0"
+              aria-label="Open navigation"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
           <div className="md:hidden flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-primary overflow-hidden flex items-center justify-center">
               <img src={appLogo} alt="Logo" className="h-full w-full object-contain" />

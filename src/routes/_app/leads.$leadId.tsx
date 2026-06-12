@@ -29,7 +29,7 @@ import { BookingConfirmDialog } from "@/components/bookings/booking-confirm-dial
 import { BookingConfirmationDialog } from "@/components/bookings/booking-confirmation-dialog";
 import { PaymentReceivedDialog } from "@/components/bookings/payment-received-dialog";
 import { InvoicePaymentCard } from "@/components/bookings/invoice-payment-card";
-import { generateInvoiceForQuotation, markInvoiceSent, downloadInvoicePdf } from "@/lib/invoice-actions";
+import { generateInvoiceForQuotation, markInvoiceSent, downloadInvoicePdf, loadInvoiceBundle } from "@/lib/invoice-actions";
 import { ChequeClearDialog, CancelBookingDialog, RescheduleBookingDialog } from "@/components/bookings/booking-actions";
 import { EventCompleteDialog } from "@/components/bookings/event-complete-dialog";
 import { RemindersList } from "@/components/bookings/reminders-list";
@@ -107,6 +107,7 @@ function LeadProfile() {
   const [confirmationBookingId, setConfirmationBookingId] = useState<string | null>(null);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [payCredsBooking, setPayCredsBooking] = useState<Booking | null>(null);
+  const [invoicePreviewQuoteId, setInvoicePreviewQuoteId] = useState<string | null>(null);
   const [payCredsOpen, setPayCredsOpen] = useState(false);
   const [paymentReceivedQuoteId, setPaymentReceivedQuoteId] = useState<string | null>(null);
   const [paymentReceivedMethod, setPaymentReceivedMethod] = useState<"cash" | "cheque" | "bank_transfer" | "upi" | "razorpay">("cash");
@@ -817,22 +818,9 @@ function LeadProfile() {
                     } finally { setGeneratingInvoiceFor(null); }
                   };
 
-                  const handleSendInvoice = async (e?: { stopPropagation?: () => void }) => {
+                  const handleSendInvoice = (e?: { stopPropagation?: () => void }) => {
                     e?.stopPropagation?.();
-                    const lead = await supabase.from("leads").select("phone,full_name").eq("id", leadId).maybeSingle();
-                    const phone = lead.data?.phone;
-                    if (!phone) { toast.error("Lead has no phone number"); return; }
-                    const url = `${window.location.origin}/invoice/${(q as any).public_token}`;
-                    const company = await supabase.from("companies").select("name").eq("id", q.company_id).maybeSingle();
-                    const msg = `Hi ${lead.data?.full_name ?? ""}, your invoice ${q.invoice_number} from ${company.data?.name ?? ""} is ready.\n\nAmount: ${formatINR(Number(q.total))}\n\nView & download: ${url}\n\nReply once payment is done. Thank you!`;
-                    const wa = buildWaMeLink(phone, msg);
-                    if (!wa) { toast.error("Invalid phone number"); return; }
-                    // Also download the PDF so staff can attach it
-                    downloadInvoicePdf(q.id).catch(() => {});
-                    openWaMeLink(wa);
-                    await markInvoiceSent(q.id, profile?.id ?? null);
-                    toast.success("Invoice sent · WhatsApp opened");
-                    loadQuotations();
+                    setInvoicePreviewQuoteId(q.id);
                   };
 
                   return (
@@ -1508,6 +1496,14 @@ function LeadProfile() {
         companyId={lead.company_id}
         requirementId={editReqId}
         onSaved={() => { loadRequirements(); setActiveTab("requirements"); }}
+        onSavedAndQuote={(reqId) => {
+          loadRequirements();
+          setActiveTab("requirements");
+          setQuoteReqId(reqId);
+          setEditQuoteId(null);
+          setReviseQuoteId(null);
+          setQuoteOpen(true);
+        }}
       />
       {decisionReqId && (
         <DecisionDialog
@@ -1574,6 +1570,16 @@ function LeadProfile() {
           onDone={() => { loadBookings(); load(); }} />
       )}
 
+      {/* Invoice preview + send confirmation */}
+      {invoicePreviewQuoteId && (
+        <InvoicePreviewDialog
+          quotationId={invoicePreviewQuoteId}
+          onClose={() => setInvoicePreviewQuoteId(null)}
+          performedBy={profile?.id ?? null}
+          onSent={() => { setInvoicePreviewQuoteId(null); loadQuotations(); }}
+        />
+      )}
+
       {/* Post-payment coordinator nudge — Fix 26 */}
       {(() => {
         const bk = bookings.find((b) => b.id === postPaymentBookingId);
@@ -1609,6 +1615,183 @@ function LeadProfile() {
         );
       })()}
     </div>
+  );
+}
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cash: "Cash",
+  cheque: "Cheque",
+  bank_transfer: "Bank Transfer (NEFT/RTGS/IMPS)",
+  upi: "UPI (GPay / PhonePe / Paytm)",
+  razorpay: "Online Payment (Razorpay)",
+};
+
+function InvoicePreviewDialog({
+  quotationId,
+  onClose,
+  performedBy,
+  onSent,
+}: {
+  quotationId: string;
+  onClose: () => void;
+  performedBy: string | null;
+  onSent: () => void;
+}) {
+  const [bundle, setBundle] = useState<Awaited<ReturnType<typeof loadInvoiceBundle>> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
+
+  useEffect(() => {
+    loadInvoiceBundle(quotationId).then((b) => {
+      setBundle(b);
+      if (b?.quote) setPaymentMethod((b.quote as any).selected_payment_method ?? "cash");
+      setLoading(false);
+    });
+  }, [quotationId]);
+
+  const handleConfirmSend = async () => {
+    if (!bundle) return;
+    setSending(true);
+    try {
+      // Save any method change made in the preview
+      if (paymentMethod !== (bundle.quote as any).selected_payment_method) {
+        await supabase.from("quotations").update({ selected_payment_method: paymentMethod }).eq("id", quotationId);
+      }
+      const phone = bundle.lead.phone;
+      if (!phone) { toast.error("Lead has no phone number"); setSending(false); return; }
+      const url = `${window.location.origin}/invoice/${(bundle.quote as any).public_token}`;
+      const methodLabel = PAYMENT_METHOD_LABELS[paymentMethod] ?? paymentMethod;
+      const msg = `Hi ${bundle.lead.full_name ?? ""}, your invoice ${bundle.quote.invoice_number} from ${bundle.company.name ?? ""} is ready.\n\nAmount: ${formatINR(Number(bundle.quote.total))}\nPayment method: ${methodLabel}\n\nView & download: ${url}\n\nReply once payment is done. Thank you!`;
+      const wa = buildWaMeLink(phone, msg);
+      if (!wa) { toast.error("Invalid phone number"); setSending(false); return; }
+      downloadInvoicePdf(quotationId).catch(() => {});
+      openWaMeLink(wa);
+      await markInvoiceSent(quotationId, performedBy);
+      toast.success("Invoice sent · WhatsApp opened");
+      onSent();
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const q = bundle?.quote as any;
+  const services: { name: string; amount: number }[] = (q?.services ?? []).map((s: any) => ({
+    name: s.name ?? "", amount: Number(s.amount ?? 0) || Number(s.price ?? 0) * (Number(s.quantity ?? 1) || 1),
+  }));
+  const addons: { name: string; amount: number }[] = (q?.addons ?? []).map((s: any) => ({
+    name: s.name ?? "", amount: Number(s.amount ?? 0) || Number(s.price ?? 0) * (Number(s.quantity ?? 1) || 1),
+  }));
+
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" /> Invoice Preview
+          </DialogTitle>
+          <DialogDescription>Review the invoice before sending to the customer.</DialogDescription>
+        </DialogHeader>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-10 text-muted-foreground gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+          </div>
+        ) : !bundle ? (
+          <div className="py-6 text-center text-sm text-muted-foreground">Could not load invoice data.</div>
+        ) : (
+          <div className="space-y-4 text-sm">
+            {/* Header */}
+            <div className="rounded-md border p-3 space-y-1 bg-muted/20">
+              <div className="font-semibold text-base">{bundle.company.name}</div>
+              <div className="text-muted-foreground text-xs">{bundle.company.address}</div>
+              <div className="text-xs text-primary font-medium mt-1">
+                Invoice {q.invoice_number ?? q.quotation_number ?? q.id.slice(0, 8)} · v{q.version}
+              </div>
+            </div>
+
+            {/* Client + event */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-md border p-2.5 space-y-0.5">
+                <div className="text-muted-foreground uppercase tracking-wide text-[10px]">Client</div>
+                <div className="font-medium">{bundle.lead.full_name}</div>
+                <div className="text-muted-foreground">{bundle.lead.phone}</div>
+              </div>
+              <div className="rounded-md border p-2.5 space-y-0.5">
+                <div className="text-muted-foreground uppercase tracking-wide text-[10px]">Event</div>
+                <div className="font-medium">{bundle.requirement.event_type}</div>
+                {bundle.requirement.event_date && <div className="text-muted-foreground">{formatDateIN(bundle.requirement.event_date)}</div>}
+              </div>
+            </div>
+
+            {/* Line items */}
+            {services.length > 0 && (
+              <div className="rounded-md border divide-y text-xs">
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/30">Services</div>
+                {services.map((s, i) => (
+                  <div key={i} className="flex justify-between px-3 py-1.5">
+                    <span>{s.name}</span><span className="font-medium">{formatINR(s.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {addons.length > 0 && (
+              <div className="rounded-md border divide-y text-xs">
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/30">Add-ons</div>
+                {addons.map((s, i) => (
+                  <div key={i} className="flex justify-between px-3 py-1.5">
+                    <span>{s.name}</span><span className="font-medium">{formatINR(s.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Totals */}
+            <div className="rounded-md border p-3 space-y-1 text-xs">
+              <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{formatINR(Number(q.subtotal))}</span></div>
+              {Number(q.discount_amount) > 0 && (
+                <div className="flex justify-between text-muted-foreground"><span>Discount{q.discount_percent ? ` (${q.discount_percent}%)` : ""}</span><span>− {formatINR(Number(q.discount_amount))}</span></div>
+              )}
+              {q.gst_applied && (
+                <div className="flex justify-between text-muted-foreground"><span>GST ({q.gst_percent}%)</span><span>{formatINR(Number(q.gst_amount))}</span></div>
+              )}
+              <div className="flex justify-between font-semibold text-base border-t pt-2 mt-1"><span>Total</span><span>{formatINR(Number(q.total))}</span></div>
+            </div>
+
+            {/* Payment method — editable */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Payment Method</label>
+              {q.selected_payment_method ? (
+                <div className="rounded-md border bg-primary/5 border-primary/30 px-3 py-2 text-sm font-medium text-primary">
+                  {PAYMENT_METHOD_LABELS[q.selected_payment_method] ?? q.selected_payment_method} — selected by customer
+                </div>
+              ) : (
+                <div className="rounded-md border bg-warning/10 border-warning/30 px-3 py-2 text-xs text-warning">
+                  Customer has not selected a payment method yet. You can select one below.
+                </div>
+              )}
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm mt-1"
+              >
+                <option value="">-- Select payment method --</option>
+                {Object.entries(PAYMENT_METHOD_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+          <Button variant="outline" onClick={onClose} disabled={sending} className="flex-1">Cancel</Button>
+          <Button onClick={handleConfirmSend} disabled={loading || sending || !bundle} className="flex-1">
+            {sending ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Sending…</> : <><Send className="h-4 w-4 mr-1.5" /> Confirm & Send Invoice</>}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

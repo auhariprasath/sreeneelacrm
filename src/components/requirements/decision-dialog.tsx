@@ -8,11 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, ThumbsDown, Clock, FileCheck2 } from "lucide-react";
+import { CheckCircle2, ThumbsDown, Clock, FileCheck2, Trash2 } from "lucide-react";
 import { DateTimeField } from "@/components/ui/datetime-field";
 
 
-type Decision = "interested" | "not_interested" | "needs_time" | "confirm_booking";
+type Decision = "interested" | "not_interested" | "needs_time" | "confirm_booking" | "mistakenly_created";
 
 interface Props {
   open: boolean;
@@ -28,6 +28,7 @@ const OPTIONS: { value: Decision; label: string; desc: string; icon: any; tone: 
   { value: "confirm_booking", label: "Ready to confirm booking", desc: "Locks the slot as confirmed and moves to bookings.", icon: CheckCircle2, tone: "text-primary" },
   { value: "needs_time", label: "Needs more time", desc: "Schedules a follow-up and keeps the requirement open.", icon: Clock, tone: "text-warning" },
   { value: "not_interested", label: "Not interested — drop", desc: "Captures the reason and releases any held slot.", icon: ThumbsDown, tone: "text-destructive" },
+  { value: "mistakenly_created", label: "Mistakenly created", desc: "Closes this requirement immediately — it was created by mistake.", icon: Trash2, tone: "text-muted-foreground" },
 ];
 
 export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirementId, onDone }: Props) {
@@ -63,6 +64,10 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
   const submit = async () => {
     if (decision === "not_interested" && !dropReason) {
       toast.error("Pick a drop reason");
+      return;
+    }
+    if (decision === "not_interested" && dropReason === "Other" && !note.trim()) {
+      toast.error("Please add a note to describe why");
       return;
     }
     if (decision === "needs_time" && !followUpAt) {
@@ -102,6 +107,8 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
         if (cur?.status === "new") {
           await supabase.from("leads").update({ status: "in_progress" }).eq("id", leadId);
         }
+      } else if (decision === "mistakenly_created") {
+        await supabase.from("requirements").update({ deleted_at: new Date().toISOString() }).eq("id", requirementId);
       } else if (decision === "not_interested") {
         await supabase.from("requirements").update({ status: "complete" }).eq("id", requirementId);
         await supabase.from("leads").update({
@@ -177,6 +184,7 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
                     <SelectItem value="__none" disabled>No reasons configured — add them in Settings</SelectItem>
                   )}
                   {dropReasons.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -207,10 +215,17 @@ export function DecisionDialog({ open, onOpenChange, leadId, companyId, requirem
           </div>
         )}
 
-        <div className="space-y-1.5">
-          <Label>Notes (optional)</Label>
-          <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything to remember about this conversation" />
-        </div>
+        {decision !== "mistakenly_created" && (
+          <div className="space-y-1.5">
+            <Label>{decision === "not_interested" && dropReason === "Other" ? "Notes *" : "Notes (optional)"}</Label>
+            <Textarea
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={decision === "not_interested" && dropReason === "Other" ? "Describe the reason…" : "Anything to remember about this conversation"}
+            />
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
@@ -227,5 +242,6 @@ function labelFor(d: Decision): string {
     case "confirm_booking": return "Booking confirmed";
     case "needs_time": return "Lead needs more time";
     case "not_interested": return "Lead dropped";
+    case "mistakenly_created": return "Requirement closed — mistakenly created";
   }
 }

@@ -12,6 +12,10 @@ const razorpayVerifySchema = z.object({
   razorpay_order_id: z.string().min(1).max(100),
   razorpay_signature: z.string().min(1).max(256),
 });
+const savePaymentMethodSchema = z.object({
+  token: z.string().min(6).max(128).regex(/^[a-z0-9_-]+$/i),
+  payment_method: z.enum(["cash", "cheque", "bank_transfer", "upi", "razorpay"]),
+});
 
 async function getAdminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -211,6 +215,42 @@ export const recordRazorpayPayment = createServerFn({ method: "POST" })
           user_id: q.created_by,
           title: "Payment received online",
           body: `Razorpay payment ${amountFmt} received for quotation v${q.version}`,
+          type: "system",
+          lead_id: q.lead_id,
+        });
+      }
+      return { ok: true };
+    } catch {
+      return { ok: false };
+    }
+  });
+
+export const savePaymentMethodByToken = createServerFn({ method: "POST" })
+  .validator(savePaymentMethodSchema)
+  .handler(async ({ data }) => {
+    try {
+      const adm = await getAdminClient();
+      const { data: q } = await adm
+        .from("quotations")
+        .select("id, lead_id, version, status, created_by")
+        .eq("public_token", data.token)
+        .maybeSingle();
+      if (!q || q.status !== "agreed") return { ok: false };
+      await adm.from("quotations")
+        .update({ selected_payment_method: data.payment_method })
+        .eq("id", q.id);
+      await adm.from("activity_logs").insert({
+        lead_id: q.lead_id,
+        action: `Client selected payment method: ${data.payment_method.replace("_", " ")}`,
+        action_type: "system",
+        performed_by: null,
+        metadata: { quotation_id: q.id, payment_method: data.payment_method },
+      });
+      if (q.created_by) {
+        await adm.from("notifications").insert({
+          user_id: q.created_by,
+          title: "Payment method selected",
+          body: `Client chose ${data.payment_method.replace("_", " ")} for quotation v${q.version}`,
           type: "system",
           lead_id: q.lead_id,
         });

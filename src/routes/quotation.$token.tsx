@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, CreditCard, Download, FileText, Loader2, MapPin, MessageSquare, PartyPopper } from "lucide-react";
+import { Banknote, CheckCircle2, CreditCard, Download, FileText, Loader2, MapPin, MessageSquare, PartyPopper, Smartphone, Building2, Receipt } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatINR, formatDateIN, formatTimeOfDay } from "@/lib/format";
 import {
@@ -14,6 +14,7 @@ import {
   requestQuotationChanges,
   createRazorpayOrderForQuotation,
   recordRazorpayPayment,
+  savePaymentMethodByToken,
 } from "@/lib/api/quotations-public.functions";
 import { generateQuotationPdf, downloadBlob } from "@/lib/quotation-pdf";
 
@@ -53,8 +54,12 @@ function PublicQuotationPage() {
   const [changesDialogOpen, setChangesDialogOpen] = useState(false);
   const [note, setNote] = useState("");
   const [downloading, setDownloading] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"choose" | "cash" | "paid">("choose");
+  const [paymentStep, setPaymentStep] = useState<"choose" | "method_selected" | "online" | "paid">("choose");
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [savingMethod, setSavingMethod] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+
+  const savePaymentMethod = useServerFn(savePaymentMethodByToken);
 
   const { data, isLoading } = useQuery({
     queryKey: ["public-quote", token],
@@ -67,8 +72,18 @@ function PublicQuotationPage() {
 
   const approveMut = useMutation({
     mutationFn: () => approve({ data: { token } }),
-    onSuccess: () => { setApproved(true); setApprovedDialogOpen(true); },
+    onSuccess: () => { setApproved(true); setApprovedDialogOpen(true); setPaymentStep("choose"); },
   });
+
+  // If already agreed on load, restore payment step state
+  useEffect(() => {
+    if (!data?.quote) return;
+    const q = data.quote as any;
+    if (q.status === "agreed" && q.selected_payment_method) {
+      setSelectedMethod(q.selected_payment_method);
+      setPaymentStep("method_selected");
+    }
+  }, [data?.quote]);
 
   const requestMut = useMutation({
     mutationFn: () => requestChanges({ data: { token, note: note.trim() } }),
@@ -276,49 +291,103 @@ function PublicQuotationPage() {
               This quotation has expired. Please contact us for a fresh one.
             </div>
           ) : isAgreed ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-2 text-success dark:text-success text-sm font-medium">
                 <CheckCircle2 className="h-5 w-5" /> Approved — thank you!
               </div>
+
+              {/* Step 1: Choose payment method */}
               {paymentStep === "choose" && (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">How would you like to pay?</div>
+                <div className="space-y-3">
+                  <div className="text-sm font-semibold">How would you like to make the payment?</div>
+                  <div className="text-xs text-muted-foreground">Select your preferred payment method so we can prepare accordingly.</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {(company as any)?.payment_method === "razorpay" && (
-                      <Button
-                        className="min-h-12"
-                        onClick={handleRazorpayPay}
-                        disabled={paymentProcessing}
+                    {[
+                      { key: "cash", label: "Cash", icon: Banknote, desc: "Pay in cash at our venue" },
+                      { key: "cheque", label: "Cheque", icon: Receipt, desc: "Pay by cheque" },
+                      { key: "bank_transfer", label: "Bank Transfer", icon: Building2, desc: "NEFT / RTGS / IMPS" },
+                      { key: "upi", label: "UPI", icon: Smartphone, desc: "GPay, PhonePe, Paytm, etc." },
+                      ...((company as any)?.payment_method === "razorpay"
+                        ? [{ key: "razorpay", label: "Pay Online", icon: CreditCard, desc: "Cards, UPI, Net Banking" }]
+                        : []),
+                    ].map(({ key, label, icon: Icon, desc }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setSelectedMethod(key)}
+                        className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
+                          selectedMethod === key
+                            ? "border-primary bg-primary/5"
+                            : "hover:border-primary/40"
+                        }`}
                       >
-                        {paymentProcessing
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <><CreditCard className="h-5 w-5 mr-1.5" /> Pay Online</>}
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      className="min-h-12"
-                      onClick={() => setPaymentStep("cash")}
-                    >
-                      Cheque / Cash
-                    </Button>
+                        <Icon className={`h-5 w-5 mt-0.5 shrink-0 ${selectedMethod === key ? "text-primary" : "text-muted-foreground"}`} />
+                        <div>
+                          <div className="text-sm font-medium">{label}</div>
+                          <div className="text-xs text-muted-foreground">{desc}</div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
+                  <Button
+                    className="w-full min-h-11"
+                    disabled={!selectedMethod || savingMethod}
+                    onClick={async () => {
+                      if (!selectedMethod) return;
+                      setSavingMethod(true);
+                      await savePaymentMethod({ data: { token, payment_method: selectedMethod as any } });
+                      setSavingMethod(false);
+                      if (selectedMethod === "razorpay") {
+                        setPaymentStep("online");
+                      } else {
+                        setPaymentStep("method_selected");
+                      }
+                    }}
+                  >
+                    {savingMethod ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm payment method"}
+                  </Button>
                 </div>
               )}
-              {paymentStep === "cash" && (
-                <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+
+              {/* Step 2a: Non-online payment confirmed */}
+              {paymentStep === "method_selected" && (
+                <div className="rounded-md border bg-muted/30 p-4 text-sm space-y-2">
                   <div className="flex items-center gap-2 font-medium">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    Please visit our venue
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Payment method confirmed — {selectedMethod?.replace("_", " ")}
                   </div>
-                  <div className="text-muted-foreground text-xs">
-                    Our team will guide you through the payment process.
-                    {(company as any)?.full_address && (
-                      <div className="mt-1">{(company as any).full_address}</div>
-                    )}
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Our team has been notified of your preferred payment method and will be in touch with the payment details.
+                  </p>
+                  {(company as any)?.full_address && (
+                    <div className="flex items-start gap-2 text-xs text-muted-foreground border-t pt-2 mt-2">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
+                      {(company as any).full_address}
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Step 2b: Online payment via Razorpay */}
+              {paymentStep === "online" && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Complete your payment online</div>
+                  <Button
+                    className="w-full min-h-12"
+                    onClick={handleRazorpayPay}
+                    disabled={paymentProcessing}
+                  >
+                    {paymentProcessing
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <><CreditCard className="h-5 w-5 mr-1.5" /> Pay {formatINR(Number(quote.total))} Online</>}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => { setSelectedMethod(null); setPaymentStep("choose"); }}>
+                    Change payment method
+                  </Button>
+                </div>
+              )}
+
+              {/* Step 3: Razorpay paid */}
               {paymentStep === "paid" && (
                 <div className="flex items-center gap-2 text-success dark:text-success text-sm font-medium">
                   <CheckCircle2 className="h-5 w-5" /> Payment successful — the team will be in touch shortly.

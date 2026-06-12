@@ -28,6 +28,7 @@ interface Props {
   companyId: string;
   requirementId?: string | null;
   onSaved?: () => void;
+  onSavedAndQuote?: (requirementId: string) => void;
 }
 
 type Session = { name: string; start_time: string; end_time: string };
@@ -66,7 +67,7 @@ const EMPTY: FormState = {
 
 const BUDGETS = ["Under ₹1L", "₹1L - ₹3L", "₹3L - ₹5L", "₹5L - ₹10L", "₹10L - ₹25L", "₹25L+"];
 
-export function RequirementSheet({ open, onOpenChange, leadId, companyId, requirementId, onSaved }: Props) {
+export function RequirementSheet({ open, onOpenChange, leadId, companyId, requirementId, onSaved, onSavedAndQuote }: Props) {
   const isMobile = useIsMobile();
   const { profile } = useAuth();
   const draftKey = `req:${leadId}:${requirementId ?? "new"}`;
@@ -279,6 +280,18 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
     if (id) {
       toast.success("Requirement saved");
       onSaved?.();
+    }
+  };
+
+  const onSaveAndQuote = async () => {
+    setSaving(true);
+    const id = await ensureRequirementSaved();
+    setSaving(false);
+    if (id) {
+      toast.success("Requirement saved");
+      onSaved?.();
+      onOpenChange(false);
+      onSavedAndQuote?.(id);
     }
   };
 
@@ -512,9 +525,16 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
 
         <div className="border-t p-4 flex items-center justify-between gap-2 shrink-0">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Close</Button>
-          <Button onClick={onSaveOnly} disabled={saving || loading}>
-            {saving ? "Saving…" : currentReqId ? "Save changes" : "Save requirement"}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={onSaveOnly} disabled={saving || loading} variant={onSavedAndQuote ? "outline" : "default"}>
+              {saving ? "Saving…" : currentReqId ? "Save changes" : "Save requirement"}
+            </Button>
+            {onSavedAndQuote && (
+              <Button onClick={onSaveAndQuote} disabled={saving || loading}>
+                {saving ? "Saving…" : "Save & Open Quotation"}
+              </Button>
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
