@@ -17,7 +17,7 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   follow_up: "Follow-up",
   venue_meeting: "Venue meeting",
   positive: "Interested",
-  neutral: "Thinking",
+  neutral: "Action Needed",
   negative: "Not interested",
   unresponsive: "No reply",
   closed: "Closed",

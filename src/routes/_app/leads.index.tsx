@@ -50,7 +50,7 @@ export const Route = createFileRoute("/_app/leads/")({
 });
 
 function LeadsInbox() {
-  const { profile, role, activeCompanyId } = useAuth();
+  const { profile, role, activeCompanyId, companies } = useAuth();
   const searchParams = Route.useSearch();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,8 +68,15 @@ function LeadsInbox() {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const followupDue = searchParams.filter === "followup_due";
 
+  // Build a company name lookup from auth context
+  const companyNameMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const c of companies) m[c.id] = c.name;
+    return m;
+  }, [companies]);
+
   const companyFilter = useMemo(() => {
-    if (role === "super_admin") return activeCompanyId;
+    if (role === "super_admin") return activeCompanyId; // null = all companies
     return profile?.company_id ?? null;
   }, [role, activeCompanyId, profile]);
 
@@ -180,8 +187,11 @@ function LeadsInbox() {
     setTransferReason("");
   };
 
-  // initial + filter changes
+  // initial + filter changes — clear stale data immediately so old leads don't flash
   useEffect(() => {
+    setLeads([]);
+    setAssignedNames({});
+    setReqMeta({});
     setPage(0);
     fetchPage(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -293,6 +303,9 @@ function LeadsInbox() {
               <tr className="border-b bg-muted/50">
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Phone</th>
+                {role === "super_admin" && (
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Company</th>
+                )}
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Assigned to</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Event</th>
@@ -308,6 +321,7 @@ function LeadsInbox() {
                   masked={profile?.phone_masked ?? false}
                   meta={reqMeta[l.id]}
                   assignedName={l.assigned_to ? (assignedNames[l.assigned_to] ?? "…") : undefined}
+                  companyName={role === "super_admin" ? (companyNameMap[l.company_id] ?? "—") : undefined}
                   currentProfileId={profile?.id}
                   role={role ?? undefined}
                   onAutoAssign={role !== "super_admin" ? handleAutoAssign : undefined}
@@ -364,9 +378,9 @@ function LeadsInbox() {
 }
 
 function LeadRow({
-  lead, masked, meta, assignedName, currentProfileId, role, onAutoAssign, onTransferRequest,
+  lead, masked, meta, assignedName, companyName, currentProfileId, role, onAutoAssign, onTransferRequest,
 }: {
-  lead: Lead; masked: boolean; meta?: ReqMeta; assignedName?: string;
+  lead: Lead; masked: boolean; meta?: ReqMeta; assignedName?: string; companyName?: string;
   currentProfileId?: string; role?: AppRole;
   onAutoAssign?: (lead: Lead) => void;
   onTransferRequest?: (lead: Lead) => void;
@@ -398,6 +412,13 @@ function LeadRow({
         </div>
       </td>
       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{phone}</td>
+      {companyName !== undefined && (
+        <td className="px-4 py-3">
+          <span className="text-xs bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 whitespace-nowrap">
+            {companyName}
+          </span>
+        </td>
+      )}
       <td className="px-4 py-3"><StatusBadge status={lead.status} /></td>
       <td className="px-4 py-3 text-sm text-muted-foreground">{assignedName ?? "—"}</td>
       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">

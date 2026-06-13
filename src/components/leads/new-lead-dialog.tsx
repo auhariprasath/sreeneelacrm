@@ -22,7 +22,12 @@ const LANGUAGES = ["English", "Tamil", "Hindi", "Telugu", "Malayalam", "Kannada"
 export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
   const { profile, companies, activeCompanyId, role } = useAuth();
   const navigate = useNavigate();
-  const targetCompanyId = role === "super_admin" ? activeCompanyId : profile?.company_id ?? null;
+
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  // Derive targetCompanyId: super_admin uses selectedCompanyId (must pick), others fixed to their company
+  const targetCompanyId = role === "super_admin"
+    ? (selectedCompanyId ?? activeCompanyId)
+    : profile?.company_id ?? null;
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -41,6 +46,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
     setFullName(""); setPhone(""); setEmail(""); setLanguage("English");
     setSource("manual"); setScore("warm"); setNotes(""); setDuplicate(null);
     setReferredByName(""); setReferredByLeadId(null); setRefSearch([]);
+    setSelectedCompanyId(null);
   };
 
   const normalizedPhone = (raw: string) => {
@@ -104,6 +110,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
 
   const submit = async () => {
     if (!targetCompanyId) { toast.error("Select a company first."); return; }
+    if (role === "super_admin" && !selectedCompanyId && !activeCompanyId) { toast.error("Select a company."); return; }
     const d = normalizedPhone(phone);
     if (!fullName.trim()) { toast.error("Enter a name."); return; }
     if (!d) { toast.error("Enter a valid 10-digit phone."); return; }
@@ -155,6 +162,33 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
         </DialogHeader>
 
         <div className="space-y-3">
+          {/* Company field — selector for super_admin, read-only label for others */}
+          {role === "super_admin" ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="ln-company">Company <span className="text-destructive">*</span></Label>
+              <Select
+                value={selectedCompanyId ?? activeCompanyId ?? ""}
+                onValueChange={(v) => { setSelectedCompanyId(v); setDuplicate(null); }}
+              >
+                <SelectTrigger id="ln-company">
+                  <SelectValue placeholder="Select company…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label>Company</Label>
+              <div className="h-10 flex items-center px-3 rounded-md border bg-muted/50 text-sm text-muted-foreground">
+                {companies.find((c) => c.id === (profile?.company_id ?? ""))?.name ?? "—"}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="ln-name">Full name</Label>
             <Input id="ln-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. Anand Kumar" />

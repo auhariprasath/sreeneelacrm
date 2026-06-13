@@ -31,7 +31,7 @@ interface StaffMetric {
 interface TrendPoint { month: string; leads: number; conversions: number }
 
 const SCORE_WEIGHTS = { leadsConverted: 40, followUpsDone: 20, meetingsDone: 25, tasksDone: 15 };
-const COLORS = ["#6366f1","#22c55e","#f59e0b","#ef4444","#0ea5e9","#a855f7","#ec4899","#14b8a6"];
+const COLORS = ["#6366f1","#22c55e","#f59e0b","#ef4444","#0ea5e9","#a855f7","#f97316","#14b8a6"];
 
 function calcScore(m: StaffMetric, maxVals: Record<string, number>) {
   return Math.round(

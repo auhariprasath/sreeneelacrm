@@ -224,7 +224,7 @@ export function TimeClockField({
       </button>
 
       {/* Uses shadcn Dialog so Radix handles the portal — no stacking/transform issues */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(o) => { if (!o) { onChange(draft); } setOpen(o); }}>
         <DialogContent className="max-w-xs p-5 [&>button:last-child]:hidden">
           <TimeClockPicker
             value={draft}

@@ -108,7 +108,7 @@ export function QuotationBuilder({
         supabase.from("companies").select("*").eq("id", companyId).maybeSingle(),
         supabase.from("leads").select("*").eq("id", leadId).maybeSingle(),
         supabase.from("add_ons_selected").select("addon_name,addon_price").eq("requirement_id", requirementId),
-        supabase.from("quotations").select("*").eq("lead_id", leadId).is("deleted_at", null).order("version", { ascending: false }),
+        supabase.from("quotations").select("*").eq("requirement_id", requirementId).is("deleted_at", null).order("version", { ascending: false }),
       ]);
       if (cancelled) return;
       if (!req) { toast.error("Requirement not found"); onOpenChange(false); return; }

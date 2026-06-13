@@ -18,7 +18,7 @@ const STATUS_CLASS: Record<Status, string> = {
   neutral: "bg-muted text-muted-foreground border-border",
   positive: "bg-success/15 text-success dark:text-success border-success/30",
   negative: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30",
-  closed: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
+  closed: "bg-primary/15 text-primary border-primary/30",
   unresponsive: "bg-warning/15 text-warning dark:text-warning border-warning/30",
   locked: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30",
 };

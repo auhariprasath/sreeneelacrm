@@ -267,9 +267,9 @@ function NotInterestedPage() {
       </Card>
 
       {/* SA insight */}
-      <Card className="p-4 border-l-4 border-purple-600">
+      <Card className="p-4 border-l-4 border-primary">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-purple-600 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-primary mt-0.5" />
           <div>
             <div className="font-semibold text-sm">
               In the last 30 days, {last30.length} enquiries said not interested.
@@ -324,7 +324,7 @@ function NotInterestedPage() {
               ) : filtered.map((r) => (
                 <tr key={`${r.lead_id}-${r.closed_at}`} className="border-b hover:bg-muted/40">
                   <td className="py-2 pr-3">
-                    <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-purple-700 font-medium hover:underline">
+                    <Link to="/leads/$leadId" params={{ leadId: r.lead_id }} className="text-primary font-medium hover:underline">
                       {r.full_name}
                     </Link>
                   </td>

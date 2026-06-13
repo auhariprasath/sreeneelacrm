@@ -119,10 +119,10 @@ export function FollowUpDialog({ open, onOpenChange, leadId, performedBy, defaul
                   "relative text-left rounded-xl border-2 p-3 min-h-[88px] transition-all",
                   "active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isSelected
-                    ? "border-purple-600 bg-purple-600/10 text-purple-900 dark:text-purple-100 cursor-default"
+                    ? "border-primary bg-primary/10 text-primary cursor-default"
                     : isDimmed
                       ? "border-border bg-card opacity-40 cursor-not-allowed"
-                      : "border-border bg-card hover:border-purple-500/50 hover:bg-purple-500/5",
+                      : "border-border bg-card hover:border-primary/50 hover:bg-primary/5",
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -167,8 +167,8 @@ export function FollowUpDialog({ open, onOpenChange, leadId, performedBy, defaul
             onClick={save}
             disabled={saving}
             className={cn(
-              "h-12 w-full text-base font-semibold bg-purple-600 hover:bg-purple-700 text-white",
-              pulse && "animate-pulse ring-4 ring-purple-400/40",
+              "h-12 w-full text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground",
+              pulse && "animate-pulse ring-4 ring-primary/40",
             )}
           >
             <Check className="h-5 w-5 mr-2" />

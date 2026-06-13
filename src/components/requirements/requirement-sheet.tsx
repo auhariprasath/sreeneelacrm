@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAutosaveDraft, loadDraft } from "@/hooks/use-autosave-draft";
+import { useAutosaveDraft } from "@/hooks/use-autosave-draft";
 import { formatINR, formatTimeOfDay, addHoursToTime } from "@/lib/format";
 import { Loader2, Info, Sparkles, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -138,14 +138,10 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
           setCurrentReqId(requirementId);
         }
       } else {
-        const draft = loadDraft<{ form: FormState; isMandapam: boolean; selectedAddons: any[] }>(draftKey);
-        if (draft?.form) {
-          setForm(draft.form);
-          setSelectedAddons(draft.selectedAddons ?? []);
-        } else {
-          setForm(EMPTY);
-          setSelectedAddons([]);
-        }
+        // Always start blank for new requirements — no draft carry-over
+        setForm(EMPTY);
+        setSelectedAddons([]);
+        setCommunityOther("");
         setCurrentReqId(null);
       }
       setOtherCount(null);
@@ -278,6 +274,7 @@ export function RequirementSheet({ open, onOpenChange, leadId, companyId, requir
     const id = await ensureRequirementSaved();
     setSaving(false);
     if (id) {
+      onOpenChange(false);
       toast.success("Requirement saved");
       onSaved?.();
     }

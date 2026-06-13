@@ -62,7 +62,7 @@ export const Route = createFileRoute("/_app/leads/$leadId")({ component: LeadPro
 
 function LeadProfile() {
   const { leadId } = Route.useParams();
-  const { profile, role } = useAuth();
+  const { profile, role, companies } = useAuth();
   const navigate = useNavigate();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
@@ -545,6 +545,44 @@ function LeadProfile() {
 
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <StatusBadge status={lead.status} />
+              {/* Company badge */}
+              {(() => {
+                const companyName = companies.find((c) => c.id === lead.company_id)?.name;
+                if (!companyName) return null;
+                if (role === "super_admin") {
+                  return (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="text-[11px] bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 hover:bg-primary/20 flex items-center gap-1">
+                          <Building2 className="h-3 w-3" />{companyName}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {companies.map((c) => (
+                          <DropdownMenuItem
+                            key={c.id}
+                            className={c.id === lead.company_id ? "font-semibold" : ""}
+                            onSelect={async () => {
+                              if (c.id === lead.company_id) return;
+                              const { error } = await supabase.from("leads").update({ company_id: c.id }).eq("id", lead.id);
+                              if (error) { toast.error(error.message); return; }
+                              setLead((prev) => prev ? { ...prev, company_id: c.id } : prev);
+                              toast.success(`Moved to ${c.name}`);
+                            }}
+                          >
+                            {c.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  );
+                }
+                return (
+                  <span className="text-[11px] bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 flex items-center gap-1 w-fit">
+                    <Building2 className="h-3 w-3" />{companyName}
+                  </span>
+                );
+              })()}
               <span className="text-[11px] text-muted-foreground">Updated {relativeTime(lead.updated_at)}</span>
               {upcomingFu && (
                 <span className="text-[11px] bg-warning/15 text-warning dark:text-warning border border-warning/30 rounded-full px-2 py-0.5">
